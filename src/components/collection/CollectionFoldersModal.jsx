@@ -92,7 +92,7 @@ export default function CollectionFoldersModal({ wallpaperId, isOpen, onClose, o
     }
     
     try {
-      const res = await fetch("/api/collect", {
+      const res = await fetch("/api/collection", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ collectionId, wallpaperId }),
@@ -179,6 +179,8 @@ export default function CollectionFoldersModal({ wallpaperId, isOpen, onClose, o
       });
       
       const data = await res.json();
+      console.log(data);
+      
       if (data.success) {
         // ✅ REPLACE TEMP COLLECTION WITH REAL ONE
         setCollections(prev => prev.map(col => 
