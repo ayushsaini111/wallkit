@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { WallpaperCard } from "@/components/wallpapercard/WallpaperCard";
+import { WallpaperCard } from "@/components/wallpaperCard/WallpaperCard";
 import { LoginPopup } from "@/components/loginpopup";
 import {
   ArrowLeft,
