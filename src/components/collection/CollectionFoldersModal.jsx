@@ -16,7 +16,7 @@ export default function CollectionFoldersModal({ wallpaperId, isOpen, onClose, o
   // ✅ OPTIMIZED: Simple and fast collection checking
   const checkWallpaperInCollections = async () => {
     try {
-      const res = await fetch("/api/collect");
+      const res = await fetch("/api/collection");
       const data = await res.json();
       
       if (data.success && Array.isArray(data.collections)) {

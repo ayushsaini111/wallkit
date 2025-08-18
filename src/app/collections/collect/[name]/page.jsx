@@ -59,7 +59,7 @@ export default function CollectionDetailPage() {
       const decodedName = decodeURIComponent(name);
       console.log('Fetching wallpapers for collection:', decodedName);
       
-      const res = await fetch(`/api/collecion/add-wallpaper?name=${encodeURIComponent(decodedName)}`, {
+      const res = await fetch(`/api/collection/add-wallpaper?name=${encodeURIComponent(decodedName)}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

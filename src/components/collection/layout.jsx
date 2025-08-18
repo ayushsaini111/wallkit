@@ -35,7 +35,7 @@ function CollectionsHeader() {
     setCreating(true);
 
     try {
-      const res = await fetch("/api/collect", {
+      const res = await fetch("/api/collection", {
         method: "POST",
         body: JSON.stringify({ name: newCollectionName }),
         headers: { "Content-Type": "application/json" }

@@ -378,7 +378,7 @@ function CollectionsPage() {
 
   // Navigate to collection
   const viewCollection = (collectionName) => {
-    window.location.href = `/collectionions/collect/${encodeURIComponent(collectionName)}`;
+    window.location.href = `/collection/collect/${encodeURIComponent(collectionName)}`;
   };
 
   if (loading) {
