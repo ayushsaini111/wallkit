@@ -172,7 +172,7 @@ export default function CollectionFoldersModal({ wallpaperId, isOpen, onClose, o
     
     try {
       // Create the collection
-      const res = await fetch("/api/collect", {
+      const res = await fetch("/api/collection", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newCollectionName.trim() }),
