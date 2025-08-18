@@ -242,7 +242,7 @@ export default function CollectionFoldersModal({ wallpaperId, isOpen, onClose, o
         try {
           await fetchCollections();
         } catch (error) {
-          console.error('Failed to load collections:', error);
+          console.error('Failed to load to collections:', error);
           setLoading(false);
         }
       };
