@@ -259,7 +259,7 @@ export default function CollectionDetailPage() {
               )}
 
               {/* PRESERVED: Original grid layout as requested */}
-              <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-3 gap-3 space-y-3 mx-auto px-4 w-full">
+              <div className="columns-2 sm:columns-2 md:columns-3 lg:columns-3 gap-3 space-y-3 mx-auto px-4 w-full">
                 {wallpapers.map((wallpaper, index) => (
                   <WallpaperCard
                     key={`${wallpaper._id}-${index}`} // More stable key

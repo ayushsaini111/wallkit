@@ -19,4 +19,4 @@ const followSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.models.Follow || mongoose.model('Follow', followSchema);
+export const Follow = mongoose.models.Follow || mongoose.model('Follow', followSchema);

@@ -29,7 +29,7 @@ export default function RootLayout({ children }) {
 
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} antialiased`}>
+      <body className={`${geistSans.variable} antialiased max-w-[14400px]`}>
         <SessionProvider>
           <AuthProvider>
             <RouteGuard>

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { WallpaperCard } from "@/components/wallpaperCard/WallpaperCard";
 import { Heart, RefreshCw, Sparkles, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Loading from "@/components/loading";
 
 // Floating Doodle Component
 const FloatingDoodle = ({ children, className, delay = 0 }) => {
@@ -81,8 +82,16 @@ export default function FavoritesPage() {
     setShowLoginPopup(true);
   };
 
+  // Enhanced handler with debugging
   const handleWallpaperRemoved = (removedWallpaperId) => {
-    setWallpapers(prev => prev.filter(w => w._id !== removedWallpaperId));
+    console.log('Removing wallpaper from favorites UI:', removedWallpaperId);
+    
+    // Immediately filter out the wallpaper from the state
+    setWallpapers(prev => {
+      const filtered = prev.filter(w => w._id !== removedWallpaperId);
+      console.log('Wallpapers before:', prev.length, 'after:', filtered.length);
+      return filtered;
+    });
   };
 
   useEffect(() => {
@@ -175,7 +184,6 @@ export default function FavoritesPage() {
               </div>
             </div>
 
-
           </div>
         </header>
 
@@ -183,18 +191,7 @@ export default function FavoritesPage() {
         <main>
           {/* Loading State */}
           {loading && (
-            <div className="text-center py-20">
-              <div className="relative mb-8">
-                <div className="w-24 h-24 bg-gradient-to-br from-red-100 to-pink-200 rounded-2xl flex items-center justify-center mx-auto">
-                  <Heart className="w-12 h-12 text-red-400 animate-pulse fill-red-400" />
-                </div>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">Loading Your Favorites</h3>
-              <p className="text-gray-600">Fetching your loved wallpapers...</p>
-              <div className="flex justify-center mt-4">
-                <div className="w-8 h-8 border-2 border-red-200 border-t-red-600 rounded-full animate-spin"></div>
-              </div>
-            </div>
+            <Loading text={"Fetching your favorite wallpapers..."} />
           )}
 
           {/* Error State */}
@@ -259,18 +256,25 @@ export default function FavoritesPage() {
                 </div>
               )}
 
-              {/* Wallpapers Grid with enhanced styling */}
+              {/* Wallpapers Grid with enhanced styling and animation */}
               <div className="relative">
-                <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-3 gap-3 space-y-3 mx-auto px-4 w-full py-6">
+                <div className="columns-2 sm:columns-2 md:columns-3 lg:columns-3 gap-3 space-y-3 mx-auto px-4 w-full py-6">
                   {wallpapers.map((wallpaper, index) => (
-                    <WallpaperCard
+                    <div
                       key={`${wallpaper._id}-${index}`}
-                      wallpaper={wallpaper}
-                      index={index}
-                      onUnauthorizedAction={handleUnauthorizedAction}
-                      onWallpaperRemoved={handleWallpaperRemoved}
-                      showUserInfo={true}
-                    />
+                      className="transition-all duration-500 ease-in-out"
+                      style={{
+                        animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`
+                      }}
+                    >
+                      <WallpaperCard
+                        wallpaper={wallpaper}
+                        index={index}
+                        onUnauthorizedAction={handleUnauthorizedAction}
+                        onWallpaperRemoved={handleWallpaperRemoved}
+                        showUserInfo={true}
+                      />
+                    </div>
                   ))}
                 </div>
               </div>
@@ -298,6 +302,20 @@ export default function FavoritesPage() {
         onClose={() => setShowLoginPopup(false)}
         actionType={loginActionType}
       />
+
+      {/* CSS Animation for fade in */}
+      <style jsx>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }

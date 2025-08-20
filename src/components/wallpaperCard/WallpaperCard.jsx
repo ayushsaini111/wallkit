@@ -1,4 +1,4 @@
-// WallpaperCard.js - Refactored main component using separated hooks and components
+// WallpaperCard.js - Updated to properly handle immediate removal
 
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -39,11 +39,12 @@ const WallpaperCard = ({
     // Use unified follow system
     const { isFollowing, followerCount } = useFollow(wallpaper.userDetails?._id);
 
-    // Use custom hooks
+    // Use custom hooks - Pass the removal callback properly
     const { isLiked, likeCount, toggleLike } = useToggleLike(
         wallpaper._id,
         wallpaper.likeCount || 0,
-        onUnauthorizedAction
+        onUnauthorizedAction,
+        onWallpaperRemoved // This will trigger immediate removal from favorites page
     );
 
     const {
@@ -242,7 +243,7 @@ const WallpaperCard = ({
         <>
             <div
                 ref={intersectionRef}
-                className="group relative cursor-pointer transform transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1 bg-white rounded-3xl shadow-xl hover:shadow-2xl overflow-hidden h-full w-full"
+                className="group relative cursor-pointer transform transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1 bg-white rounded-xl md:rounded-3xl shadow-xl hover:shadow-2xl overflow-hidden h-full w-full"
                 onClick={handleCardClick}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
@@ -272,10 +273,10 @@ const WallpaperCard = ({
                             src={wallpaper.imageUrl}
                             alt={wallpaper.title || 'Wallpaper'}
                             className={`w-full h-full object-cover transition-all duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'
-                                } ${isHovered ? 'scale-105' : 'scale-100'}`}
+                                } ${isHovered ? 'scale-z-105' : 'scale-100'}`}
                             onLoad={() => setImageLoaded(true)}
                             onError={handleImageError}
-                            loading={index < 6 ? 'eager' : 'lazy'}
+                            loading={index < 6 ? 'eager' : 'eager'}
                         />
                     )}
 
@@ -319,22 +320,22 @@ const WallpaperCard = ({
                             <div className="absolute top-4 right-4 flex flex-col gap-2 z-20">
                                 <button
                                     onClick={toggleLike}
-                                    className={`p-3 rounded-2xl transition-all duration-200 transform hover:scale-110 shadow-lg ${isLiked
+                                    className={`p-3 rounded-2xl transform hover:scale-105 shadow-lg transition-all duration-300 ${isLiked
                                             ? 'bg-red-500 text-white scale-105 shadow-red-500/50'
                                             : 'bg-white/20 text-white hover:bg-white/30'
                                         } ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}`}
-                                    style={{ transitionDelay: '100ms' }}
+                                    style={{ transitionDelay: '50ms' }}
                                 >
                                     <Heart className={`w-5 h-5 ${isLiked ? 'fill-white' : ''}`} />
                                 </button>
 
                                 <button
                                     onClick={toggleSave}
-                                    className={`p-3 rounded-2xl transition-all duration-200 transform hover:scale-110 shadow-lg ${isSaved
+                                    className={`p-3 rounded-2xl transform hover:scale-105 shadow-lg transition-all duration-300 ${isSaved
                                             ? 'bg-blue-500 text-white scale-105 shadow-blue-500/50'
                                             : 'bg-white/20 text-white hover:bg-white/30'
                                         } ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}`}
-                                    style={{ transitionDelay: '200ms' }}
+                                    style={{ transitionDelay: '100ms' }}
                                 >
                                     <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-white' : ''}`} />
                                 </button>

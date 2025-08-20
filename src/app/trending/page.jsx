@@ -4,7 +4,7 @@ import { useEffect, useState,useCallback } from 'react';
 import { TrendingUp, Sparkles } from 'lucide-react';
 import { WallpaperCard } from '@/components/wallpaperCard/WallpaperCard'; // Import the unified WallpaperCard component
 import { LoginPopup } from '@/components/loginpopup';
-
+import Loading from '@/components/loading';
 // Floating Doodle Component
 const FloatingDoodle = ({ children, className = "", delay = 0 }) => (
   <div
@@ -73,15 +73,7 @@ export default function TrendingSection() {
         <FloatingDoodle className="bottom-40 right-1/3 text-pink-200" delay={2.5}>🌟</FloatingDoodle>
 
         <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            {/* Animated Loading Icon */}
-            <div className="relative mb-8">
-              <div className="w-20 h-20 border-4 border-orange-100 border-t-orange-500 rounded-full animate-spin mx-auto"></div>
-              <div className="absolute inset-0 w-20 h-20 border-4 border-pink-100 border-b-pink-500 rounded-full animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-700 mb-2">Loading Trending Wallpapers</h2>
-            <p className="text-gray-500">Discovering what's hot right now...</p>
-          </div>
+          <Loading text="Loading trending wallpapers..." />
         </div>
       </div>
     );
@@ -102,19 +94,7 @@ export default function TrendingSection() {
         {/* Enhanced Header Section */}
         <div className="text-center mb-16">
           {/* Decorative Elements */}
-          <div className="flex justify-center items-center gap-4 mb-8">
-            <div className="w-12 h-0.5 bg-gradient-to-r from-transparent to-orange-400 rounded-full"></div>
-            <div className="relative">
-              <div className="w-16 h-16 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 rounded-3xl flex items-center justify-center shadow-2xl transform rotate-12 hover:rotate-0 transition-all duration-500">
-                <TrendingUp className="w-8 h-8 text-white" />
-              </div>
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center animate-bounce">
-                <Sparkles className="w-3 h-3 text-white" />
-              </div>
-            </div>
-            <div className="w-12 h-0.5 bg-gradient-to-l from-transparent to-purple-400 rounded-full"></div>
-          </div>
-
+        
           {/* Main Heading with Enhanced Typography */}
           <h1 className="text-6xl md:text-7xl font-black mb-6 leading-tight">
             <span className="bg-gradient-to-r from-orange-600 via-pink-600 to-purple-500 bg-clip-text text-transparent">
@@ -134,7 +114,7 @@ export default function TrendingSection() {
         </div>
 
         {/* Collection Grid using masonry layout like your collection page */}
-         <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-3 gap-3 space-y-3 mx-auto px-4 w-full">
+         <div className="columns-2 sm:columns-2 md:columns-3 lg:columns-3 gap-3 space-y-3 mx-auto px-4 w-full">
                   {trending.map((wallpaper, index) => (
                     <WallpaperCard 
                       key={wallpaper._id} 

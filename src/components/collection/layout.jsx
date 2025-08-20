@@ -63,19 +63,7 @@ function CollectionsHeader() {
       <FloatingDoodle className="bottom-40 right-4 sm:right-20 text-indigo-200" delay={1.5}>💫</FloatingDoodle>
       <FloatingDoodle className="bottom-20 left-1/3 text-green-200" delay={2}>🖼️</FloatingDoodle>
 
-      {/* Decorative Elements */}
-      <div className="flex justify-center items-center gap-2 sm:gap-4 mb-6 sm:mb-8">
-        <div className="w-6 sm:w-12 h-0.5 bg-gradient-to-r from-transparent to-purple-300 rounded-full"></div>
-        <div className="relative mt-4 sm:mt-8">
-          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 rounded-2xl sm:rounded-3xl flex items-center justify-center shadow-2xl transform rotate-12 hover:rotate-0 transition-all duration-500">
-            <BookMarked className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-          </div>
-          <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-4 h-4 sm:w-6 sm:h-6 bg-yellow-400 rounded-full flex items-center justify-center animate-bounce">
-            <Sparkles className="w-2 h-2 sm:w-3 sm:h-3 text-white" />
-          </div>
-        </div>
-        <div className="w-6 sm:w-12 h-0.5 bg-gradient-to-l from-transparent to-pink-300 rounded-full"></div>
-      </div>
+     
 
       {/* Main Heading */}
       <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-4 sm:mb-6 leading-tight px-2">
@@ -88,13 +76,13 @@ function CollectionsHeader() {
       </h1>
 
       {/* Subheading */}
-      <p className="text-lg sm:text-xl md:text-2xl text-gray-600 mb-6 sm:mb-8 max-w-3xl mx-auto leading-relaxed font-light px-4">
+      <p className="text-lg sm:text-xl md:text-2xl text-gray-600 mb-6 sm:mb-8 max-w-lg mx-auto leading-relaxed font-light px-4">
         Organize your favorite wallpapers into
         <span className="font-medium text-purple-600"> beautiful collections</span>
       </p>
 
       {/* Create New Collection */}
-      <div className="max-w-xs sm:max-w-md mx-auto px-4">
+      <div className="max-w-xs sm:max-w-xl mx-auto px-4">
         <div className="flex flex-col sm:flex-row gap-3 p-2 bg-white/70 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-lg border border-white/20">
           <input
             type="text"

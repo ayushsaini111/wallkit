@@ -1,9 +1,9 @@
 // page.js
-import WallpaperGallery from '@/components/wallpapergallary/WallpaperGallery';
+import WallpaperGallery from '@/components/wallpapergallary/main';
 
 export default function Home() {
   return (
-    <div>
+    <div className=''>
       <WallpaperGallery />
     </div>
   );
