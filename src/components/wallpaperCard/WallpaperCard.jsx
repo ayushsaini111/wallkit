@@ -1,4 +1,4 @@
-// WallpaperCard.js - Updated to properly handle immediate removal
+// WallpaperCard.js - Updated to hide avatar, title, like, save, download on mobile
 
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -212,7 +212,7 @@ const WallpaperCard = ({
         }
 
         return (
-            <div className="relative w-10 h-10">
+            <div className="relative w-10 h-10 sm:block hidden">
                 {!profileImageLoaded && !profileImageError && (
                     <div className="absolute inset-0 rounded-full bg-gray-300 animate-pulse ring-2 ring-white/40"></div>
                 )}
@@ -283,41 +283,10 @@ const WallpaperCard = ({
                     {/* Enhanced Hover Overlay */}
                     <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-all duration-500 ${isHovered ? 'opacity-100' : 'opacity-0'
                         }`}>
-                        {/* Owner Action Buttons (Top Right) - Only show for owner */}
-                        {showOwnerActions && isOwner && (
-                            <div className="absolute top-4 right-4 flex flex-col gap-2 z-20">
-                                {onEdit && (
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onEdit();
-                                        }}
-                                        className={`p-3 bg-white/90 backdrop-blur-sm text-blue-600 rounded-2xl hover:bg-white hover:scale-110 transition-all duration-200 shadow-xl ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'
-                                            }`}
-                                        style={{ transitionDelay: '100ms' }}
-                                    >
-                                        <Pencil className="w-5 h-5" />
-                                    </button>
-                                )}
-                                {onDelete && (
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onDelete();
-                                        }}
-                                        className={`p-3 bg-white/90 backdrop-blur-sm text-red-600 rounded-2xl hover:bg-white hover:scale-110 transition-all duration-200 shadow-xl ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'
-                                            }`}
-                                        style={{ transitionDelay: '150ms' }}
-                                    >
-                                        <Trash2 className="w-5 h-5" />
-                                    </button>
-                                )}
-                            </div>
-                        )}
 
-                        {/* Regular Action Buttons (Top Right) - For non-owners */}
+                        {/* Regular Action Buttons (Top Right) */}
                         {!showOwnerActions && (
-                            <div className="absolute top-4 right-4 flex flex-col gap-2 z-20">
+                            <div className="absolute top-4 right-4 flex flex-col gap-2 z-20 hidden sm:flex">
                                 <button
                                     onClick={toggleLike}
                                     className={`p-3 rounded-2xl transform hover:scale-105 shadow-lg transition-all duration-300 ${isLiked
@@ -343,7 +312,7 @@ const WallpaperCard = ({
                         )}
 
                         {/* Download Button - Bottom Right */}
-                        <div className="absolute bottom-6 right-4 z-20">
+                        <div className="absolute bottom-6 right-4 z-20 hidden sm:block">
                             <button
                                 onClick={handleDownload}
                                 className={`p-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-2xl transition-all duration-300 backdrop-blur-xl transform hover:scale-110 shadow-xl ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
@@ -360,7 +329,7 @@ const WallpaperCard = ({
                                 }`}>
                                 {/* Creator Info */}
                                 {showUserInfo && wallpaper.userDetails && (
-                                    <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center justify-between mb-4 hidden sm:flex">
                                         <div className="flex items-center gap-3">
                                             <ProfileImage />
                                             <div className="text-white">
@@ -376,7 +345,7 @@ const WallpaperCard = ({
                                 )}
 
                                 {/* Title */}
-                                <h5 className="font-bold text-white text-sm mb-4 line-clamp-2 leading-tight">
+                                <h5 className="font-bold text-white text-sm mb-4 line-clamp-2 leading-tight hidden sm:block">
                                     {wallpaper.title || 'Untitled Wallpaper'}
                                 </h5>
                             </div>
