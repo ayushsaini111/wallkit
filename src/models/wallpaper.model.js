@@ -14,7 +14,11 @@ const wallpaperSchema = new mongoose.Schema(
     },
     imageUrl: {
       type: String,
-      required: [true, 'Image URL is required'],
+      required: [true, 'Original image URL is required'],
+    },
+    compressedUrl: {
+      type: String,
+      default: null, // Cloudinary compressed version
     },
     tags: {
       type: [String],
@@ -30,47 +34,45 @@ const wallpaperSchema = new mongoose.Schema(
       default: false,
     },
     category: {
-    type: String,
-    enum: [
-      'Nature',
-      'Abstract',
-      'Minimalist',
-      'Animals',
-      'Cityscape',
-      'Space',
-      'Technology',
-      'Fantasy',
-      'Textures & Patterns',
-      'Food & Drinks',
-      'People',
-      'Architecture',
-      'Cars & Vehicles',
-      'Art & Illustration',
-      '3D Renders',
-      'Typography',
-      'Dark',
-      'Light',
-      'Vintage',
-      'Sports',
-      'Other'
-    ],
-    required: true
-  },
+      type: String,
+      enum: [
+        'Nature',
+        'Abstract',
+        'Minimalist',
+        'Animals',
+        'Cityscape',
+        'Space',
+        'Technology',
+        'Fantasy',
+        'Textures & Patterns',
+        'Food & Drinks',
+        'People',
+        'Architecture',
+        'Cars & Vehicles',
+        'Art & Illustration',
+        '3D Renders',
+        'Typography',
+        'Dark',
+        'Light',
+        'Vintage',
+        'Sports',
+        'Other',
+      ],
+      required: true,
+    },
     downloadCount: {
       type: Number,
       default: 0,
     },
     appwriteId: {
       type: String,
-      required: [true, 'Appwrite ID is required'],
+      default: null, // Only required if >10MB (stored in Appwrite)
     },
-
   },
   {
     timestamps: true,
   }
 );
 
-// Ensure single model definition during hot reloads
 export const Wallpaper =
   mongoose.models.Wallpaper || mongoose.model('Wallpaper', wallpaperSchema);

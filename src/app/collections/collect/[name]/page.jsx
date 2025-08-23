@@ -169,7 +169,7 @@ export default function CollectionDetailPage() {
       <FloatingDoodle className="bottom-40 right-20 text-indigo-200" delay={1.5}>💫</FloatingDoodle>
       <FloatingDoodle className="bottom-20 left-1/3 text-green-200" delay={2}>📁</FloatingDoodle>
 
-      <div className="relative z-10 container mx-auto px-4 py-8 max-w-7xl">
+      <div className="relative z-10 container mx-auto px-1 py-8 max-w-7xl">
         {/* Header Section */}
         <header className="mb-8">
           {/* Navigation and Collection Name */}
@@ -259,7 +259,7 @@ export default function CollectionDetailPage() {
               )}
 
               {/* PRESERVED: Original grid layout as requested */}
-              <div className="columns-2 sm:columns-2 md:columns-3 lg:columns-3 gap-3 space-y-3 mx-auto px-4 w-full">
+              <div className="columns-2 gap-1 space-y-1 sm:columns-2 md:columns-3 lg:columns-3 xl:columns-3 xl:gap-3 xl:space-y-3  px-1 md:px-3 sm:px-4 w-full">
                 {wallpapers.map((wallpaper, index) => (
                   <WallpaperCard
                     key={`${wallpaper._id}-${index}`} // More stable key

@@ -64,6 +64,7 @@ export const GET = async () => {
           title: 1,
           description:1,
           imageUrl: 1,
+          compressedUrl: 1,
           tags: 1,
           createdAt: 1,
           isPrivate: 1,

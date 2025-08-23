@@ -28,10 +28,13 @@ export async function POST(req) {
       stream.end(buffer);
     });
 
+    console.log("Original file uploaded to Cloudinary:", uploadResult);
+
     // Return public_id (id) and secure_url (url)
     return NextResponse.json({
       id: uploadResult.public_id,
       url: uploadResult.secure_url,
+
     });
   } catch (err) {
     console.error('Cloudinary Upload Error:', err);

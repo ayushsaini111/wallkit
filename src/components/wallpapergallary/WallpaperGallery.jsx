@@ -418,7 +418,7 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
 
   // Enhanced Loading Skeleton Component
   const LoadingSkeleton = () => (
-    <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-3 xl:columns-3 gap-3 space-y-3 mx-auto px-3 sm:px-4 w-full" aria-label="Loading wallpapers">
+    <div className="columns-2  sm:columns-2 md:columns-3 lg:columns-3 xl:columns-3 gap-3 space-y-3 mx-auto px-3 sm:px-4 w-full" aria-label="Loading wallpapers">
       {[...Array(12)].map((_, i) => (
         <div 
           key={i} 
@@ -467,7 +467,7 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
       />
      
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-6 sm:py-8 relative z-10">
+      <main className="max-w-7xl mx-auto md:px-3 sm:px-4 lg:px-6 py-4 sm:py-8 relative z-10">
         <div className="space-y-6 sm:space-y-8">
           {/* Categories Navigation */}
           <nav aria-label="Wallpaper categories">
@@ -530,7 +530,7 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
               </div>
             ) : (
               <>
-                <div className="columns-2 gap-2 space-y-2 sm:columns-2 md:columns-3 lg:columns-3 xl:columns-3 xl:gap-3 xl:space-y-3 mx-auto px-3 sm:px-4 w-full">
+                <div className="columns-2 gap-1 space-y-1 sm:columns-2 md:columns-3 lg:columns-3 xl:columns-3 xl:gap-3 xl:space-y-3  px-1 md:px-3 sm:px-4 w-full">
                   {filteredWallpapers.map((wallpaper, index) =>
                     !wallpaper.isPrivate && (
                       <WallpaperCard

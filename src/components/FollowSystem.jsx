@@ -18,68 +18,38 @@ const followEventEmitter = new FollowEventEmitter();
 const followStatusCache = new Map();
 const followStatusPromises = new Map();
 
-// ✅ STORAGE SERVICE
-const getUserKey = (keyBase) => {
-  try {
-    if (typeof window === 'undefined') return keyBase;
-    const user = JSON.parse(localStorage.getItem('lastLoggedInUser') || sessionStorage.getItem('currentUser'));
-    return user ? `${keyBase}_${user}` : keyBase;
-  } catch {
-    return keyBase;
-  }
-};
-
+// ✅ STORAGE SERVICE (Using memory only since localStorage is restricted)
 const FollowStorageService = {
+  followedUsersCache: new Set(),
+  followStatusMemoryCache: new Map(),
+
   getFollowedUsers: () => {
-    try {
-      if (typeof window === 'undefined') return [];
-      return JSON.parse(localStorage.getItem(getUserKey('followedUsers'))) || [];
-    } catch {
-      return [];
-    }
+    return Array.from(FollowStorageService.followedUsersCache);
   },
   
   updateFollowedUsers: (list) => {
-    try {
-      if (typeof window === 'undefined') return;
-      localStorage.setItem(getUserKey('followedUsers'), JSON.stringify(list));
-    } catch (e) {
-      console.error('Failed to update followed users:', e);
-    }
+    FollowStorageService.followedUsersCache = new Set(list);
   },
 
   getFollowStatus: (userId) => {
-    try {
-      if (typeof window === 'undefined') return null;
-      const cache = JSON.parse(localStorage.getItem('followStatusCache')) || {};
-      const userCache = cache[userId];
-      if (userCache && Date.now() - userCache.timestamp < 5 * 60 * 1000) {
-        return userCache;
-      }
-      return null;
-    } catch {
-      return null;
+    const cached = FollowStorageService.followStatusMemoryCache.get(userId);
+    if (cached && Date.now() - cached.timestamp < 5 * 60 * 1000) {
+      return cached;
     }
+    return null;
   },
 
   setFollowStatus: (userId, status) => {
-    try {
-      if (typeof window === 'undefined') return;
-      const cache = JSON.parse(localStorage.getItem('followStatusCache')) || {};
-      cache[userId] = {
-        ...status,
-        timestamp: Date.now()
-      };
-      localStorage.setItem('followStatusCache', JSON.stringify(cache));
-    } catch (e) {
-      console.error('Failed to cache follow status:', e);
-    }
+    FollowStorageService.followStatusMemoryCache.set(userId, {
+      ...status,
+      timestamp: Date.now()
+    });
   }
 };
 
-// ✅ FOLLOW STATUS FETCHER
-const fetchFollowStatusOptimized = async (userId) => {
-  if (!userId) return { isFollowing: false, followerCount: 0 };
+// ✅ FOLLOW STATUS FETCHER WITH REAL FOLLOWER COUNT
+const fetchFollowStatusOptimized = async (userId, initialFollowerCount = 0) => {
+  if (!userId) return { isFollowing: false, followerCount: initialFollowerCount };
 
   // Check memory cache first
   const memoryCache = followStatusCache.get(userId);
@@ -87,7 +57,7 @@ const fetchFollowStatusOptimized = async (userId) => {
     return memoryCache.data;
   }
 
-  // Check localStorage cache
+  // Check in-memory cache
   const localCache = FollowStorageService.getFollowStatus(userId);
   if (localCache) {
     followStatusCache.set(userId, { data: localCache, timestamp: localCache.timestamp });
@@ -104,7 +74,7 @@ const fetchFollowStatusOptimized = async (userId) => {
     .then(data => {
       const result = {
         isFollowing: data.isFollowing || false,
-        followerCount: data.followerCount || 0
+        followerCount: data.followerCount || initialFollowerCount // Use server data or fallback to initial
       };
 
       followStatusCache.set(userId, { data: result, timestamp: Date.now() });
@@ -117,7 +87,7 @@ const fetchFollowStatusOptimized = async (userId) => {
     })
     .catch(err => {
       console.error('Error fetching follow status:', err);
-      return { isFollowing: false, followerCount: 0 };
+      return { isFollowing: false, followerCount: initialFollowerCount };
     })
     .finally(() => {
       followStatusPromises.delete(userId);
@@ -127,12 +97,12 @@ const fetchFollowStatusOptimized = async (userId) => {
   return await promise;
 };
 
-// ✅ GLOBAL FOLLOW STATUS UPDATER
+// ✅ GLOBAL FOLLOW STATUS UPDATER WITH INSTANT UPDATES
 const updateFollowStatusGlobally = (userId, newStatus) => {
   // Update memory cache
   followStatusCache.set(userId, { data: newStatus, timestamp: Date.now() });
   
-  // Update localStorage cache
+  // Update in-memory storage
   FollowStorageService.setFollowStatus(userId, newStatus);
   
   // Update followed users list
@@ -181,18 +151,25 @@ export const FollowProvider = ({ children }) => {
   );
 };
 
-// ✅ FOLLOW HOOK
-export const useFollow = (userId) => {
+// ✅ ENHANCED FOLLOW HOOK WITH REAL FOLLOWER COUNT
+export const useFollow = (userId, initialFollowerCount = 0) => {
   const { data: session, status: sessionStatus } = useSession();
   const context = useContext(FollowContext);
   
   const [isFollowing, setIsFollowing] = useState(false);
-  const [followerCount, setFollowerCount] = useState(0);
+  const [followerCount, setFollowerCount] = useState(initialFollowerCount);
   const [loading, setLoading] = useState(false);
 
   const isOwnProfile = session?.user?._id === userId;
 
-  // Initialize from localStorage immediately
+  // Initialize with real follower count
+  useEffect(() => {
+    if (initialFollowerCount > 0) {
+      setFollowerCount(initialFollowerCount);
+    }
+  }, [initialFollowerCount]);
+
+  // Initialize from memory cache immediately
   useEffect(() => {
     if (sessionStatus === 'loading' || !userId || isOwnProfile) return;
     
@@ -227,7 +204,7 @@ export const useFollow = (userId) => {
 
     let mounted = true;
     
-    fetchFollowStatusOptimized(userId)
+    fetchFollowStatusOptimized(userId, initialFollowerCount)
       .then(data => {
         if (mounted) {
           setIsFollowing(data.isFollowing);
@@ -238,9 +215,9 @@ export const useFollow = (userId) => {
     return () => {
       mounted = false;
     };
-  }, [userId, session?.user, sessionStatus, isOwnProfile]);
+  }, [userId, session?.user, sessionStatus, isOwnProfile, initialFollowerCount]);
 
-  // Toggle follow function
+  // ✅ INSTANT TOGGLE FOLLOW WITH REAL-TIME UPDATES
   const toggleFollow = useCallback(async (onUnauthorizedAction) => {
     if (sessionStatus === 'loading' || !userId || isOwnProfile) return;
 
@@ -251,10 +228,13 @@ export const useFollow = (userId) => {
 
     setLoading(true);
 
-    // Optimistic update
+    // INSTANT optimistic update
     const newFollowingState = !isFollowing;
-    const newFollowerCount = newFollowingState ? followerCount + 1 : Math.max(0, followerCount - 1);
+    const newFollowerCount = newFollowingState 
+      ? followerCount + 1 
+      : Math.max(0, followerCount - 1);
     
+    // Update immediately for instant feedback
     setIsFollowing(newFollowingState);
     setFollowerCount(newFollowerCount);
     
@@ -263,6 +243,7 @@ export const useFollow = (userId) => {
       followerCount: newFollowerCount
     };
     
+    // Emit instant global update
     updateFollowStatusGlobally(userId, optimisticStatus);
 
     try {
@@ -299,15 +280,18 @@ export const useFollow = (userId) => {
 
       const data = await res.json();
       
-      // Confirm with server response
+      // Confirm with server response (usually matches optimistic update)
       const confirmedStatus = {
         isFollowing: data.isFollowing ?? newFollowingState,
         followerCount: data.followerCount ?? newFollowerCount
       };
       
-      setIsFollowing(confirmedStatus.isFollowing);
-      setFollowerCount(confirmedStatus.followerCount);
-      updateFollowStatusGlobally(userId, confirmedStatus);
+      // Only update if server response differs from optimistic update
+      if (confirmedStatus.isFollowing !== newFollowingState || confirmedStatus.followerCount !== newFollowerCount) {
+        setIsFollowing(confirmedStatus.isFollowing);
+        setFollowerCount(confirmedStatus.followerCount);
+        updateFollowStatusGlobally(userId, confirmedStatus);
+      }
 
     } catch (err) {
       console.error('Follow error:', err);
@@ -334,7 +318,7 @@ export const useFollow = (userId) => {
   };
 };
 
-// ✅ FOLLOW BUTTON COMPONENT
+// ✅ ENHANCED FOLLOW BUTTON COMPONENT
 export const FollowButton = ({ 
   userId, 
   onUnauthorizedAction,
@@ -342,9 +326,10 @@ export const FollowButton = ({
   size = "default",
   variant = "default",
   showFollowerCount = false,
-  children 
+  children,
+  initialFollowerCount = 0
 }) => {
-  const { isFollowing, followerCount, loading, toggleFollow, isOwnProfile } = useFollow(userId);
+  const { isFollowing, followerCount, loading, toggleFollow, isOwnProfile } = useFollow(userId, initialFollowerCount);
 
   if (isOwnProfile) return null;
 
@@ -409,9 +394,9 @@ export const FollowButton = ({
   );
 };
 
-// ✅ FOLLOWER COUNT COMPONENT
-export const FollowerCount = ({ userId, className = "" }) => {
-  const { followerCount } = useFollow(userId);
+// ✅ ENHANCED FOLLOWER COUNT COMPONENT WITH REAL-TIME UPDATES
+export const FollowerCount = ({ userId, className = "", initialCount = 0 }) => {
+  const { followerCount } = useFollow(userId, initialCount);
   
   return (
     <span className={className}>
@@ -432,22 +417,11 @@ export const cleanupFollowCaches = () => {
     }
   }
   
-  // Clean localStorage cache
-  try {
-    if (typeof window !== 'undefined') {
-      const cache = JSON.parse(localStorage.getItem('followStatusCache')) || {};
-      const cleanedCache = {};
-      
-      for (const [userId, cacheEntry] of Object.entries(cache)) {
-        if (now - cacheEntry.timestamp <= maxAge) {
-          cleanedCache[userId] = cacheEntry;
-        }
-      }
-      
-      localStorage.setItem('followStatusCache', JSON.stringify(cleanedCache));
+  // Clean in-memory storage cache
+  for (const [userId, cacheEntry] of FollowStorageService.followStatusMemoryCache.entries()) {
+    if (now - cacheEntry.timestamp > maxAge) {
+      FollowStorageService.followStatusMemoryCache.delete(userId);
     }
-  } catch (error) {
-    console.error('Error cleaning follow caches:', error);
   }
 };
 

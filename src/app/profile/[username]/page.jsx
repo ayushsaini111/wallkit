@@ -237,12 +237,11 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50" style={{ scrollBehavior: 'smooth' }}>
-      <div className="max-w-7xl mx-auto px-4 py-12">
+      <div className="max-w-7xl mx-auto px-1 py-12">
         {/* Profile Header */}
         <div className="relative mb-12">
           <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-xl">
-            {/* Top accent */}
-            <div className="absolute top-0 right-4 w-[63vw] h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-t-full"></div>
+           
 
             <div className="relative flex flex-col md:flex-row items-center gap-8">
               {/* Avatar Section */}
@@ -389,7 +388,7 @@ export default function ProfilePage() {
               </p>
             </div>
           ) : (
-            <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-3 gap-3 space-y-3 mx-auto px-4 w-full">
+            <div className="columns-2 gap-1 space-y-1 sm:columns-2 md:columns-3 lg:columns-3 xl:columns-3 xl:gap-3 xl:space-y-3  px-1 md:px-3 sm:px-4 w-full">
               {sortedWallpapers.map((wallpaper, index) => (
                 <WallpaperCard
                   key={wallpaper._id}

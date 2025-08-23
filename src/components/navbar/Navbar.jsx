@@ -279,7 +279,7 @@ const Navbar = ({ onCategorySelect }) => {
 
                       {/* Notification Badge */}
                       {unreadCount > 0 && (
-                        <div className="absolute -top-0.5 -right-0.5 min-w-[16px] sm:min-w-[18px] lg:min-w-[20px] h-4 sm:h-4.5 lg:h-5 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                        <div className="absolute -top-0.5 -right-0.5 min-w-[16px] sm:min-w-[18px] lg:min-w-[20px] h-4 sm:h-4.5 lg:h-5 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center shadow-lg ">
                           <span className="text-xs text-white font-bold px-0.5 sm:px-1">
                             {unreadCount > 99 ? '99+' : unreadCount}
                           </span>

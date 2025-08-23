@@ -20,6 +20,7 @@ import {
     Pencil,
     Trash2
 } from 'lucide-react';
+import Image from 'next/image';
 
 const WallpaperCard = ({
     wallpaper,
@@ -218,10 +219,12 @@ const WallpaperCard = ({
                 )}
 
                 {!profileImageError ? (
-                    <img
+                    <Image
                         src={avatar}
                         alt={wallpaper.userDetails?.username || 'User'}
                         onClick={openProfileDirect}
+                        width={40}
+                        height={40}
                         onLoad={() => setProfileImageLoaded(true)}
                         onError={() => {
                             setProfileImageError(true);
@@ -243,14 +246,14 @@ const WallpaperCard = ({
         <>
             <div
                 ref={intersectionRef}
-                className="group relative cursor-pointer transform transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1 bg-white rounded-xl md:rounded-3xl shadow-xl hover:shadow-2xl overflow-hidden h-full w-full"
+                className="group relative  cursor-pointer transform transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1 bg-white rounded-lg md:rounded-3xl shadow-xl hover:shadow-2xl overflow-hidden h-full w-full"
                 onClick={handleCardClick}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
             >
                 {/* Image Container */}
                 <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
-                    {/* Loading State */}
+                    {/* Loading State
                     {!imageLoaded && !imageError && (
                         <div className="absolute inset-0 flex items-center justify-center z-20">
                             <div className="flex flex-col items-center gap-4">
@@ -258,7 +261,7 @@ const WallpaperCard = ({
                                 <div className="text-gray-500 text-xs font-medium">Loading...</div>
                             </div>
                         </div>
-                    )}
+                    )} */}
 
                     {/* Error State */}
                     {imageError ? (
@@ -270,9 +273,9 @@ const WallpaperCard = ({
                         </div>
                     ) : (
                         <img
-                            src={wallpaper.imageUrl}
+                            src={wallpaper.compressedUrl || wallpaper.imageUrl }
                             alt={wallpaper.title || 'Wallpaper'}
-                            className={`w-full h-full object-cover transition-all duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'
+                            className={`w-full h-full object-cover  transition-all duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'
                                 } ${isHovered ? 'scale-z-105' : 'scale-100'}`}
                             onLoad={() => setImageLoaded(true)}
                             onError={handleImageError}
@@ -286,7 +289,7 @@ const WallpaperCard = ({
 
                         {/* Regular Action Buttons (Top Right) */}
                         {!showOwnerActions && (
-                            <div className="absolute top-4 right-4 flex flex-col gap-2 z-20 hidden sm:flex">
+                            <div className="absolute top-4 right-4  flex-col gap-2 z-20 hidden sm:flex">
                                 <button
                                     onClick={toggleLike}
                                     className={`p-3 rounded-2xl transform hover:scale-105 shadow-lg transition-all duration-300 ${isLiked
@@ -311,11 +314,34 @@ const WallpaperCard = ({
                             </div>
                         )}
 
+                        {showOwnerActions && (
+    <div className="absolute top-4 right-4 flex-col gap-2 z-20 hidden sm:flex">
+        <button
+            onClick={(e) => { e.stopPropagation(); onEdit && onEdit(wallpaper); }}
+            className={`p-3 rounded-2xl transform hover:scale-105 shadow-lg transition-all duration-300 bg-blue-500 text-white hover:bg-blue-600 ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}`}
+            style={{ transitionDelay: '50ms' }}
+            title="Edit wallpaper"
+        >
+            <Pencil className="w-5 h-5" />
+        </button>
+
+        <button
+            onClick={(e) => { e.stopPropagation(); onDelete && onDelete(wallpaper); }}
+            className={`p-3 rounded-2xl transform hover:scale-105 shadow-lg transition-all duration-300 bg-red-500 text-white hover:bg-red-600 ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}`}
+            style={{ transitionDelay: '100ms' }}
+            title="Delete wallpaper"
+        >
+            <Trash2 className="w-5 h-5" />
+        </button>
+    </div>
+)}
+
                         {/* Download Button - Bottom Right */}
-                        <div className="absolute bottom-6 right-4 z-20 hidden sm:block">
+                        <div className="absolute bottom-6 right-4 z-20 hidden sm:block"
+                        onClick={(e) => { e.stopPropagation(); handleDownload(e); }}>
                             <button
-                                onClick={handleDownload}
-                                className={`p-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-2xl transition-all duration-300 backdrop-blur-xl transform hover:scale-110 shadow-xl ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+                               onClick={(e) => { e.stopPropagation(); handleDownload(e); }}
+                                className={`sm:p-3 lg:p-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-2xl transition-all duration-300 backdrop-blur-xl transform hover:scale-110 shadow-xl ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
                                     }`}
                                 style={{ transitionDelay: '300ms' }}
                             >
@@ -353,7 +379,7 @@ const WallpaperCard = ({
                     </div>
 
                     {/* Subtle border glow */}
-                    <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/20 pointer-events-none"></div>
+                   <div className="absolute inset-0 rounded-none md:rounded-3xl ring-1 ring-inset ring-white/20 pointer-events-none"></div>
                 </div>
             </div>
 

@@ -90,13 +90,13 @@ export default function TrendingSection() {
       <FloatingDoodle className="bottom-60 right-20 text-purple-200" delay={2.5}>🎭</FloatingDoodle>
       <FloatingDoodle className="bottom-20 left-1/3 text-orange-200" delay={3}>⚡</FloatingDoodle>
 
-      <div className="relative z-10 container mx-auto px-4 py-12 max-w-7xl">
+      <div className="relative z-10 container mx-auto px-1 py-12 max-w-7xl">
         {/* Enhanced Header Section */}
         <div className="text-center mb-16">
           {/* Decorative Elements */}
         
           {/* Main Heading with Enhanced Typography */}
-          <h1 className="text-6xl md:text-7xl font-black mb-6 leading-tight">
+          <h1 className="text-5xl md:text-7xl font-black mb-6 leading-tight">
             <span className="bg-gradient-to-r from-orange-600 via-pink-600 to-purple-500 bg-clip-text text-transparent">
               Trending
             </span>
@@ -107,14 +107,14 @@ export default function TrendingSection() {
           </h1>
 
           {/* Subheading with Better Spacing */}
-          <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-4xl mx-auto leading-relaxed font-light">
+          <p className="text-lg md:text-2xl text-gray-600 mb-8 max-w-4xl mx-auto leading-relaxed font-light">
             Discover the most popular and stunning wallpapers
             <span className="font-medium text-orange-600"> loved by our community</span>
           </p>
         </div>
 
         {/* Collection Grid using masonry layout like your collection page */}
-         <div className="columns-2 sm:columns-2 md:columns-3 lg:columns-3 gap-3 space-y-3 mx-auto px-4 w-full">
+         <div className="columns-2 gap-1 space-y-1 sm:columns-2 md:columns-3 lg:columns-3 xl:columns-3 xl:gap-3 xl:space-y-3  px-1 md:px-3 sm:px-4 w-full">
                   {trending.map((wallpaper, index) => (
                     <WallpaperCard 
                       key={wallpaper._id} 

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { uploadImageToAppwrite } from '@/lib/appwrite/storage';
 import { uploadImageToCloudinary } from '@/lib/appwrite/storagetwo';
+import { compressImage } from '@/utils/compressImage';
 
 const UploadWallpaper = () => {
     const { data: session } = useSession();
@@ -205,145 +206,142 @@ const UploadWallpaper = () => {
     };
 
     // Upload files using your existing logic
-    const uploadFiles = async () => {
-        if (selectedFiles.length === 0) return;
 
-        // Validate all files first
-        const validationErrors = [];
-        selectedFiles.forEach(fileData => {
-            if (fileData.status === 'pending') {
-                const error = validateFileData(fileData);
-                if (error) {
-                    validationErrors.push(`${fileData.name}: ${error}`);
-                }
-            }
-        });
+const uploadFiles = async () => {
+  if (selectedFiles.length === 0) return;
 
-        if (validationErrors.length > 0) {
-            alert('Please fix the following errors:\n\n' + validationErrors.join('\n'));
-            return;
+  // Validate files
+  const validationErrors = [];
+  selectedFiles.forEach(fileData => {
+    if (fileData.status === 'pending') {
+      const error = validateFileData(fileData);
+      if (error) validationErrors.push(`${fileData.name}: ${error}`);
+    }
+  });
+
+  if (validationErrors.length > 0) {
+    alert('Please fix the following errors:\n\n' + validationErrors.join('\n'));
+    return;
+  }
+
+  setUploading(true);
+
+  // Run uploads simultaneously
+  const uploadPromises = selectedFiles.map(async (fileData) => {
+    if (fileData.status !== 'pending') return null;
+
+    try {
+      // Mark uploading
+      setUploadProgress(prev => ({
+        ...prev,
+        [fileData.id]: { status: 'uploading', progress: 0 }
+      }));
+      setSelectedFiles(prev =>
+        prev.map(f => f.id === fileData.id ? { ...f, status: 'uploading' } : f)
+      );
+
+      // 1️⃣ Compress first
+      const compressedFile = await compressImage(fileData.file, { quality: 0.1 });
+      const cloudinaryCompressedObj = await uploadImageToCloudinary(compressedFile);
+      const compressedUrl = cloudinaryCompressedObj.url;
+
+      // 2️⃣ Save compressed URL immediately to backend
+      const formData = new FormData();
+      formData.append('title', fileData.metadata.title);
+      formData.append('description', fileData.metadata.description);
+      formData.append('tags', fileData.metadata.tags.join(','));
+      formData.append('category', fileData.metadata.category);
+      formData.append('isPrivate', fileData.metadata.isPrivate);
+      formData.append('imageUrl', compressedUrl);
+      formData.append('compressedUrl', compressedUrl);
+      formData.append('userId', session.user._id);
+
+      const res = await fetch('/api/wallpaperupload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const savedData = await res.json();
+      if (!savedData.success || !savedData.wallpaper?._id) {
+        throw new Error('Failed to save compressed wallpaper');
+      }
+
+      const wallpaperId = savedData.wallpaper._id;
+
+      // Mark success for user immediately
+      setUploadProgress(prev => ({
+        ...prev,
+        [fileData.id]: { status: 'completed', progress: 100 }
+      }));
+      setSelectedFiles(prev =>
+        prev.map(f =>
+          f.id === fileData.id
+            ? { ...f, status: 'completed', uploadedId: wallpaperId }
+            : f
+        )
+      );
+
+      // 3️⃣ Upload original in background
+      (async () => {
+        try {
+          let uploadedObj = null;
+          let originalUrl = "";
+
+          if (fileData.size >= 10 * 1024 * 1024) {
+            uploadedObj = await uploadImageToAppwrite(fileData.file);
+            originalUrl = uploadedObj.downloadUrl;
+          } else {
+            uploadedObj = await uploadImageToCloudinary(fileData.file);
+            originalUrl = uploadedObj.url;
+          }
+
+          await fetch(`/api/wallpaperupload/${wallpaperId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              imageUrl: originalUrl,
+              storageId: uploadedObj.id
+            })
+          });
+        } catch (err) {
+          console.error('[Background Upload] Failed:', err);
         }
+      })();
 
-        setUploading(true);
-        const results = [];
+      return {
+        id: fileData.id,
+        name: fileData.name,
+        status: 'success',
+        uploadedId: wallpaperId,
+        url: compressedUrl
+      };
 
-        for (const fileData of selectedFiles) {
-            if (fileData.status !== 'pending') continue;
+    } catch (error) {
+      console.error(`Error uploading ${fileData.name}:`, error);
 
-            try {
-                // Update progress
-                setUploadProgress(prev => ({
-                    ...prev,
-                    [fileData.id]: { status: 'uploading', progress: 0 }
-                }));
+      setUploadProgress(prev => ({
+        ...prev,
+        [fileData.id]: { status: 'error', progress: 0 }
+      }));
+      setSelectedFiles(prev =>
+        prev.map(f => f.id === fileData.id ? { ...f, status: 'error' } : f)
+      );
 
-                // Update file status
-                setSelectedFiles(prev =>
-                    prev.map(f =>
-                        f.id === fileData.id
-                            ? { ...f, status: 'uploading' }
-                            : f
-                    )
-                );
-                console.log("size", fileData.size);
+      return {
+        id: fileData.id,
+        name: fileData.name,
+        status: 'error',
+        error: error.message
+      };
+    }
+  });
 
+  // Wait for all uploads (run in parallel)
+  const results = await Promise.all(uploadPromises);
+  setUploadResults(results.filter(Boolean));
+  setUploading(false);
+};
 
-                // Upload to Appwrite using your existing function
-                let imageUrlObj;
-                if (fileData.size > 10 * 1024 * 1024) {
-                    // Upload to Appwrite
-                    console.log("Uploading to Appwrite:", fileData.file.name);
-                    imageUrlObj = await uploadImageToAppwrite(fileData.file);
-                    console.log("Appwrite upload result:", imageUrlObj);
-
-                } else {
-                    // Upload to Cloudinary
-                    console.log("Uploading to Cloudinary:", fileData.file.name);
-                    
-                    imageUrlObj = await uploadImageToCloudinary(fileData.file);
-                    console.log("Cloudinary upload result:", imageUrlObj);
-
-                }
-
-
-                // Prepare form data for your backend
-                const formData = new FormData();
-                formData.append('title', fileData.metadata.title);
-                formData.append('description', fileData.metadata.description);
-                formData.append('tags', fileData.metadata.tags.join(','));
-                formData.append('category', fileData.metadata.category);
-                formData.append('isPrivate', fileData.metadata.isPrivate);
-                formData.append('imageUrl', imageUrlObj.url);
-                formData.append('userId', session.user._id);
-                formData.append('appwriteId', imageUrlObj.id);
-
-
-                console.log('[CLIENT] Sending form to backend...');
-                const res = await fetch('/api/wallpaperupload', {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                const data = await res.json();
-                console.log('[CLIENT] Upload result:', data);
-
-                if (data.success) {
-                    // Update progress to completion
-                    setUploadProgress(prev => ({
-                        ...prev,
-                        [fileData.id]: { status: 'completed', progress: 100 }
-                    }));
-
-                    // Update file status
-                    setSelectedFiles(prev =>
-                        prev.map(f =>
-                            f.id === fileData.id
-                                ? { ...f, status: 'completed', uploadedId: imageUrlObj.id }
-                                : f
-                        )
-                    );
-
-                    results.push({
-                        id: fileData.id,
-                        name: fileData.name,
-                        status: 'success',
-                        uploadedId: imageUrlObj.id,
-                        url: imageUrlObj.url
-                    });
-                } else {
-                    throw new Error(data.message || 'Upload failed');
-                }
-
-            } catch (error) {
-                console.error(`Error uploading ${fileData.name}:`, error);
-
-                // Update progress to error
-                setUploadProgress(prev => ({
-                    ...prev,
-                    [fileData.id]: { status: 'error', progress: 0 }
-                }));
-
-                // Update file status
-                setSelectedFiles(prev =>
-                    prev.map(f =>
-                        f.id === fileData.id
-                            ? { ...f, status: 'error' }
-                            : f
-                    )
-                );
-
-                results.push({
-                    id: fileData.id,
-                    name: fileData.name,
-                    status: 'error',
-                    error: error.message
-                });
-            }
-        }
-
-        setUploadResults(results);
-        setUploading(false);
-    };
 
     // Clear all files
     const clearFiles = () => {
@@ -456,9 +454,7 @@ const UploadWallpaper = () => {
                     {/* Enhanced Header */}
                     <div className="text-center mb-16">
                         <div className="inline-flex items-center gap-4 mb-6">
-                            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-400 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg">
-                                🎨
-                            </div>
+                           
                             <h1 className="text-6xl md:text-7xl font-black mb-6 leading-tight">
                                 <span className="bg-gradient-to-r ml-8 from-red-600 via-pink-500 to-purple-600 bg-clip-text text-transparent">
                                     upload Your vision
@@ -477,8 +473,8 @@ const UploadWallpaper = () => {
                     <div className="mb-12">
                         <div
                             className={`relative border-2 border-dashed rounded-3xl p-16 text-center transition-all duration-300 ${dragActive
-                                    ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 scale-[1.02] shadow-2xl'
-                                    : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50/50 shadow-xl'
+                                ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 scale-[1.02] shadow-2xl'
+                                : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50/50 shadow-xl'
                                 }`}
                             onDragEnter={handleDrag}
                             onDragLeave={handleDrag}
@@ -879,8 +875,8 @@ const UploadWallpaper = () => {
                                         >
                                             <div className="flex items-center gap-4">
                                                 <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center shadow-sm ${result.status === 'success'
-                                                        ? 'bg-green-100 text-green-600'
-                                                        : 'bg-red-100 text-red-600'
+                                                    ? 'bg-green-100 text-green-600'
+                                                    : 'bg-red-100 text-red-600'
                                                     }`}>
                                                     {result.status === 'success' ? (
                                                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -903,8 +899,8 @@ const UploadWallpaper = () => {
                                                 </div>
                                             </div>
                                             <div className={`text-sm font-bold px-4 py-2 rounded-full ${result.status === 'success'
-                                                    ? 'text-green-700 bg-green-100'
-                                                    : 'text-red-700 bg-red-100'
+                                                ? 'text-green-700 bg-green-100'
+                                                : 'text-red-700 bg-red-100'
                                                 }`}>
                                                 {result.status === 'success' ? '✓ Uploaded' : '✗ Failed'}
                                             </div>

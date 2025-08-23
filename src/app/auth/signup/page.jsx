@@ -164,14 +164,11 @@ const Signup = () => {
             <div className="text-center mb-8">
               <div className="relative inline-flex items-center justify-center mb-4 group">
                 {/* Main logo container with orange gradient */}
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 via-red-500 to-pink-600 rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-all duration-500 shadow-lg shadow-orange-500/30">
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 via-red-500 to-pink-600 rounded-xl flex items-center justify-center transform">
                   <Sparkles className="w-6 h-6 text-white" />
                 </div>
                 
-                {/* Floating decoration */}
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500 animate-bounce flex items-center justify-center">
-                  <Zap className="w-2.5 h-2.5 text-white" />
-                </div>
+               
                 
                 {/* Glow effect */}
                 <div className="absolute inset-0 w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl blur-lg opacity-0 group-hover:opacity-40 transition-all duration-500 -z-10" />
