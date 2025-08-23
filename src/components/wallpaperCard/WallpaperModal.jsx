@@ -308,7 +308,7 @@ export const WallpaperModal = ({
           {/* ✅ MOBILE SCROLLABLE CONTENT - FIXED MOBILE VIEW */}
           <div className="flex flex-col h-[calc(100%-57px)] sm:h-full sm:flex-row overflow-hidden">
             {/* ✅ IMAGE SECTION - MOBILE RESPONSIVE */}
-            <div className="w-full sm:w-2/3 lg:w-2/3 relative flex items-center justify-center p-2 xs:p-3 sm:p-6 lg:p-8 bg-gradient-to-br from-gray-50/80 to-gray-100/80 backdrop-blur-sm h-[45vh] xs:h-[40vh] sm:h-full overflow-hidden flex-shrink-0">
+            <div className="w-full sm:w-2/3 lg:w-2/3 relative flex items-center justify-center xs:p-3 sm:p-6 lg:p-8 bg-gradient-to-br from-gray-50/80 to-gray-100/80 backdrop-blur-sm h-[45vh] xs:h-[40vh] sm:h-full overflow-hidden flex-shrink-0">
               
               {/* Loading State */}
               {imageLoading && !imageError && (
@@ -330,16 +330,21 @@ export const WallpaperModal = ({
                   </div>
                 </div>
               ) : (
-                <img
-                  src={wallpaper.compressedUrl || wallpaper.imageUrl}
-                  alt={wallpaper.title || 'Wallpaper'}
-                  className={`max-w-full max-h-full object-contain rounded-lg sm:rounded-xl lg:rounded-2xl shadow-2xl transition-opacity duration-300 ${
-                    imageLoading ? 'opacity-0' : 'opacity-100'
-                  }`}
-                  onLoad={handleImageLoad}
-                  onError={handleImageError}
-                  loading="eager"
-                />
+         <div className="relative w-full h-full">
+  <Image
+    src={wallpaper.compressedUrl || wallpaper.imageUrl}
+    alt={wallpaper.title || 'Wallpaper'}
+    fill
+    className={`object-contain rounded-lg sm:rounded-xl lg:rounded-2xl shadow-2xl transition-opacity duration-300 ${
+      imageLoading ? 'opacity-0' : 'opacity-100'
+    }`}
+    onLoad={handleImageLoad}
+    onError={handleImageError}
+    loading="eager"
+    sizes="100vw"
+  />
+</div>
+
               )}
             </div>
 

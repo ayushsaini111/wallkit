@@ -14,7 +14,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: ' res.cloudinary.com',
+        hostname: 'res.cloudinary.com',
         // pathname: '/v1/storage/buckets/**', // Appwrite storage paths
       },
     ],
