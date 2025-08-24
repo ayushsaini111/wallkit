@@ -10,7 +10,7 @@ export const uploadImageToCloudinary = async (file) => {
   const data = await res.json();
   console.log("Cloudinary upload complete:", data);
 
-  if (!res.ok) throw new Error(data.error || 'Cloudinary upload failed');
+  if (!res.ok) throw new Error(data.error || 'Cloudinary upload failed !!');
 
   // Returns object like { id, url }
   return { id: data.id, url: data.url ,size: data.size};
