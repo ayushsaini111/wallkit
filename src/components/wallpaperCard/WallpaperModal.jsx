@@ -333,7 +333,7 @@ export const WallpaperModal = ({
                    }}>
                 
                 {/* Image container */}
-                <div className="flex-shrink-0 w-full h-[45vh] sm:h-full sm:min-h-0 relative flex items-center justify-center p-4 sm:p-0">
+                <div className="flex-shrink-0 w-full h-[45vh] sm:h-full sm:min-h-0 relative flex items-center justify-center  sm:p-0">
                   {imageError ? (
                     <div className="flex items-center justify-center text-gray-500 text-center">
                       <div>
