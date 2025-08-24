@@ -1,24 +1,17 @@
-// components/RouteGuard.js (Updated)
+// components/RouteGuard.js
 'use client';
 
 import { useSession } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import NavigationLoader from '@/components/NavigationLoader';
-import Navbar from '@/components/navbar/Navbar';
-import Footer from '@/components/footer/footer';
-import ClearUserStorageOnLogout from '@/components/ClearUserStorageOnLogout';
 
 const RouteGuard = ({ children }) => {
   const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
 
-  const publicRoutes = ['/', '/about', '/trending', '/explore', '/policy', '/termsCondition', '/auth/signin', '/auth/signup'];
-
-  // Pages where Navbar & Footer should be hidden
-  const hideLayoutRoutes = ['/auth/signin', '/auth/signup'];
-  const shouldHideLayout = hideLayoutRoutes.includes(pathname);
+  const publicRoutes = ['/', '/about', '/trending', '/explore', "/policy", "/termsCondition", '/auth/signin', '/auth/signup'];
 
   useEffect(() => {
     if (status === 'loading') return; // Still loading
@@ -38,26 +31,15 @@ const RouteGuard = ({ children }) => {
   }, [session, status, pathname, router]);
 
   return (
-    <div className="min-h-screen">
-      {/* Global Navigation Loading Bar */}
+    <>
+      {/* Orange Navigation Loader */}
       <NavigationLoader 
-        color="#f97316"  // Orange-500
-        height="2px"     // Thinner line
+        color="#f97316"
+        height="2px"
         zIndex={9999}
       />
-      
-      {/* Layout Components */}
-      {!shouldHideLayout && <Navbar />}
-      <ClearUserStorageOnLogout />
-      
-      {/* Main Content - Remove any gaps */}
-      <main className="block" style={{ margin: 0, padding: 0 }}>
-        {children}
-      </main>
-      
-      {/* Footer */}
-      {!shouldHideLayout && <Footer />}
-    </div>
+      {children}
+    </>
   );
 };
 
