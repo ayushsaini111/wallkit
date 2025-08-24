@@ -1,5 +1,3 @@
-// WallpaperCard.js - Updated with mobile-friendly edit/delete options
-
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';

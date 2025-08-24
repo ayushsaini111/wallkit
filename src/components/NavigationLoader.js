@@ -1,4 +1,3 @@
-// components/NavigationLoader.js
 'use client';
 
 import { useState, useEffect } from 'react';
