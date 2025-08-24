@@ -26,7 +26,7 @@ html: `
       </p>
 
       <div style="text-align: center; margin: 24px 0;">
-        <a href="${process.env.BASE_URL}/explore" 
+        <a href="${process.env.NEXTAUTH_URL}/explore" 
            style="display: inline-block; background: #2563eb; color: #fff; padding: 12px 24px; 
                   text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600;">
           🚀 Start Exploring
