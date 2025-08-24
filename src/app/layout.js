@@ -1,10 +1,6 @@
-"use client"
-// app/layout.js (Simplified - Server Component)
-import { SessionProvider } from 'next-auth/react'
-import { AuthProvider } from '@/context/AuthContext'
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import RouteGuard from '@/utils/RouteGuard';
+import Providers from "./providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,15 +15,11 @@ const geistMono = Geist_Mono({
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} antialiased max-w-[14400px]`}>
-        <SessionProvider>
-          <AuthProvider>
-            <RouteGuard>
-              {children}
-            </RouteGuard>
-          </AuthProvider>
-        </SessionProvider>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased max-w-[1440px]`}>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
-  );
+  )
 }
