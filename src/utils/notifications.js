@@ -5,6 +5,8 @@ import {Wallpaper} from '@/models/wallpaper.model';
 import { transporter } from '@/lib/mailer';
 // Function to notify followers by email and create notifications after wallpaper upload
 export const notifyFollowersAfterUpload = async ({ wallpaperId }) => {
+  console.log(`Notifying followers for wallpaper upload: ${wallpaperId}`);
+
   try {
     // 1. Find wallpaper with uploader info
     const wallpaper = await Wallpaper.findById(wallpaperId).populate(
