@@ -180,7 +180,7 @@ const DownloadOptionsModal = ({
 
   return (
     <div 
-      className="fixed inset-0 z-[10001] bg-black/40 backdrop-blur-md flex items-end sm:items-center justify-center"
+      className="fixed inset-0 z-[20001] bg-black/40 backdrop-blur-md flex items-end sm:items-center justify-center"
       onClick={onClose}
       style={{
         WebkitBackdropFilter: 'blur(8px)',
@@ -188,7 +188,7 @@ const DownloadOptionsModal = ({
       }}
     >
       <div 
-        className="bg-white/95 backdrop-blur-xl rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-xl lg:max-w-2xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden mx-0 sm:mx-4 flex flex-col"
+        className="bg-white/95 backdrop-blur-xl rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-xl lg:max-w-2xl max-h-[83vh] sm:max-h-[85vh] overflow-hidden mx-0 sm:mx-4 flex flex-col"
         onClick={e => e.stopPropagation()}
         style={{
           WebkitBackdropFilter: 'blur(20px)',
@@ -208,7 +208,7 @@ const DownloadOptionsModal = ({
             </button>
             
             <div className="hidden sm:block p-2 bg-blue-100/80 rounded-lg backdrop-blur-sm">
-              <Download className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
+              <Download className="w-5 h-5 md:w-6 md:h-6 text-green-600" />
             </div>
             <div>
               <h2 className="text-lg md:text-xl font-bold text-gray-900">Download Options</h2>
@@ -242,10 +242,10 @@ const DownloadOptionsModal = ({
         )}
 
         {/* Content - Scrollable */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="flex-1 overflow-y-auto p-2 sm:p-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent" style={{ WebkitOverflowScrolling: 'touch' }}>
           
           {/* Format Selection */}
-          <div className="mb-6">
+          <div className="mb-3">
             <h3 className="text-lg font-semibold text-gray-900 mb-3">Format</h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
               {Object.entries(FORMAT_OPTIONS).map(([key, format]) => (
@@ -469,28 +469,19 @@ const DownloadOptionsModal = ({
             )}
           </div>
 
-          {/* Storage Info
-          {storageType !== 'unknown' && (
-            <div className="mt-6 p-4 bg-blue-50/80 backdrop-blur-sm border border-blue-200 rounded-xl">
-              <div className="flex items-start gap-3">
-                
-              </div>
-            </div>
-          )} */}
+        
 
           {/* Add some bottom spacing for mobile scroll */}
           <div className="h-6 sm:h-0"></div>
         </div>
 
         {/* Footer - Fixed at bottom on mobile */}
-        <div className="flex-shrink-0 p-4 sm:p-6 border-t border-gray-200/50 bg-white/90 backdrop-blur-xl">
+        <div className="flex-shrink-0 p-2 sm:p-6 border-t border-gray-200/50 bg-white/90 backdrop-blur-xl">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="text-sm text-gray-600 text-center sm:text-left">
-              💡 Downloads start automatically
-            </div>
+            
             <button
               onClick={onClose}
-              className="w-full sm:w-auto px-6 py-2 text-gray-600 hover:text-gray-900 font-medium transition-colors rounded-lg hover:bg-gray-100/50"
+              className="w-full p sm:w-auto px-6  text-red-600 hover:text-gray-900 font-medium transition-colors rounded-lg hover:bg-gray-100/50"
             >
               Close
             </button>

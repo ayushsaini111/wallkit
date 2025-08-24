@@ -9,7 +9,6 @@ export const DOWNLOAD_PRESETS = {
     description: 'Maximum resolution • Largest file',
     params: {},
     icon: '🔥',
-    estimatedSize: 'Large (5-15 MB)',
     recommended: false,
     category: 'quality'
   },
@@ -18,7 +17,7 @@ export const DOWNLOAD_PRESETS = {
     description: 'Best balance • Fast download',
     params: { quality: 85 },
     icon: '⚡',
-    estimatedSize: 'Medium (1-3 MB)',
+    // estimatedSize: 'Medium (1-3 MB)',
     recommended: true,
     category: 'quality'
   },
@@ -28,7 +27,7 @@ export const DOWNLOAD_PRESETS = {
     description: 'Perfect for phone wallpapers',
     params: { width: 1080, height: 1920, quality: 90 },
     icon: '📱',
-    estimatedSize: 'Medium (1-2 MB)',
+    // estimatedSize: 'Medium (1-2 MB)',
     recommended: false,
     category: 'mobile',
     aspectRatio: '9:16'
@@ -38,7 +37,7 @@ export const DOWNLOAD_PRESETS = {
     description: 'For horizontal phone orientation',
     params: { width: 1920, height: 1080, quality: 90 },
     icon: '📱',
-    estimatedSize: 'Medium (1-2 MB)',
+    // estimatedSize: 'Medium (1-2 MB)',
     recommended: false,
     category: 'mobile',
     aspectRatio: '16:9'
@@ -48,7 +47,7 @@ export const DOWNLOAD_PRESETS = {
     description: 'Instagram-style square format',
     params: { width: 1080, height: 1080, quality: 90 },
     icon: '📱',
-    estimatedSize: 'Medium (1-1.5 MB)',
+    // estimatedSize: 'Medium (1-1.5 MB)',
     recommended: false,
     category: 'mobile',
     aspectRatio: '1:1'
@@ -59,7 +58,7 @@ export const DOWNLOAD_PRESETS = {
     description: '1920×1080 • Standard desktop',
     params: { width: 1920, height: 1080, quality: 90 },
     icon: '💻',
-    estimatedSize: 'Large (2-4 MB)',
+    // estimatedSize: 'Large (2-4 MB)',
     recommended: false,
     category: 'desktop',
     aspectRatio: '16:9'
@@ -69,7 +68,7 @@ export const DOWNLOAD_PRESETS = {
     description: '2560×1080 • Widescreen monitors',
     params: { width: 2560, height: 1080, quality: 90 },
     icon: '💻',
-    estimatedSize: 'Large (3-5 MB)',
+    // estimatedSize: 'Large (3-5 MB)',
     recommended: false,
     category: 'desktop',
     aspectRatio: '21:9'
@@ -79,7 +78,7 @@ export const DOWNLOAD_PRESETS = {
     description: '3840×2160 • Ultra HD desktop',
     params: { width: 3840, height: 2160, quality: 95 },
     icon: '💻',
-    estimatedSize: 'Very Large (8-20 MB)',
+    // estimatedSize: 'Very Large (8-20 MB)',
     recommended: false,
     category: 'desktop',
     aspectRatio: '16:9'
@@ -90,7 +89,7 @@ export const DOWNLOAD_PRESETS = {
     description: '1536×2048 • iPad and tablets',
     params: { width: 1536, height: 2048, quality: 90 },
     icon: '📱',
-    estimatedSize: 'Large (2-4 MB)',
+    // estimatedSize: 'Large (2-4 MB)',
     recommended: false,
     category: 'tablet',
     aspectRatio: '4:3'
@@ -100,7 +99,7 @@ export const DOWNLOAD_PRESETS = {
     description: '2048×1536 • iPad landscape',
     params: { width: 2048, height: 1536, quality: 90 },
     icon: '📱',
-    estimatedSize: 'Large (2-4 MB)',
+    // estimatedSize: 'Large (2-4 MB)',
     recommended: false,
     category: 'tablet',
     aspectRatio: '3:4'
