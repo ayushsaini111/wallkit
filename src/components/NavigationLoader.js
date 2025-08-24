@@ -1,11 +1,12 @@
+// components/NavigationLoader.js
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 
-const NavigationLoader = ({
-  color = '#f97316', // orange-500 - ensure this is being used
-  height = '2px', // thinner line
+const NavigationLoaderContent = ({
+  color = '#f97316',
+  height = '2px',
   className = '',
   zIndex = 50
 }) => {
@@ -38,7 +39,7 @@ const NavigationLoader = ({
           clearInterval(progressInterval);
         }
       }, 200);
-    }, 800); // Adjust timing as needed
+    }, 800);
 
     return () => {
       clearInterval(progressInterval);
@@ -61,11 +62,19 @@ const NavigationLoader = ({
         className="h-full transition-all duration-200 ease-out"
         style={{
           width: `${progress}%`,
-          background: `linear-gradient(90deg, #f97316, #f97316dd)`, // Force orange-500
-          boxShadow: `0 0 10px #f9731660`
+          background: `linear-gradient(90deg, ${color}, ${color}dd)`,
+          boxShadow: `0 0 10px ${color}60`
         }}
       />
     </div>
+  );
+};
+
+const NavigationLoader = (props) => {
+  return (
+    <Suspense fallback={null}>
+      <NavigationLoaderContent {...props} />
+    </Suspense>
   );
 };
 
