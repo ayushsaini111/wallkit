@@ -262,7 +262,7 @@ const HeroSection = ({
   }, []);
 
   return (
-    <header className="bg-[url('/heroGradient.png')] bg-cover bg-center bg-no-repeat min-h-[30vh] sm:min-h-[45vh] md:min-h-[50vh] lg:min-h-[45vh] relative overflow-visible -mt-1">
+    <header className="bg-[url('/heroGradient.png')] bg-cover bg-center bg-no-repeat min-h-[30vh] sm:min-h-[45vh] md:min-h-[50vh] lg:min-h-[45vh] relative overflow-visible -mt-14 sm:-mt-16 lg:-mt-20 pt-14 sm:pt-16 lg:pt-10">
       <div className="relative max-w-[1400px] mx-auto px-3 sm:px-4 md:px-6 pt-8 sm:pt-12 md:pt-16 pb-4 sm:pb-6 md:pb-8">
         {/* Title with Enhanced Animation */}
         <div className="text-center mb-6 sm:mb-8">
@@ -273,7 +273,7 @@ const HeroSection = ({
           </div>
           
           {/* Enhanced Search with Keyboard Navigation */}
-          <div className="relative max-w-[80vw] sm:max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto mb-6 sm:mb-8 px-4 sm:px-0">
+          <div className="relative max-w-[80vw]  sm:max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto mb-6 sm:mb-8 px-4 sm:px-0">
             <div className="relative group">
               <label htmlFor="wallpaper-search" className="sr-only">Search wallpapers</label>
               {/* <Search className="absolute left-4 sm:left-6 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 sm:w-6 h-10 sm:h-6 group-focus-within:text-blue-500 transition-colors" aria-hidden="true" /> */}
