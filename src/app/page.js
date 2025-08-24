@@ -5,7 +5,7 @@ import Main from '@/components/wallpapergallary/main';
 export default function Home() {
   return (
     <div className=''>
-       <Suspense >
+       <Suspense fallback={<div className=""></div>} >
         <Main />
       </Suspense>
     </div>
