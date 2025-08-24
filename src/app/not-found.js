@@ -16,7 +16,7 @@ function NotFoundContent() {
   const errorCode = searchParams.get('code');
 
   return (
-    <div>
+    <div style={{ textAlign: 'center', padding: '40px' }}>
       <h1>404 - Page Not Found</h1>
       {errorCode && <p>Error code: {errorCode}</p>}
     </div>
