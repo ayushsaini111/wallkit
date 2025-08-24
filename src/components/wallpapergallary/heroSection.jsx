@@ -276,7 +276,7 @@ const HeroSection = ({
           <div className="relative max-w-[80vw]  sm:max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto mb-6 sm:mb-8 px-4 sm:px-0">
             <div className="relative group">
               <label htmlFor="wallpaper-search" className="sr-only">Search wallpapers</label>
-              {/* <Search className="absolute left-4 sm:left-6 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 sm:w-6 h-10 sm:h-6 group-focus-within:text-blue-500 transition-colors" aria-hidden="true" /> */}
+              <Search className="absolute left-4 sm:left-6 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 sm:w-6 h-10 sm:h-6 group-focus-within:text-blue-500 transition-colors" aria-hidden="true" />
               <input
                 ref={searchRef}
                 id="wallpaper-search"

@@ -2,7 +2,7 @@
 "use client"
 
 import { Suspense } from "react"
-import AboutContent from "@/components/about/aboutContent"
+import AboutContent from "./AboutContent"
 
 export default function AboutPage() {
   return (

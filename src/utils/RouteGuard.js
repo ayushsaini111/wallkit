@@ -38,11 +38,11 @@ const RouteGuard = ({ children }) => {
   }, [session, status, pathname, router]);
 
   return (
-    <>
-      {/* Global Navigation Loading Bar - NOW ORANGE! */}
+    <div className="min-h-screen">
+      {/* Global Navigation Loading Bar */}
       <NavigationLoader 
-        color="#f97316"  // Orange-500 instead of green
-        height="2px"     // Thinner line as requested
+        color="#f97316"  // Orange-500
+        height="2px"     // Thinner line
         zIndex={9999}
       />
       
@@ -50,12 +50,14 @@ const RouteGuard = ({ children }) => {
       {!shouldHideLayout && <Navbar />}
       <ClearUserStorageOnLogout />
       
-      {/* Main Content */}
-      {children}
+      {/* Main Content - Remove any gaps */}
+      <main className="block" style={{ margin: 0, padding: 0 }}>
+        {children}
+      </main>
       
       {/* Footer */}
       {!shouldHideLayout && <Footer />}
-    </>
+    </div>
   );
 };
 
