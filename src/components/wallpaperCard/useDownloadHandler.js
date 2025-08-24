@@ -1,16 +1,17 @@
-// useDownloadHandler.js - Fixed to ensure actual file downloads, not link opening
+// useDownloadHandler.js - Enhanced with Aspect Ratios and Better Mobile Support
 
 import { useState, useCallback } from 'react';
 
-// Enhanced download quality presets with better descriptions
+// Enhanced download quality presets with aspect ratios and device-specific options
 export const DOWNLOAD_PRESETS = {
   original: {
     label: 'Original Quality',
-    description: 'Maximum quality • Largest file',
+    description: 'Maximum resolution • Largest file',
     params: {},
     icon: '🔥',
     estimatedSize: 'Large (5-15 MB)',
-    recommended: false
+    recommended: false,
+    category: 'quality'
   },
   compressed: {
     label: 'High Quality',
@@ -18,75 +19,143 @@ export const DOWNLOAD_PRESETS = {
     params: { quality: 85 },
     icon: '⚡',
     estimatedSize: 'Medium (1-3 MB)',
-    recommended: true
+    recommended: true,
+    category: 'quality'
   },
-  mobile: {
-    label: 'Mobile Optimized',
-    description: '720p • Perfect for phones',
-    params: { width: 720, quality: 80 },
+  // Mobile aspect ratios
+  mobile_portrait: {
+    label: 'Mobile Portrait (9:16)',
+    description: 'Perfect for phone wallpapers',
+    params: { width: 1080, height: 1920, quality: 90 },
     icon: '📱',
-    estimatedSize: 'Small (500KB-1MB)',
-    recommended: false
-  },
-  desktop: {
-    label: 'Desktop HD',
-    description: '1366p • Great for laptops',
-    params: { width: 1366, quality: 85 },
-    icon: '💻',
     estimatedSize: 'Medium (1-2 MB)',
-    recommended: false
+    recommended: false,
+    category: 'mobile',
+    aspectRatio: '9:16'
   },
-  hd: {
-    label: 'HD (720p)',
-    description: '1280×720 • Standard HD',
-    params: { width: 1280, height: 720, quality: 85 },
-    icon: '📺',
-    estimatedSize: 'Medium (800KB-1.5MB)',
-    recommended: false
-  },
-  fhd: {
-    label: 'Full HD (1080p)',
-    description: '1920×1080 • Perfect quality',
+  mobile_landscape: {
+    label: 'Mobile Landscape (16:9)',
+    description: 'For horizontal phone orientation',
     params: { width: 1920, height: 1080, quality: 90 },
-    icon: '🎬',
-    estimatedSize: 'Large (2-4 MB)',
-    recommended: false
+    icon: '📱',
+    estimatedSize: 'Medium (1-2 MB)',
+    recommended: false,
+    category: 'mobile',
+    aspectRatio: '16:9'
   },
-  uhd: {
-    label: '4K Ultra HD',
-    description: '3840×2160 • Maximum detail',
+  mobile_square: {
+    label: 'Mobile Square (1:1)',
+    description: 'Instagram-style square format',
+    params: { width: 1080, height: 1080, quality: 90 },
+    icon: '📱',
+    estimatedSize: 'Medium (1-1.5 MB)',
+    recommended: false,
+    category: 'mobile',
+    aspectRatio: '1:1'
+  },
+  // Desktop aspect ratios
+  desktop_hd: {
+    label: 'Desktop HD (16:9)',
+    description: '1920×1080 • Standard desktop',
+    params: { width: 1920, height: 1080, quality: 90 },
+    icon: '💻',
+    estimatedSize: 'Large (2-4 MB)',
+    recommended: false,
+    category: 'desktop',
+    aspectRatio: '16:9'
+  },
+  desktop_wide: {
+    label: 'Ultrawide (21:9)',
+    description: '2560×1080 • Widescreen monitors',
+    params: { width: 2560, height: 1080, quality: 90 },
+    icon: '💻',
+    estimatedSize: 'Large (3-5 MB)',
+    recommended: false,
+    category: 'desktop',
+    aspectRatio: '21:9'
+  },
+  desktop_4k: {
+    label: 'Desktop 4K (16:9)',
+    description: '3840×2160 • Ultra HD desktop',
     params: { width: 3840, height: 2160, quality: 95 },
-    icon: '🌟',
+    icon: '💻',
     estimatedSize: 'Very Large (8-20 MB)',
-    recommended: false
+    recommended: false,
+    category: 'desktop',
+    aspectRatio: '16:9'
+  },
+  // Tablet sizes
+  tablet_portrait: {
+    label: 'Tablet Portrait (4:3)',
+    description: '1536×2048 • iPad and tablets',
+    params: { width: 1536, height: 2048, quality: 90 },
+    icon: '📱',
+    estimatedSize: 'Large (2-4 MB)',
+    recommended: false,
+    category: 'tablet',
+    aspectRatio: '4:3'
+  },
+  tablet_landscape: {
+    label: 'Tablet Landscape (3:4)',
+    description: '2048×1536 • iPad landscape',
+    params: { width: 2048, height: 1536, quality: 90 },
+    icon: '📱',
+    estimatedSize: 'Large (2-4 MB)',
+    recommended: false,
+    category: 'tablet',
+    aspectRatio: '3:4'
   }
 };
 
 // Format options with better descriptions
 export const FORMAT_OPTIONS = {
   jpg: { 
-    label: 'JPG', 
+    label: 'JPEG', 
     description: 'Universal • Smaller size', 
     params: { output: 'jpg' },
-    icon: '🖼️'
+    icon: '🖼️',
+    extension: 'jpg'
   },
   png: { 
     label: 'PNG', 
     description: 'Lossless • Transparency', 
     params: { output: 'png' },
-    icon: '🎨'
+    icon: '🎨',
+    extension: 'png'
   },
   webp: { 
     label: 'WebP', 
     description: 'Modern • 30% smaller', 
     params: { output: 'webp' },
-    icon: '🚀'
+    icon: '🚀',
+    extension: 'webp'
   },
   avif: { 
     label: 'AVIF', 
     description: 'Next-gen • 50% smaller', 
     params: { output: 'avif' },
-    icon: '✨'
+    icon: '✨',
+    extension: 'avif'
+  }
+};
+
+// Preset categories for better organization
+export const PRESET_CATEGORIES = {
+  quality: {
+    label: 'Quality Options',
+    description: 'Choose based on file size preference'
+  },
+  mobile: {
+    label: 'Mobile Devices',
+    description: 'Optimized for phones and mobile wallpapers'
+  },
+  tablet: {
+    label: 'Tablets',
+    description: 'Perfect for iPad and Android tablets'
+  },
+  desktop: {
+    label: 'Desktop & Laptop',
+    description: 'Computer monitors and displays'
   }
 };
 
@@ -162,9 +231,9 @@ export const useDownloadHandler = (wallpaper) => {
             transformations.push(`q_${allParams.quality}`);
           }
           
-          // Add dimension transformations
+          // Add dimension transformations with crop handling
           if (allParams.width && allParams.height) {
-            transformations.push(`w_${allParams.width},h_${allParams.height},c_fill`);
+            transformations.push(`w_${allParams.width},h_${allParams.height},c_fill,g_center`);
           } else if (allParams.width) {
             transformations.push(`w_${allParams.width},c_scale`);
           } else if (allParams.height) {
@@ -200,9 +269,9 @@ export const useDownloadHandler = (wallpaper) => {
           transformations.push(`q_${allParams.quality}`);
         }
         
-        // Add dimension transformations
+        // Add dimension transformations with smart cropping
         if (allParams.width && allParams.height) {
-          transformations.push(`w_${allParams.width},h_${allParams.height},c_fill`);
+          transformations.push(`w_${allParams.width},h_${allParams.height},c_fill,g_center`);
         } else if (allParams.width) {
           transformations.push(`w_${allParams.width},c_scale`);
         } else if (allParams.height) {
@@ -273,10 +342,10 @@ export const useDownloadHandler = (wallpaper) => {
     }
   }, []);
 
-  // Enhanced filename generation
+  // Enhanced filename generation with aspect ratio info
   const generateFilename = useCallback((preset, format, customFilename = null) => {
     if (customFilename) {
-      const extension = format === 'jpg' ? 'jpg' : format;
+      const extension = FORMAT_OPTIONS[format]?.extension || format;
       return customFilename.endsWith(`.${extension}`) ? customFilename : `${customFilename}.${extension}`;
     }
     
@@ -287,14 +356,18 @@ export const useDownloadHandler = (wallpaper) => {
       .toLowerCase()
       .substring(0, 50); // Limit filename length
     
-    const presetSuffix = preset !== 'original' && preset !== 'compressed' ? `_${preset}` : '';
+    const presetInfo = DOWNLOAD_PRESETS[preset];
+    const aspectRatio = presetInfo?.aspectRatio;
+    const presetSuffix = preset !== 'original' && preset !== 'compressed' 
+      ? `_${preset}${aspectRatio ? `_${aspectRatio.replace(':', 'x')}` : ''}` 
+      : '';
     const qualitySuffix = preset === 'original' ? '_original' : '';
-    const extension = format;
+    const extension = FORMAT_OPTIONS[format]?.extension || format;
     
     return `${cleanTitle}${qualitySuffix}${presetSuffix}.${extension}`;
   }, [wallpaper]);
 
-  // ✅ FIXED DOWNLOAD FUNCTION - ENSURES ACTUAL FILE DOWNLOAD, NOT LINK OPENING
+  // Enhanced download function with better error handling and progress tracking
   const handleDownload = useCallback(async (preset = 'compressed', format = 'jpg', customFilename = null, customDimensions = null) => {
     if (isDownloading || !wallpaper?.imageUrl) return;
 
@@ -326,7 +399,7 @@ export const useDownloadHandler = (wallpaper) => {
             if (customParams.quality) transformations.push(`q_${customParams.quality}`);
             
             if (customParams.width && customParams.height) {
-              transformations.push(`w_${customParams.width},h_${customParams.height},c_fill`);
+              transformations.push(`w_${customParams.width},h_${customParams.height},c_fill,g_center`);
             } else if (customParams.width) {
               transformations.push(`w_${customParams.width},c_scale`);
             } else if (customParams.height) {
@@ -377,10 +450,10 @@ export const useDownloadHandler = (wallpaper) => {
 
       console.log(`Downloading ${preset} quality from:`, downloadUrl);
 
-      // ✅ ENHANCED FETCH WITH PROPER CORS AND HEADERS
+      // Enhanced fetch with proper CORS and headers
       const response = await fetch(downloadUrl, {
         method: 'GET',
-        mode: 'cors', // Enable CORS
+        mode: 'cors',
         cache: 'no-cache',
         headers: {
           'Accept': 'image/*,*/*;q=0.8',
@@ -391,7 +464,7 @@ export const useDownloadHandler = (wallpaper) => {
         throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
       }
 
-      // ✅ IMPROVED PROGRESS TRACKING
+      // Improved progress tracking
       const contentLength = response.headers.get('content-length');
       const total = parseInt(contentLength, 10);
       let loaded = 0;
@@ -402,14 +475,14 @@ export const useDownloadHandler = (wallpaper) => {
         const blob = await response.blob();
         console.log('Downloaded blob size:', blob.size, 'bytes');
         
-        // ✅ FORCE DOWNLOAD WITH PROPER BLOB HANDLING
+        // Force download with proper blob handling
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
         link.download = generateFilename(preset, format, customFilename);
         link.style.display = 'none';
         
-        // ✅ ENSURE DOWNLOAD ATTRIBUTE IS RESPECTED
+        // Ensure download attribute is respected
         document.body.appendChild(link);
         link.click();
         
@@ -444,7 +517,7 @@ export const useDownloadHandler = (wallpaper) => {
         return;
       }
 
-      // ✅ STREAMING DOWNLOAD WITH PROGRESS
+      // Streaming download with progress
       const chunks = [];
       while (true) {
         const { done, value } = await reader.read();
@@ -463,14 +536,14 @@ export const useDownloadHandler = (wallpaper) => {
       });
       console.log('Downloaded blob size:', blob.size, 'bytes');
       
-      // ✅ FORCE DOWNLOAD WITH PROPER BLOB HANDLING
+      // Force download with proper blob handling
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = generateFilename(preset, format, customFilename);
       link.style.display = 'none';
       
-      // ✅ ENSURE DOWNLOAD ATTRIBUTE IS RESPECTED
+      // Ensure download attribute is respected
       document.body.appendChild(link);
       link.click();
       
@@ -506,7 +579,7 @@ export const useDownloadHandler = (wallpaper) => {
     } catch (err) {
       console.error('Download failed:', err);
       
-      // ✅ IMPROVED FALLBACK - TRY DIRECT DOWNLOAD BEFORE OPENING LINK
+      // Improved fallback - try direct download before showing error
       try {
         const fallbackUrl = buildDownloadUrl(preset, format) || wallpaper.imageUrl || wallpaper.compressedUrl;
         console.log('Trying direct download fallback:', fallbackUrl);
@@ -537,7 +610,7 @@ export const useDownloadHandler = (wallpaper) => {
         console.error('Fallback download also failed:', fallbackErr);
       }
       
-      // ✅ LAST RESORT - SHOW USER-FRIENDLY ERROR
+      // Last resort - show user-friendly error
       alert(`Download failed. This might be due to CORS restrictions or network issues.\n\nTip: Right-click the image and select "Save image as..." to download manually.`);
     } finally {
       setIsDownloading(false);
@@ -562,18 +635,62 @@ export const useDownloadHandler = (wallpaper) => {
     await handleDownload('custom', format, filename, customDimensions);
   }, [handleDownload, wallpaper, isDownloading]);
 
+  // Get preview URL for different presets
   const getPreviewUrl = useCallback((preset = 'compressed') => {
     return buildDownloadUrl(preset, 'jpg');
   }, [buildDownloadUrl]);
 
+  // Check if download is available
   const canDownload = useCallback(() => {
     return !!(wallpaper?.imageUrl && !isDownloading);
   }, [wallpaper, isDownloading]);
 
+  // Toggle download menu
   const toggleDownloadMenu = useCallback((e) => {
     e?.stopPropagation();
     setShowDownloadMenu(prev => !prev);
   }, []);
+
+  // Check if preset is available for current storage type
+  const isPresetAvailable = useCallback((preset) => {
+    const storageType = getStorageType();
+    const presetConfig = DOWNLOAD_PRESETS[preset];
+    
+    if (!presetConfig) return false;
+    
+    // Basic presets are always available
+    if (preset === 'original' || preset === 'compressed') return true;
+    
+    // For Cloudinary, all presets are available
+    if (storageType === 'cloudinary') return true;
+    
+    // For Appwrite, check if we have Cloudinary compressed URL for transformations
+    if (storageType === 'appwrite') {
+      return wallpaper?.compressedUrl?.includes('cloudinary.com');
+    }
+    
+    return false;
+  }, [getStorageType, wallpaper]);
+
+  // Get presets grouped by category
+  const getPresetsByCategory = useCallback(() => {
+    const categories = {};
+    
+    Object.entries(DOWNLOAD_PRESETS).forEach(([key, preset]) => {
+      const category = preset.category || 'other';
+      if (!categories[category]) {
+        categories[category] = [];
+      }
+      
+      categories[category].push({
+        key,
+        ...preset,
+        available: isPresetAvailable(key)
+      });
+    });
+    
+    return categories;
+  }, [isPresetAvailable]);
 
   return {
     handleDownload,
@@ -589,7 +706,12 @@ export const useDownloadHandler = (wallpaper) => {
     generateFilename,
     getPreviewUrl,
     canDownload,
+    isPresetAvailable,
+    getPresetsByCategory,
     storageType: getStorageType(),
-    getOptimalUrl
+    getOptimalUrl,
+    presets: DOWNLOAD_PRESETS,
+    formats: FORMAT_OPTIONS,
+    categories: PRESET_CATEGORIES
   };
 };

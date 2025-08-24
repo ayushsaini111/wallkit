@@ -46,10 +46,12 @@ export async function POST(req) {
       category,
     });
 
-    console.log('Calling notification function...');
-    // await notifyFollowersAfterUpload({ wallpaperId: newWallpaper._id });
-    console.log('Notification function completed');
+    if(!isPrivate){
+      console.log('Calling notification function...');
+      await notifyFollowersAfterUpload({ wallpaperId: newWallpaper._id });
+      console.log('Notification function completed');
 
+    }
     return new Response(JSON.stringify({ success: true, wallpaper: newWallpaper }), {
       status: 201,
     });

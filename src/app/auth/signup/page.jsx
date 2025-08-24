@@ -164,18 +164,11 @@ const Signup = () => {
             <div className="text-center mb-8">
               <div className="relative inline-flex items-center justify-center mb-4 group">
                 {/* Main logo container with orange gradient */}
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 via-red-500 to-pink-600 rounded-xl flex items-center justify-center transform">
-                  <Sparkles className="w-6 h-6 text-white" />
-                </div>
-                
-               
-                
-                {/* Glow effect */}
-                <div className="absolute inset-0 w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl blur-lg opacity-0 group-hover:opacity-40 transition-all duration-500 -z-10" />
+              
               </div>
               
               <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-500 via-red-500 to-pink-600 bg-clip-text text-transparent mb-2">
-                Join WallKit
+                Join WallPickr
               </h1>
               <p className="text-gray-600">Create your account and start sharing</p>
             </div>
@@ -193,7 +186,7 @@ const Signup = () => {
             )}
 
             {/* Signup form */}
-            <form onSubmit={handleSubmit} className="space-y-4  text-gray-800">
+            <form onSubmit={handleSubmit} className="space-y-6  text-gray-800">
               {/* Avatar upload */}
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-gray-700">
@@ -223,7 +216,6 @@ const Signup = () => {
                       className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100 transition-colors"
                       disabled={loading}
                     />
-                    <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 2MB</p>
                   </div>
                 </div>
               </div>
@@ -421,7 +413,7 @@ const Signup = () => {
             <p className="mt-8 text-center text-gray-600">
               Already have an account?{" "}
               <Link href="/auth/signin" className="text-orange-600 hover:text-orange-700 font-semibold transition-colors">
-                Sign in
+                Login
               </Link>
             </p>
           </div>

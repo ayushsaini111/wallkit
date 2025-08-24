@@ -20,38 +20,33 @@ export const LoginPopup = ({ isVisible, onClose, actionType = 'general' }) => {
 
   // Dynamic content based on action type
   const getPopupContent = (actionType) => {
-    const contentMap = {
-      like: {
-        icon: '❤️',
-        title: 'Login to Like',
-        description: 'Show your love for amazing wallpapers! Login to like and build your personal collection of favorites.',
-        buttonText: 'Login & Like'
-      },
-      follow: {
-        icon: '👥',
-        title: 'Login to Follow',
-        description: 'Never miss amazing content! Login to follow your favorite creators and get notified of their latest uploads.',
-        buttonText: 'Login & Follow'
-      },
-      save: {
-        icon: '📌',
-        title: 'Login to Save',
-        description: 'Keep track of wallpapers you love! Login to save wallpapers to your personal collection for easy access.',
-        buttonText: 'Login & Save'
-      },
-      download: {
-        icon: '⬇️',
-        title: 'Login to Download',
-        description: 'Get high-quality wallpapers instantly! Login to download wallpapers in full resolution.',
-        buttonText: 'Login & Download'
-      },
-      general: {
-        icon: '🔐',
-        title: 'Login Required',
-        description: 'Please login to like, save, or follow wallpapers and creators.',
-        buttonText: 'Login Now'
-      }
-    };
+const contentMap = {
+  like: {
+    icon: '❤️',
+    title: 'Login to Like',
+    description: 'Express your appreciation by liking wallpapers. Login to personalize your favorites collection.',
+    buttonText: 'Login & Like'
+  },
+  follow: {
+    icon: '👥',
+    title: 'Login to Follow',
+    description: 'Stay updated with your favorite creators. Login to follow and receive their latest uploads.',
+    buttonText: 'Login & Follow'
+  },
+  save: {
+    icon: '📌',
+    title: 'Login to Save',
+    description: 'Organize wallpapers you love into your personal collection. Sign in to save and access anytime.',
+    buttonText: 'Login & Save'
+  },
+  general: {
+    icon: '🔐',
+    title: 'Login Required',
+    description: 'Login to like, follow, save, and download wallpapers. Access a more personalized experience.',
+    buttonText: 'Login Now'
+  }
+};
+
     return contentMap[actionType] || contentMap.general;
   };
 
@@ -86,13 +81,7 @@ export const LoginPopup = ({ isVisible, onClose, actionType = 'general' }) => {
               </button>
             </div>
           </div>
-          <button 
-            onClick={onClose}
-            className="flex-shrink-0 p-1 hover:bg-gray-100 rounded-lg transition-colors"
-            aria-label="Close login popup"
-          >
-            <X className="w-4 h-4 text-gray-400" />
-          </button>
+      
         </div>
       </div>
     </aside>

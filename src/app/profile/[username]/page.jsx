@@ -125,7 +125,7 @@ export default function ProfilePage() {
 
   const handleUpdateWallpaper = async () => {
     try {
-      const res = await fetch('/api/wallpapers/upload', {
+      const res = await fetch('/api/wallpaperupload', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -154,10 +154,10 @@ export default function ProfilePage() {
   };
 
   const handleDeleteWallpaper = async (wallpaperId) => {
-    if (!confirm('Are you sure you want to delete this wallpaper?')) return;
+    // if (!confirm('Are you sure you want to delete this wallpaper?')) return;
 
     try {
-      const res = await fetch('/api/wallpapers/upload', {
+      const res = await fetch('/api/wallpaperupload', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -208,10 +208,10 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-6">
-          <div className="relative">
+          {/* <div className="relative">
             <div className="w-20 h-20 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
             <div className="absolute inset-0 w-20 h-20 border-4 border-gray-200 border-b-purple-500 rounded-full animate-spin animate-reverse"></div>
-          </div>
+          </div> */}
           <div className="text-gray-600 text-lg font-medium">Loading profile...</div>
         </div>
       </div>
@@ -221,7 +221,7 @@ export default function ProfilePage() {
   if (!profile) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded-3xl p-8 text-center border border-gray-200 shadow-xl">
+        <div className="bg-white rounded-3xl p-8 text-center border border-gray-200 shadow-lg">
           <div className="text-6xl mb-4">❌</div>
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Profile Not Found</h2>
           <p className="text-gray-600">This user profile does not exist or is not accessible.</p>
@@ -237,16 +237,16 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50" style={{ scrollBehavior: 'smooth' }}>
-      <div className="max-w-7xl mx-auto px-1 py-12">
+      <div className="max-w-7xl mx-auto px-1 py-2">
         {/* Profile Header */}
-        <div className="relative mb-12">
-          <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-xl">
+        <div className="relative mb-2">
+          <div className="bg-white rounded-3xl p-4 border border-gray-200 shadow-md">
            
 
-            <div className="relative flex flex-col md:flex-row items-center gap-8">
+            <div className="relative flex flex-col md:flex-row items-center gap-4">
               {/* Avatar Section */}
               <div className="relative">
-                <div className="w-32 h-32 rounded-3xl overflow-hidden ring-4 ring-gray-200 shadow-lg">
+                <div className="w-32 h-32 rounded-3xl overflow-hidden ring-4 ring-gray-200 shadow-md">
                   <Image
                     src={profile.user.avatar || '/default-avatar.png'}
                     alt={`${profile.user.username}'s avatar`}
@@ -255,7 +255,7 @@ export default function ProfilePage() {
                     height={128}
                   />
                 </div>
-                <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-gradient-to-r from-green-400 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-gradient-to-r from-green-400 to-emerald-500 rounded-2xl flex items-center justify-center shadow-md">
                   <Star className="w-5 h-5 text-white" />
                 </div>
               </div>
@@ -306,7 +306,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
+        <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-1 my-5">
           <StatCard
             icon={<Upload className="w-6 h-6" />}
             label="Uploads"
@@ -347,11 +347,11 @@ export default function ProfilePage() {
 
         {/* Wallpapers Section */}
         <div className="relative">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between pl-8 my-5">
             <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center">
+              {/* <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center">
                 <LayoutGrid className="w-5 h-5 text-white" />
-              </div>
+              </div> */}
               {isOwnProfile ? 'Your Wallpapers' : `${profile.user.username}'s Wallpapers`}
               <span className="text-lg font-normal text-gray-500">({sortedWallpapers.length})</span>
             </h2>
@@ -375,7 +375,7 @@ export default function ProfilePage() {
 
           {/* Wallpapers Grid */}
           {sortedWallpapers.length === 0 ? (
-            <div className="bg-white rounded-3xl p-12 text-center border border-gray-200 shadow-lg">
+            <div className="bg-white rounded-3xl p-12 text-center border border-gray-200 shadow-md">
               <div className="text-8xl mb-6">🎨</div>
               <h3 className="text-2xl font-bold text-gray-800 mb-4">
                 {isOwnProfile ? 'No wallpapers yet' : 'No wallpapers shared'}
@@ -410,7 +410,7 @@ export default function ProfilePage() {
             <div className="mt-8 text-center">
               <button
                 onClick={() => router.push('/upload')}
-                className="group relative px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-2xl font-bold text-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 flex items-center gap-3 mx-auto"
+                className="group relative text-sm px-4 py-3 bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 text-white rounded-2xl font-semibold  transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-3 mx-auto"
               >
                 <Upload className="w-6 h-6" />
                 <span>Upload More Wallpapers</span>
@@ -419,48 +419,7 @@ export default function ProfilePage() {
           )}
         </div>
 
-        {/* Performance Insights */}
-        {sortedWallpapers.length > 0 && (
-          <div className="mt-16">
-            <h3 className="text-2xl font-bold text-gray-800 mb-8 flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
-                <TrendingUp className="w-4 h-4 text-white" />
-              </div>
-              Performance Insights
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <InsightCard
-                title="Most Popular"
-                value={Math.max(...sortedWallpapers.map(w => w.likeCount || 0))}
-                subtitle="likes on best wallpaper"
-                icon={<Heart className="w-5 h-5" />}
-                color="pink"
-              />
-              <InsightCard
-                title="Total Views"
-                value={sortedWallpapers.reduce((sum, w) => sum + (w.viewCount || 0), 0)}
-                subtitle="across all wallpapers"
-                icon={<Eye className="w-5 h-5" />}
-                color="blue"
-              />
-              <InsightCard
-                title="Top Download"
-                value={Math.max(...sortedWallpapers.map(w => w.downloadCount || 0))}
-                subtitle="downloads on best wallpaper"
-                icon={<Download className="w-5 h-5" />}
-                color="green"
-              />
-              <InsightCard
-                title="Avg. Engagement"
-                value={Math.round(sortedWallpapers.reduce((sum, w) => sum + (w.likeCount || 0) + (w.downloadCount || 0), 0) / sortedWallpapers.length) || 0}
-                subtitle="likes + downloads per wallpaper"
-                icon={<Star className="w-5 h-5" />}
-                color="yellow"
-              />
-            </div>
-          </div>
-        )}
+       
       </div>
 
       {/* Edit Wallpaper Modal */}
@@ -477,7 +436,7 @@ export default function ProfilePage() {
               </button>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-6 text-gray-900">
               {/* Title */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
@@ -630,15 +589,15 @@ function StatCard({ icon, label, value, color }) {
   };
 
   return (
-    <div className={`relative group bg-white border ${colorClasses[color]} rounded-2xl p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105`}>
-      <div className={`w-12 h-12 ${iconBgClasses[color]} rounded-2xl flex items-center justify-center mx-auto mb-4 text-white shadow-lg transform group-hover:scale-110 transition-transform duration-300`}>
+    <div className={`relative group bg-white border ${colorClasses[color]} rounded-2xl lg:p-6 p-2 text-center shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105`}>
+      <div className={`w-10 h-10 md:w-12 md:h-12 ${iconBgClasses[color]} rounded-2xl flex items-center justify-center mx-auto mb-2 md:mb-4 text-white shadow-lg transform group-hover:scale-110 transition-transform duration-300`}>
         {icon}
       </div>
 
-      <p className="text-3xl font-bold text-gray-800 mb-2 group-hover:scale-110 transition-transform duration-300">
+      <p className="tetext-2xl md:text-3xl font-bold text-gray-800 mb-2 group-hover:scale-110 transition-transform duration-300">
         {Number(value || 0).toLocaleString()}
       </p>
-      <p className="text-gray-600 text-sm font-medium uppercase tracking-wider">{label}</p>
+      <p className="text-gray-600 text-sm font-medium uppercase  lg:tracking-wider tracking-wide">{label}</p>
     </div>
   );
 }
@@ -655,7 +614,7 @@ function InsightCard({ title, value, subtitle, icon, color }) {
   return (
     <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group">
       <div className="flex items-center justify-between mb-4">
-        <div className={`w-10 h-10 ${colorClasses[color]} rounded-xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+        <div className={`w-10 h-10 ${colorClasses[color]} rounded-xl flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform duration-300`}>
           {icon}
         </div>
         <div className="text-right">

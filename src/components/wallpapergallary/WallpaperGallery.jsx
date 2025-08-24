@@ -418,7 +418,7 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
 
   // Enhanced Loading Skeleton Component
   const LoadingSkeleton = () => (
-    <div className="columns-2  sm:columns-2 md:columns-3 lg:columns-3 xl:columns-3 gap-3 space-y-3 mx-auto px-3 sm:px-4 w-full" aria-label="Loading wallpapers">
+    <div className="columns-2 gap-1 space-y-1 sm:columns-2 md:columns-3 lg:columns-3 xl:columns-3 mx-auto px-3 sm:px-4 w-full" aria-label="Loading wallpapers">
       {[...Array(12)].map((_, i) => (
         <div 
           key={i} 
@@ -432,7 +432,7 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
           <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
           
           {/* Content skeleton */}
-          <div className="p-3 sm:p-4 h-full flex flex-col justify-between">
+          <div className="p-3 sm:p-4 h-full  flex flex-col justify-between">
             <div className="space-y-2 sm:space-y-3">
               <div className="h-3 sm:h-4 bg-gray-200/60 rounded-full w-3/4 animate-pulse"></div>
               <div className="h-2.5 sm:h-3 bg-gray-200/40 rounded-full w-1/2 animate-pulse"></div>
@@ -445,7 +445,7 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
           
           {/* Floating sparkles */}
           <div className="absolute top-2 right-2">
-            <Sparkles className="w-3 sm:w-4 h-3 sm:h-4 text-purple-300 animate-pulse" />
+            <p className='bg-gradient-to-r font-extrabold opacity-30 to-orange-500 from-pink-500 text-transparent bg-clip-text'>WallPickr</p>
           </div>
         </div>
       ))}
@@ -467,8 +467,8 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
       />
      
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto md:px-3 sm:px-4 lg:px-6 py-4 sm:py-8 relative z-10">
-        <div className="space-y-6 sm:space-y-8">
+      <main className="max-w-7xl mx-auto md:px-3 sm:px-4 lg:px-6 py-3 sm:py-8 relative z-10">
+        <div className="space-y-3 px-1 sm:space-y-8">
           {/* Categories Navigation */}
           <nav aria-label="Wallpaper categories">
             <div className="flex items-center justify-center">

@@ -1,4 +1,4 @@
-// WallpaperCard.js - Updated to hide avatar, title, like, save, download on mobile
+// WallpaperCard.js - Updated with mobile-friendly edit/delete options
 
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -18,7 +18,8 @@ import {
     User,
     Bookmark,
     Pencil,
-    Trash2
+    Trash2,
+    MoreVertical
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -70,6 +71,8 @@ const WallpaperCard = ({
     const [profileImageLoaded, setProfileImageLoaded] = useState(false);
     const [profileImageError, setProfileImageError] = useState(false);
     const [viewCount, setViewCount] = useState(wallpaper.viewCount || 0);
+    // 🆕 NEW: Mobile menu state
+    const [showMobileMenu, setShowMobileMenu] = useState(false);
 
     // Refs and tracking
     const isOwner = session?.user?._id === wallpaper.userDetails?._id;
@@ -200,6 +203,29 @@ const WallpaperCard = ({
         setImageLoaded(true);
     }, []);
 
+    // 🆕 NEW: Toggle mobile menu
+    const toggleMobileMenu = useCallback((e) => {
+        e.stopPropagation();
+        setShowMobileMenu(prev => !prev);
+    }, []);
+
+    // 🆕 NEW: Close mobile menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = () => {
+            if (showMobileMenu) {
+                setShowMobileMenu(false);
+            }
+        };
+
+        if (showMobileMenu) {
+            document.addEventListener('click', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, [showMobileMenu]);
+
     // Profile Image Component
     const ProfileImage = useCallback(() => {
         const avatar = wallpaper.userDetails?.avatar;
@@ -246,23 +272,13 @@ const WallpaperCard = ({
         <>
             <div
                 ref={intersectionRef}
-                className="group relative  cursor-pointer transform transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1 bg-white rounded-lg md:rounded-3xl shadow-xl hover:shadow-2xl overflow-hidden h-full w-full"
+                className="group relative cursor-pointer transform transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1 bg-white rounded-lg md:rounded-3xl shadow-xl hover:shadow-2xl overflow-hidden h-full w-full"
                 onClick={handleCardClick}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
             >
                 {/* Image Container */}
                 <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
-                    {/* Loading State
-                    {!imageLoaded && !imageError && (
-                        <div className="absolute inset-0 flex items-center justify-center z-20">
-                            <div className="flex flex-col items-center gap-4">
-                                <div className="w-8 h-8 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
-                                <div className="text-gray-500 text-xs font-medium">Loading...</div>
-                            </div>
-                        </div>
-                    )} */}
-
                     {/* Error State */}
                     {imageError ? (
                         <div className="absolute inset-0 flex items-center justify-center text-gray-400">
@@ -273,9 +289,9 @@ const WallpaperCard = ({
                         </div>
                     ) : (
                         <img
-                            src={wallpaper.compressedUrl || wallpaper.imageUrl }
+                            src={wallpaper.compressedUrl || wallpaper.imageUrl}
                             alt={wallpaper.title || 'Wallpaper'}
-                            className={`w-full h-full object-cover  transition-all duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'
+                            className={`w-full h-full object-cover transition-all duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'
                                 } ${isHovered ? 'scale-z-105' : 'scale-100'}`}
                             onLoad={() => setImageLoaded(true)}
                             onError={handleImageError}
@@ -283,13 +299,53 @@ const WallpaperCard = ({
                         />
                     )}
 
+                    {/* 🆕 Mobile Edit/Delete Menu (Only for profile page - owner actions) */}
+                    {showOwnerActions && (
+                        <div className="absolute top-2 right-2 sm:hidden z-30">
+                            <button
+                                onClick={toggleMobileMenu}
+                                className="p-2 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-black/70 transition-all"
+                            >
+                                <MoreVertical className="w-4 h-4" />
+                            </button>
+
+                            {/* Mobile Dropdown Menu */}
+                            {showMobileMenu && (
+                                <div className="absolute top-full right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-40 min-w-[140px]">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShowMobileMenu(false);
+                                            onEdit && onEdit(wallpaper);
+                                        }}
+                                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                    >
+                                        <Pencil className="w-4 h-4 text-blue-500" />
+                                        Edit
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShowMobileMenu(false);
+                                            onDelete && onDelete(wallpaper);
+                                        }}
+                                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        Delete
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {/* Enhanced Hover Overlay */}
                     <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-all duration-500 ${isHovered ? 'opacity-100' : 'opacity-0'
                         }`}>
 
-                        {/* Regular Action Buttons (Top Right) */}
+                        {/* Regular Action Buttons (Desktop - Top Right) */}
                         {!showOwnerActions && (
-                            <div className="absolute top-4 right-4  flex-col gap-2 z-20 hidden sm:flex">
+                            <div className="absolute top-4 right-4 flex-col gap-2 z-20 hidden sm:flex">
                                 <button
                                     onClick={toggleLike}
                                     className={`p-3 rounded-2xl transform hover:scale-105 shadow-lg transition-all duration-300 ${isLiked
@@ -314,34 +370,34 @@ const WallpaperCard = ({
                             </div>
                         )}
 
+                        {/* Owner Actions (Desktop - Top Right) */}
                         {showOwnerActions && (
-    <div className="absolute top-4 right-4 flex-col gap-2 z-20 hidden sm:flex">
-        <button
-            onClick={(e) => { e.stopPropagation(); onEdit && onEdit(wallpaper); }}
-            className={`p-3 rounded-2xl transform hover:scale-105 shadow-lg transition-all duration-300 bg-blue-500 text-white hover:bg-blue-600 ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}`}
-            style={{ transitionDelay: '50ms' }}
-            title="Edit wallpaper"
-        >
-            <Pencil className="w-5 h-5" />
-        </button>
+                            <div className="absolute top-4 right-4 flex-col gap-2 z-20 hidden sm:flex">
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); onEdit && onEdit(wallpaper); }}
+                                    className={`p-3 rounded-2xl transform hover:scale-105 shadow-lg transition-all duration-300 bg-blue-500 text-white hover:bg-blue-600 ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}`}
+                                    style={{ transitionDelay: '50ms' }}
+                                    title="Edit wallpaper"
+                                >
+                                    <Pencil className="w-5 h-5" />
+                                </button>
 
-        <button
-            onClick={(e) => { e.stopPropagation(); onDelete && onDelete(wallpaper); }}
-            className={`p-3 rounded-2xl transform hover:scale-105 shadow-lg transition-all duration-300 bg-red-500 text-white hover:bg-red-600 ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}`}
-            style={{ transitionDelay: '100ms' }}
-            title="Delete wallpaper"
-        >
-            <Trash2 className="w-5 h-5" />
-        </button>
-    </div>
-)}
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); onDelete && onDelete(wallpaper); }}
+                                    className={`p-3 rounded-2xl transform hover:scale-105 shadow-lg transition-all duration-300 bg-red-500 text-white hover:bg-red-600 ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}`}
+                                    style={{ transitionDelay: '100ms' }}
+                                    title="Delete wallpaper"
+                                >
+                                    <Trash2 className="w-5 h-5" />
+                                </button>
+                            </div>
+                        )}
 
-                        {/* Download Button - Bottom Right */}
-                        <div className="absolute bottom-6 right-4 z-20 hidden sm:block"
-                        onClick={(e) => { e.stopPropagation(); handleDownload(e); }}>
+                        {/* Download Button - Bottom Right (Desktop) */}
+                        <div className="absolute bottom-6 right-4 z-20 hidden sm:block">
                             <button
-                               onClick={(e) => { e.stopPropagation(); handleDownload(e); }}
-                                className={`sm:p-3 lg:p-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-2xl transition-all duration-300 backdrop-blur-xl transform hover:scale-110 shadow-xl ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+                                onClick={(e) => { e.stopPropagation(); handleDownload(e); }}
+                                className={`sm:p-3 lg:p-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-2xl transition-all duration-300 backdrop-blur-xl transform hover:scale-110 shadow-xl ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
                                     }`}
                                 style={{ transitionDelay: '300ms' }}
                             >
@@ -379,7 +435,7 @@ const WallpaperCard = ({
                     </div>
 
                     {/* Subtle border glow */}
-                   <div className="absolute inset-0 rounded-none md:rounded-3xl ring-1 ring-inset ring-white/20 pointer-events-none"></div>
+                    <div className="absolute inset-0 rounded-none md:rounded-3xl ring-1 ring-inset ring-white/20 pointer-events-none"></div>
                 </div>
             </div>
 

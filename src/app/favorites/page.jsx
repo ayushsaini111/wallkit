@@ -9,7 +9,7 @@ import Loading from "@/components/loading";
 const FloatingDoodle = ({ children, className, delay = 0 }) => {
   return (
     <div 
-      className={`absolute animate-bounce text-6xl select-none pointer-events-none opacity-50 ${className}`}
+      className={`absolute animate-bounce text-6xl select-none pointer-events-none opacity-20 ${className}`}
       style={{
         animationDelay: `${delay}s`,
         animationDuration: '3s'
@@ -101,12 +101,11 @@ export default function FavoritesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 relative overflow-hidden">
       {/* Background Doodles - Heart/Love themed */}
-      <FloatingDoodle className="top-20 left-10 text-gray-300" delay={0}>❤️</FloatingDoodle>
-      <FloatingDoodle className="top-32 right-16 text-gray-300" delay={0.5}>💕</FloatingDoodle>
-      <FloatingDoodle className="top-60 left-1/4 text-gray-300" delay={1}>💖</FloatingDoodle>
-      <FloatingDoodle className="bottom-40 right-20 text-gray-300" delay={1.5}>💗</FloatingDoodle>
-      <FloatingDoodle className="bottom-20 left-1/3 text-gray-300" delay={2}>💝</FloatingDoodle>
-      <FloatingDoodle className="top-1/2 right-1/3 text-gray-300" delay={2.5}>✨</FloatingDoodle>
+     
+     
+      <FloatingDoodle className="top-30 left-10 text-purple-200" delay={0}>💕🩷</FloatingDoodle>
+      <FloatingDoodle className="top-55 right-10 text-purple-200" delay={0}>💗</FloatingDoodle>
+      <FloatingDoodle className="top-60 left-10 text-purple-200" delay={0}>❤️</FloatingDoodle>
 
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-7xl">
         {/* Header Section */}
@@ -120,27 +119,10 @@ export default function FavoritesPage() {
 
           <div className="relative z-10 max-w-[1400px] mx-auto px-3 sm:px-4 md:px-6 pt-8 sm:pt-12 md:pt-16 pb-4 sm:pb-6 md:pb-8 h-full flex flex-col justify-center">
             {/* Navigation */}
-            <div className="absolute top-6 left-6">
-              <button 
-                onClick={handleBackNavigation}
-                className="group p-3 bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl hover:bg-white hover:shadow-xl transition-all duration-300"
-                aria-label="Go back"
-              >
-                <ArrowLeft className="w-5 h-5 text-gray-600 group-hover:text-gray-800 transition-colors duration-300" />
-              </button>
-            </div>
+          
 
             {/* Refresh Button */}
-            <div className="absolute top-6 right-6">
-              <button 
-                onClick={handleRefresh}
-                disabled={refreshing || loading}
-                className="group p-3 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl hover:bg-white hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Refresh favorites"
-              >
-                <RefreshCw className={`w-5 h-5 text-gray-600 group-hover:text-gray-800 transition-colors duration-300 ${refreshing ? 'animate-spin' : ''}`} />
-              </button>
-            </div>
+            
 
             {/* Title with Enhanced Animation */}
             <div className="text-center">
@@ -149,17 +131,14 @@ export default function FavoritesPage() {
                   {/* <Heart className="w-6 sm:w-8 md:w-12 h-6 sm:h-8 md:h-12 text-red-400  fill-red-400" /> */}
                   <div className="absolute inset-0 w-6 sm:w-8 md:w-12 h-6 sm:h-8 md:h-12 bg-red-400/20 rounded-full blur-xl animate-pulse"></div>
                 </div>
-                <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black bg-gradient-to-r from-pink-500 via-orange-500 to-pink-800 bg-clip-text text-transparent drop-shadow-2xl leading-tight">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black bg-gradient-to-r from-pink-500 via-orange-500 to-pink-800 bg-clip-text text-transparent drop-shadow-2xl leading-tight">
                   My Favorite Wallpapers
                 </h1>
-                <div className="relative" aria-hidden="true">
-                  <Sparkles className="w-6 sm:w-8 md:w-12 h-6 sm:h-8 md:h-12 text-pink-400 " />
-                  <div className="absolute inset-0 w-6 sm:w-8 md:w-12 h-6 sm:h-8 md:h-12 bg-pink-400/20 rounded-full blur-xl animate-pulse"></div>
-                </div>
+               
               </div>
               
               <div className="relative mb-8">
-                <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl mx-auto font-light leading-relaxed px-4">
+                <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl mx-auto font-light leading-tight px-4">
                   {loading ? (
                     "Loading your favorite wallpapers..."
                   ) : (
@@ -172,16 +151,7 @@ export default function FavoritesPage() {
               </div>
 
               {/* Stats with Enhanced Design */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 md:gap-12 text-gray-700">
-                <div className="flex items-center gap-2 sm:gap-3 bg-white/60 backdrop-blur-2xl px-4 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl shadow-lg border border-gray-200">
-                  <Heart className="w-4 sm:w-5 h-4 sm:h-5 text-red-400 fill-red-400" aria-hidden="true" />
-                  <span className="font-semibold text-sm sm:text-base">{wallpapers.length} Loved</span>
-                </div>
-                <div className="flex items-center gap-2 sm:gap-3 bg-white/60 backdrop-blur-2xl px-4 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl shadow-lg border border-gray-200">
-                  <Sparkles className="w-4 sm:w-5 h-4 sm:h-5 text-pink-400" aria-hidden="true" />
-                  <span className="font-semibold text-sm sm:text-base">Curated Collection</span>
-                </div>
-              </div>
+              
             </div>
 
           </div>
@@ -257,27 +227,21 @@ export default function FavoritesPage() {
               )}
 
               {/* Wallpapers Grid with enhanced styling and animation */}
-              <div className="relative">
-                <div className="columns-2 sm:columns-2 md:columns-3 lg:columns-3 gap-3 space-y-3 mx-auto px-4 w-full py-6">
-                  {wallpapers.map((wallpaper, index) => (
-                    <div
-                      key={`${wallpaper._id}-${index}`}
-                      className="transition-all duration-500 ease-in-out"
-                      style={{
-                        animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`
-                      }}
-                    >
-                      <WallpaperCard
-                        wallpaper={wallpaper}
-                        index={index}
-                        onUnauthorizedAction={handleUnauthorizedAction}
-                        onWallpaperRemoved={handleWallpaperRemoved}
-                        showUserInfo={true}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
+  <div className="relative">
+      <div className="columns-2 gap-1 space-y-1 sm:columns-2 md:columns-3 lg:columns-3 xl:columns-3 xl:gap-3 xl:space-y-3 px-1 md:px-3 sm:px-4 w-full">
+        {wallpapers.map((wallpaper, index) =>
+          !wallpaper.isPrivate && (
+            <WallpaperCard
+              key={wallpaper._id}
+              wallpaper={wallpaper}
+              index={index}
+              onUnauthorizedAction={handleUnauthorizedAction}
+              onWallpaperRemoved={handleWallpaperRemoved} // ⬅️ pass callback
+            />
+          )
+        )}
+      </div>
+    </div>
 
               {/* Bottom CTA */}
               {wallpapers.length > 0 && (

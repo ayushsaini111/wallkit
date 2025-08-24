@@ -8,52 +8,15 @@ export default function AboutPage() {
         {/* Photographer scene background */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-200 via-gray-300 to-slate-400">
           {/* Mountain landscape silhouettes */}
-          <div className="absolute bottom-0 left-0 right-0">
-            <svg viewBox="0 0 1200 200" className="w-full h-24 text-slate-400 opacity-40">
-              <path d="M0,200 L0,120 L150,80 L300,90 L450,60 L600,70 L750,50 L900,65 L1050,45 L1200,55 L1200,200 Z" fill="currentColor"/>
-            </svg>
-            <svg viewBox="0 0 1200 150" className="w-full h-20 text-slate-500 opacity-60">
-              <path d="M0,150 L0,90 L100,70 L250,75 L400,50 L550,60 L700,40 L850,55 L1000,35 L1200,45 L1200,150 Z" fill="currentColor"/>
-            </svg>
-          </div>
-          
-          {/* Photographer silhouette - centered */}
-          <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2">
-            {/* Photographer body */}
-            <div className="relative">
-              <div className="w-8 h-16 bg-slate-600 rounded-t-lg"></div>
-              {/* Head */}
-              <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-slate-600 rounded-full"></div>
-              {/* Arms holding camera */}
-              <div className="absolute top-4 -left-3 w-6 h-2 bg-slate-600 rounded transform -rotate-12"></div>
-              <div className="absolute top-4 -right-3 w-6 h-2 bg-slate-600 rounded transform rotate-12"></div>
-              {/* Camera */}
-              <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-4 h-3 bg-slate-700 rounded"></div>
-              <div className="absolute top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-slate-800 rounded-full"></div>
-              {/* Legs */}
-              <div className="absolute top-16 left-1 w-2 h-8 bg-slate-600 rounded"></div>
-              <div className="absolute top-16 right-1 w-2 h-8 bg-slate-600 rounded"></div>
-            </div>
-          </div>
-          
-          {/* Birds in the sky */}
-          <div className="absolute top-16 left-1/4">
-            <div className="text-slate-500 text-sm">⌄ ⌄ ⌄</div>
-          </div>
-          <div className="absolute top-12 right-1/3">
-            <div className="text-slate-500 text-xs">⌄ ⌄</div>
-          </div>
-          
-          {/* Sun */}
-          <div className="absolute top-8 right-16 w-8 h-8 bg-yellow-300 rounded-full opacity-80"></div>
-          <div className="absolute top-6 right-14 w-12 h-12 bg-yellow-200 rounded-full opacity-40"></div>
+
+         
         </div>
         
         {/* Overlay content */}
         <div className="absolute inset-0 bg-white/20 flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-6xl md:text-7xl font-black text-slate-800 mb-4 tracking-tight">
-              About <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">WallKit</span>
+              About <span className="bg-gradient-to-r from-orange-500 to-pink-600 bg-clip-text text-transparent">WallPickr</span>
             </h1>
             <p className="text-xl text-slate-700 max-w-2xl mx-auto leading-relaxed font-medium">
               Your personal gateway to stunning visuals and endless inspiration
@@ -71,10 +34,10 @@ export default function AboutPage() {
             More Than Just Wallpapers
           </h2>
           <p className="text-xl text-slate-600 leading-relaxed max-w-4xl mx-auto mb-8">
-            <strong className="text-slate-800">WallKit</strong> is more than just a wallpaper platform — it's your personal gateway to a world of stunning visuals, creativity, and inspiration. We believe every screen has the power to tell a story, reflect your personality, and spark joy every time you unlock your device.
+            <strong className="text-slate-800">WallPickr</strong> is more than just a wallpaper platform — it's your personal gateway to a world of stunning visuals, creativity, and inspiration. We believe every screen has the power to tell a story, reflect your personality, and spark joy every time you unlock your device.
           </p>
           <p className="text-lg text-slate-600 leading-relaxed max-w-4xl mx-auto mb-8">
-            Whether you're looking for breathtaking landscapes, minimalist designs, abstract art, or trending aesthetics, WallKit curates the finest collection of high-resolution wallpapers from talented creators around the globe. Our platform combines cutting-edge technology with artistic excellence to deliver an unmatched visual experience.
+            Whether you're looking for breathtaking landscapes, minimalist designs, abstract art, or trending aesthetics, WallPickr curates the finest collection of high-resolution wallpapers from talented creators around the globe. Our platform combines cutting-edge technology with artistic excellence to deliver an unmatched visual experience.
           </p>
           <div className="mt-12 p-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border border-blue-200">
             <p className="text-2xl text-blue-700 font-semibold">
@@ -107,7 +70,7 @@ export default function AboutPage() {
               Our Story
             </h2>
             <p className="text-lg text-slate-600 leading-relaxed mb-6">
-              WallKit was born from a simple frustration — finding beautiful, high-quality wallpapers without the hassle of low resolution, watermarks, or intrusive ads. We set out to create a platform that blends <strong className="text-slate-800">quality, speed, and style</strong> in one seamless experience.
+              WallPickr was born from a simple frustration — finding beautiful, high-quality wallpapers without the hassle of low resolution, watermarks, or intrusive ads. We set out to create a platform that blends <strong className="text-slate-800">quality, speed, and style</strong> in one seamless experience.
             </p>
             <p className="text-lg text-slate-600 leading-relaxed mb-6">
               From a small collection of handpicked designs, we've grown into a <strong className="text-blue-600">global library of thousands of wallpapers</strong>, updated daily and loved by a growing community worldwide.
@@ -216,13 +179,13 @@ export default function AboutPage() {
           </h2>
           <div className="space-y-6 text-lg text-slate-600 leading-relaxed">
             <p>
-              Most wallpaper platforms focus only on quantity — we focus on <strong className="text-slate-800">quality and experience</strong>. WallKit is <strong className="text-blue-600">ad-light, distraction-free</strong>, and designed to feel premium from the moment you arrive.
+              Most wallpaper platforms focus only on quantity — we focus on <strong className="text-slate-800">quality and experience</strong>. WallPickr is <strong className="text-blue-600">ad-light, distraction-free</strong>, and designed to feel premium from the moment you arrive.
             </p>
             <p>
               Every element — from the smooth scrolling to the minimal design — is crafted to make browsing wallpapers enjoyable. We don't just show you images; we give you tools to <strong className="text-purple-600">curate your own aesthetic</strong> and personalize your digital space like never before.
             </p>
             <p>
-              Our commitment extends beyond just providing wallpapers. We're building a community of visual enthusiasts, supporting independent artists, and pioneering new ways to discover and enjoy digital art. When you use WallKit, you're not just downloading an image — you're joining a movement that values creativity, quality, and artistic expression.
+              Our commitment extends beyond just providing wallpapers. We're building a community of visual enthusiasts, supporting independent artists, and pioneering new ways to discover and enjoy digital art. When you use WallPickr, you're not just downloading an image — you're joining a movement that values creativity, quality, and artistic expression.
             </p>
           </div>
         </div>
@@ -233,7 +196,7 @@ export default function AboutPage() {
             Our Vision for the Future
           </h2>
           <p className="text-xl text-slate-600 mb-12 leading-relaxed max-w-4xl mx-auto">
-            We envision WallKit as <strong className="text-slate-800">the go-to platform for digital personalization worldwide</strong> — a space where wallpaper lovers and artists connect, inspire, and share their passion for visual excellence.
+            We envision WallPickr as <strong className="text-slate-800">the go-to platform for digital personalization worldwide</strong> — a space where wallpaper lovers and artists connect, inspire, and share their passion for visual excellence.
           </p>
           
           <div className="grid md:grid-cols-3 gap-8 mb-12">
@@ -285,10 +248,10 @@ export default function AboutPage() {
           <div className="mt-16 p-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border border-blue-200">
             <Star className="w-8 h-8 text-yellow-500 mx-auto mb-4" />
             <p className="text-2xl text-slate-800 font-semibold mb-4">
-              WallKit will always stay true to these values — because your digital space deserves nothing less than extraordinary.
+              WallPickr will always stay true to these values — because your digital space deserves nothing less than extraordinary.
             </p>
             <p className="text-lg text-slate-600 max-w-3xl mx-auto">
-              Join our growing community of visual enthusiasts and discover why millions of users trust WallKit to transform their screens into windows of inspiration, creativity, and personal expression.
+              Join our growing community of visual enthusiasts and discover why millions of users trust WallPickr to transform their screens into windows of inspiration, creativity, and personal expression.
             </p>
           </div>
         </div>

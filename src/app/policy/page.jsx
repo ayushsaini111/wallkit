@@ -11,7 +11,7 @@ export default function PrivacyPolicyPage() {
             Privacy Policy
           </h1>
           <p className="text-xl text-green-100 max-w-3xl mx-auto leading-relaxed">
-            Your privacy is important to us. This policy describes how we collect, use, and protect your information when you use WallKit.
+            Your privacy is important to us. This policy describes how we collect, use, and protect your information when you use WallPickr.
           </p>
           <div className="mt-8 inline-flex items-center text-green-200">
             <Clock className="w-5 h-5 mr-2" />
@@ -26,7 +26,7 @@ export default function PrivacyPolicyPage() {
         {/* Introduction */}
         <div className="mb-16 bg-white border-l-4 border-green-500 pl-8">
           <p className="text-lg text-slate-700 leading-relaxed">
-            This Privacy Policy describes how <strong>Wallkit</strong> collects, uses, stores, and safeguards your personal information when you access or use our Platform. By using Wallkit, you consent to the practices outlined in this Privacy Policy. We are committed to transparency in our data handling practices and believe that users have the right to understand how their information is being used. This policy applies to all users of our Platform, regardless of location, and covers both the information you provide directly and the data we collect automatically through your use of our services. We encourage you to read this policy carefully and contact us with any questions or concerns about our privacy practices.
+            This Privacy Policy describes how <strong>WallPickr</strong> collects, uses, stores, and safeguards your personal information when you access or use our Platform. By using WallPickr, you consent to the practices outlined in this Privacy Policy. We are committed to transparency in our data handling practices and believe that users have the right to understand how their information is being used. This policy applies to all users of our Platform, regardless of location, and covers both the information you provide directly and the data we collect automatically through your use of our services. We encourage you to read this policy carefully and contact us with any questions or concerns about our privacy practices.
           </p>
         </div>
 
@@ -116,7 +116,7 @@ export default function PrivacyPolicyPage() {
           </div>
           <div className="bg-slate-50 p-8 rounded-xl">
             <p className="text-lg text-slate-700 leading-relaxed">
-              Wallkit is not intended for use by individuals under the age of 13, and we do not knowingly collect personal information from children under this age without proper parental consent as required by the Children's Online Privacy Protection Act (COPPA) and similar regulations worldwide. If we become aware that we have inadvertently collected personal data from a child under 13, we will take immediate steps to delete such information from our systems and terminate the associated account. Parents and legal guardians who believe their child has provided personal information to us without their consent should contact us immediately so we can take appropriate action. For users between 13 and 18 years of age, we recommend parental involvement in Platform usage and encourage parents to discuss online privacy and safety with their teenagers. We may implement additional protections for younger users, including restricted features, enhanced privacy settings, and limited data collection practices in compliance with applicable youth privacy regulations.
+              WallPickr is not intended for use by individuals under the age of 13, and we do not knowingly collect personal information from children under this age without proper parental consent as required by the Children's Online Privacy Protection Act (COPPA) and similar regulations worldwide. If we become aware that we have inadvertently collected personal data from a child under 13, we will take immediate steps to delete such information from our systems and terminate the associated account. Parents and legal guardians who believe their child has provided personal information to us without their consent should contact us immediately so we can take appropriate action. For users between 13 and 18 years of age, we recommend parental involvement in Platform usage and encourage parents to discuss online privacy and safety with their teenagers. We may implement additional protections for younger users, including restricted features, enhanced privacy settings, and limited data collection practices in compliance with applicable youth privacy regulations.
             </p>
           </div>
         </section>
@@ -150,12 +150,12 @@ export default function PrivacyPolicyPage() {
           <div className="bg-gradient-to-r from-green-50 to-blue-50 p-8 rounded-xl border border-green-200">
             <p className="text-lg text-slate-700 leading-relaxed">
               If you have questions, concerns, or requests regarding this Privacy Policy, our data practices, or wish to exercise your privacy rights, please don't hesitate to contact our privacy team. We are committed to addressing your inquiries promptly and transparently. You can reach our dedicated privacy officer at{" "}
-              <a href="mailto:privacy@wallkit.com" className="text-blue-600 font-semibold hover:text-blue-800 transition-colors">
-                privacy@wallkit.com
+              <a href="mailto:privacy@WallPickr.com" className="text-blue-600 font-semibold hover:text-blue-800 transition-colors">
+                privacy@WallPickr.com
               </a>{" "}
               or through our secure online contact form available on the Platform. For general inquiries, you may also contact our support team at{" "}
-              <a href="mailto:support@wallkit.com" className="text-blue-600 font-semibold hover:text-blue-800 transition-colors">
-                support@wallkit.com
+              <a href="mailto:support@WallPickr.com" className="text-blue-600 font-semibold hover:text-blue-800 transition-colors">
+                support@WallPickr.com
               </a>. 
               We strive to respond to all privacy-related inquiries within 30 days, though most requests are addressed much sooner. When contacting us, please provide sufficient detail about your request to help us respond effectively and verify your identity when necessary.
             </p>

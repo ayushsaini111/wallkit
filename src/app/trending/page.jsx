@@ -62,22 +62,22 @@ export default function TrendingSection() {
     fetchTrending();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 relative overflow-hidden">
-        {/* Background Doodles */}
-        <FloatingDoodle className="top-20 left-10 text-orange-200" delay={0}>🔥</FloatingDoodle>
-        <FloatingDoodle className="top-40 right-20 text-pink-200" delay={1}>✨</FloatingDoodle>
-        <FloatingDoodle className="bottom-32 left-20 text-purple-200" delay={2}>📈</FloatingDoodle>
-        <FloatingDoodle className="top-60 left-1/4 text-orange-200" delay={1.5}>🎨</FloatingDoodle>
-        <FloatingDoodle className="bottom-40 right-1/3 text-pink-200" delay={2.5}>🌟</FloatingDoodle>
+  // if (loading) {
+  //   return (
+  //     <div className="min-h-screen bg-gray-50 relative overflow-hidden">
+  //       {/* Background Doodles */}
+  //       <FloatingDoodle className="top-20 left-10 text-orange-200" delay={0}>🔥</FloatingDoodle>
+  //       <FloatingDoodle className="top-40 right-20 text-pink-200" delay={1}>✨</FloatingDoodle>
+  //       <FloatingDoodle className="bottom-32 left-20 text-purple-200" delay={2}>📈</FloatingDoodle>
+  //       <FloatingDoodle className="top-60 left-1/4 text-orange-200" delay={1.5}>🎨</FloatingDoodle>
+  //       <FloatingDoodle className="bottom-40 right-1/3 text-pink-200" delay={2.5}>🌟</FloatingDoodle>
 
-        <div className="flex items-center justify-center min-h-screen">
-          <Loading text="Loading trending wallpapers..." />
-        </div>
-      </div>
-    );
-  }
+  //       {/* <div className="flex items-center justify-center min-h-screen">
+  //         <Loading text="Loading trending wallpapers..." />
+  //       </div> */}
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="min-h-screen bg-gray-50 relative overflow-hidden">

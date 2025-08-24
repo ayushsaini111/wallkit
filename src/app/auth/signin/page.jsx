@@ -61,22 +61,11 @@ const Login = () => {
           
           <div className="relative z-10">
             {/* Logo and title with orange theme */}
-            <div className="text-center mb-8">
-              <div className="relative inline-flex items-center justify-center mb-4 group">
-                {/* Main logo container with orange gradient */}
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 via-red-500 to-pink-600 rounded-xl flex items-center justify-center transform ">
-                  <Sparkles className="w-6 h-6 text-white" />
-                </div>
-                
-                
-                {/* Glow effect */}
-                <div className="absolute inset-0 w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl blur-lg opacity-0 group-hover:opacity-40 transition-all duration-500 -z-10" />
-              </div>
-              
+            <div className="text-center mb-8">            
               <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-500 via-red-500 to-pink-600 bg-clip-text text-transparent mb-2">
-                Welcome Back
+                Welcome Back 
               </h1>
-              <p className="text-gray-600">Sign in to your account to continue</p>
+              <p className="text-gray-600">Log in to your account to continue</p>
             </div>
 
             {/* Error message */}
@@ -155,16 +144,7 @@ const Login = () => {
                 </div>
               </div>
 
-              {/* Remember me and forgot password */}
-              <div className="flex items-center justify-between">
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input type="checkbox" className="w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500" />
-                  <span className="text-sm text-gray-600">Remember me</span>
-                </label>
-                <Link href="/auth/forgot-password" className="text-sm text-orange-600 hover:text-orange-700 font-medium transition-colors">
-                  Forgot password?
-                </Link>
-              </div>
+            
 
               {/* Sign in button with orange gradient */}
               <button
@@ -175,10 +155,10 @@ const Login = () => {
                 {loading ? (
                   <div className="flex items-center justify-center space-x-2">
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Signing in...</span>
+                    <span>Logging in...</span>
                   </div>
                 ) : (
-                  "Sign In"
+                  "Log In"
                 )}
               </button>
             </form>

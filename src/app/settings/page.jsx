@@ -468,13 +468,7 @@ const SettingsPage = () => {
                           </div>
                         )}
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="absolute -bottom-3 -right-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl p-4 hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105"
-                      >
-                        <Upload className="w-6 h-6" />
-                      </button>
+                      
                     </div>
                     <div className="text-center sm:text-left">
                       <button
@@ -487,7 +481,6 @@ const SettingsPage = () => {
                       </button>
                       <div className="mt-4 text-sm text-gray-600 space-y-1">
                         <p className="font-medium">Supported formats: JPG, PNG, GIF</p>
-                        <p>Maximum size: 5MB</p>
                         <p>Recommended: 400×400 pixels</p>
                       </div>
                     </div>
@@ -532,7 +525,7 @@ const SettingsPage = () => {
                         Email Address
                       </label>
                       <div className="relative">
-                        <Mail className="absolute left-5 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" />
+                        <Mail className="absolute left-5 top-1/3 transform -translate-y-1/2 w-6 h-6 text-gray-400" />
                         <input
                           type="email"
                           name="email"

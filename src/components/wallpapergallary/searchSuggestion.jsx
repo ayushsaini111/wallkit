@@ -273,13 +273,13 @@ export const SearchSuggestions = ({
             e.stopPropagation();
             onSuggestionClick?.(suggestion);
           }}
-          className={`w-full px-6 py-4 text-left rounded-2xl transition-all duration-300 flex items-center gap-4 text-gray-700 mb-2 last:mb-0 group cursor-pointer ${
+          className={`w-full px-6 py-2 lg:py-4 text-left rounded-2xl transition-all duration-300 flex items-center gap-4 text-gray-700 mb-2 last:mb-0 group cursor-pointer ${
             selectedIndex === index 
               ? 'bg-gradient-to-r from-blue-50 to-purple-50 text-gray-900 scale-[1.02]' 
               : 'hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-gray-900'
           }`}
         >
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden flex-shrink-0">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden flex-shrink-0">
             {suggestion.type === 'title' || suggestion.type === 'tag' ? (
               <img 
                 src={suggestion.icon} 
@@ -301,9 +301,9 @@ export const SearchSuggestions = ({
             )}
           </div>
           
-          <div className="flex-1 min-w-0">
-            <div className="font-semibold text-lg truncate">{suggestion.value}</div>
-            <div className="text-sm text-gray-500 capitalize flex items-center gap-1">
+          <div className="flex-1  min-w-45 lg:min-w-0">
+            <div className=" text-sm truncate">{suggestion.value}</div>
+            {/* <div className="text-sm text-gray-500 capitalize flex items-center gap-1">
               {suggestion.type === 'category' && (
                 <span className="inline-flex items-center gap-1">
                   📂 Category
@@ -324,7 +324,7 @@ export const SearchSuggestions = ({
                   🔥 Popular
                 </span>
               )}
-            </div>
+            </div> */}
           </div>
           
           <div className={`transition-opacity ${

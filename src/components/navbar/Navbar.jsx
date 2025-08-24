@@ -197,7 +197,7 @@ const Navbar = ({ onCategorySelect }) => {
             <Link href="/" className="flex items-center justify-center gap-2 group lg:flex-initial">
               <div className="flex flex-col">
                 <h1 className="text-lg sm:text-xl lg:text-2xl font-black bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">
-                  WallKit
+                  WallPickr
                 </h1>
               </div>
             </Link>
@@ -299,10 +299,10 @@ const Navbar = ({ onCategorySelect }) => {
                   {/* Upload Button */}
                   <Link
                     href="/upload"
-                    className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-2.5 rounded-xl font-semibold transition-all duration-200 hover:scale-95 text-xs sm:text-sm lg:text-base bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg"
+                    className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-2.5 rounded-lg md:rounded-xl font-semibold transition-all duration-200 hover:scale-95 text-xs sm:text-sm lg:text-base bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg"
                     aria-label="Upload wallpaper"
                   >
-                    <Upload className="w-3.5 sm:w-4 lg:w-5 h-3.5 sm:h-4 lg:h-5" />
+                    <Upload className="w-3  sm:w-4 lg:w-5 h-3 sm:h-4 lg:h-5" />
                     <span className="hidden sm:inline">Upload</span>
                   </Link>
 
