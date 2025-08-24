@@ -3,6 +3,9 @@
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
+// ⬇️ Tell Next.js: don't try to prerender this page at build time
+export const dynamic = 'force-dynamic';
+
 export default function NotFoundPage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
