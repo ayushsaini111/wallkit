@@ -4,6 +4,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { uploadImageToCloudinary } from '@/lib/appwrite/storagetwo';
+import { compressImage } from '@/utils/compressImage';
 import { Camera, User, Lock, FileText, Eye, EyeOff, Save, Upload, Trash2, AlertTriangle, Mail, Shield, Calendar, Globe, Star } from 'lucide-react';
 
 const SettingsPage = () => {
@@ -119,171 +121,172 @@ const SettingsPage = () => {
     }, 5000);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  // Updated handleSubmit function in SettingsPage component
 
-    try {
-      // Validate passwords if changing
-      if (formData.newPassword) {
-        if (formData.newPassword !== formData.confirmPassword) {
-          showMessage('New passwords do not match', 'error');
-          setLoading(false);
-          return;
-        }
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
 
-        if (formData.newPassword.length < 6) {
-          showMessage('New password must be at least 6 characters', 'error');
-          setLoading(false);
-          return;
-        }
-
-        // For local users, current password is required when changing password
-        if (currentUser?.provider !== 'google' && !formData.currentPassword) {
-          showMessage('Current password is required to set a new password', 'error');
-          setLoading(false);
-          return;
-        }
-      }
-
-      // Validate username length
-      if (formData.username.trim().length < 3) {
-        showMessage('Username must be at least 3 characters long', 'error');
+  try {
+    // Validate passwords if changing
+    if (formData.newPassword) {
+      if (formData.newPassword !== formData.confirmPassword) {
+        showMessage('New passwords do not match', 'error');
         setLoading(false);
         return;
       }
 
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.email)) {
-        showMessage('Please enter a valid email address', 'error');
+      if (formData.newPassword.length < 6) {
+        showMessage('New password must be at least 6 characters', 'error');
         setLoading(false);
         return;
       }
 
-      // Prepare form data
-      const formDataToSend = new FormData();
-      formDataToSend.append('username', formData.username.trim());
-      formDataToSend.append('email', formData.email.trim());
-      formDataToSend.append('bio', formData.bio.trim());
-      formDataToSend.append('emailNotifications', emailNotifications.toString());
-      
-      if (formData.currentPassword) {
-        formDataToSend.append('currentPassword', formData.currentPassword);
+      if (currentUser?.provider !== 'google' && !formData.currentPassword) {
+        showMessage('Current password is required to set a new password', 'error');
+        setLoading(false);
+        return;
       }
-      
-      if (formData.newPassword) {
-        formDataToSend.append('newPassword', formData.newPassword);
-      }
-      
-      if (formData.avatar) {
-        formDataToSend.append('avatar', formData.avatar);
-      }
-
-      console.log('📤 Sending update request...');
-      const response = await fetch('/api/user', {
-        method: 'PATCH',
-        body: formDataToSend,
-      });
-
-      const result = await response.json();
-      console.log('📥 Server response:', result);
-
-      if (result.success) {
-        const updatedUser = result.user;
-        
-        // 🔥 CRITICAL: Update user data using the AuthContext updateUser function
-        // This ensures all pages get the updated data instantly
-        console.log('🔄 Updating user via AuthContext...');
-        const contextUpdateSuccess = await updateUser(updatedUser);
-        
-        if (!contextUpdateSuccess) {
-          console.error('Failed to update user in context');
-        }
-
-        // 🔥 ADDITIONAL: Force session update with multiple attempts
-        if (session && updateSession) {
-          console.log('🔄 Force updating NextAuth session...');
-          
-          try {
-            // Method 1: Direct session update with data
-            await updateSession({
-              ...updatedUser,
-              image: updatedUser.avatar, // NextAuth uses 'image' field
-              avatar: updatedUser.avatar, // Keep both for compatibility
-            });
-            console.log('✅ Session updated via method 1');
-
-            // Method 2: Trigger session refresh after a delay
-            setTimeout(async () => {
-              try {
-                await updateSession();
-                console.log('✅ Session refreshed via method 2');
-              } catch (e) {
-                console.warn('⚠️ Session refresh method 2 failed:', e);
-              }
-            }, 1000);
-
-            // Method 3: Force a complete session re-validation
-            setTimeout(async () => {
-              try {
-                // This forces NextAuth to re-fetch user data from JWT
-                const refreshedSession = await updateSession({});
-                console.log('✅ Session re-validated via method 3:', refreshedSession);
-              } catch (e) {
-                console.warn('⚠️ Session re-validation method 3 failed:', e);
-              }
-            }, 2000);
-
-          } catch (sessionError) {
-            console.error('❌ Session update error:', sessionError);
-          }
-        }
-
-        // 🔥 Additional: Force refresh user data from AuthContext
-        setTimeout(async () => {
-          const refreshSuccess = await refreshUser();
-          console.log('🔄 Force refresh result:', refreshSuccess);
-        }, 1500);
-
-        // Update local form state
-        setFormData(prev => ({
-          ...prev,
-          username: updatedUser.username || prev.username,
-          email: updatedUser.email || prev.email,
-          bio: updatedUser.bio || prev.bio,
-          currentPassword: '',
-          newPassword: '',
-          confirmPassword: '',
-        }));
-
-        // Update preview URL
-        if (updatedUser.avatar) {
-          setPreviewUrl(updatedUser.avatar);
-        }
-
-        // Update email notifications
-        setEmailNotifications(updatedUser.emailNotifications !== false);
-
-        showMessage('Profile updated successfully! ✨', 'success');
-
-        // 🔥 NUCLEAR OPTION: Force page refresh after successful update
-        // Uncomment this if other methods don't work
-        setTimeout(() => {
-          console.log('🔄 Force page refresh...');
-          window.location.reload();
-        }, 3000);
-
-      } else {
-        showMessage(result.error || 'Failed to update profile', 'error');
-      }
-    } catch (error) {
-      console.error('❌ Update error:', error);
-      showMessage('An error occurred while updating profile', 'error');
-    } finally {
-      setLoading(false);
     }
-  };
+
+    // Validate username length
+    if (formData.username.trim().length < 3) {
+      showMessage('Username must be at least 3 characters long', 'error');
+      setLoading(false);
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      showMessage('Please enter a valid email address', 'error');
+      setLoading(false);
+      return;
+    }
+
+    // 🔥 Handle avatar upload first (like in signup)
+    let avatarUrl = null;
+    if (formData.avatar) {
+      try {
+        console.log('📤 Uploading avatar...');
+        
+        // Option 1: If you have imageCompression (recommended)
+        const compressedFile = await compressImage(formData.avatar, { 
+          quality: 0.8,
+          maxSizeMB: 1,
+          maxWidthOrHeight: 800
+        });
+        const cloudinaryResult = await uploadImageToCloudinary(compressedFile);
+        avatarUrl = cloudinaryResult.url;
+        
+        // Option 2: If no compression library, upload directly
+        // const cloudinaryResult = await uploadImageToCloudinary(formData.avatar);
+        // avatarUrl = cloudinaryResult.url;
+        
+        console.log('✅ Avatar uploaded:', avatarUrl);
+      } catch (uploadError) {
+        console.error('❌ Avatar upload failed:', uploadError);
+        showMessage('Avatar upload failed. Please try again.', 'error');
+        setLoading(false);
+        return;
+      }
+    }
+
+    // 🔥 Send JSON data instead of FormData (like signup)
+    const updateData = {
+      username: formData.username.trim(),
+      email: formData.email.trim(),
+      bio: formData.bio.trim(),
+      emailNotifications: emailNotifications,
+    };
+
+    // Add password fields if changing
+    if (formData.currentPassword) {
+      updateData.currentPassword = formData.currentPassword;
+    }
+    if (formData.newPassword) {
+      updateData.newPassword = formData.newPassword;
+    }
+
+    // Add avatar URL if uploaded
+    if (avatarUrl) {
+      updateData.avatarUrl = avatarUrl;
+    }
+
+    console.log('📤 Sending update request with JSON...');
+    const response = await fetch('/api/user', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updateData),
+    });
+
+    const result = await response.json();
+    console.log('📥 Server response:', result);
+
+    if (result.success) {
+      const updatedUser = result.user;
+      
+      // Update user data using the AuthContext updateUser function
+      console.log('🔄 Updating user via AuthContext...');
+      const contextUpdateSuccess = await updateUser(updatedUser);
+      
+      if (!contextUpdateSuccess) {
+        console.error('Failed to update user in context');
+      }
+
+      // Force session update
+      if (session && updateSession) {
+        console.log('🔄 Force updating NextAuth session...');
+        
+        try {
+          await updateSession({
+            ...updatedUser,
+            image: updatedUser.avatar,
+            avatar: updatedUser.avatar,
+          });
+          console.log('✅ Session updated');
+        } catch (sessionError) {
+          console.error('❌ Session update error:', sessionError);
+        }
+      }
+
+      // Update local form state
+      setFormData(prev => ({
+        ...prev,
+        username: updatedUser.username || prev.username,
+        email: updatedUser.email || prev.email,
+        bio: updatedUser.bio || prev.bio,
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+        avatar: null, // Reset avatar file
+      }));
+
+      // Update preview URL
+      if (updatedUser.avatar) {
+        setPreviewUrl(updatedUser.avatar);
+      }
+
+      setEmailNotifications(updatedUser.emailNotifications !== false);
+      showMessage('Profile updated successfully! ✨', 'success');
+
+      // Optional: Force refresh after 2 seconds
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+
+    } else {
+      showMessage(result.error || 'Failed to update profile', 'error');
+    }
+  } catch (error) {
+    console.error('❌ Update error:', error);
+    showMessage('An error occurred while updating profile', 'error');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleDeleteAccount = async () => {
     setDeleteLoading(true);

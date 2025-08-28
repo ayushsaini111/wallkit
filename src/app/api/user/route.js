@@ -2,12 +2,10 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { User } from '@/models/user.model';
 import dbConnect from '@/lib/dbConnect';
-import { uploadImageToAppwrite } from '@/lib/appwrite/storage';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { randomUUID } from 'crypto';
 
-// PATCH /api/user/update - Update user profile
+// PATCH /api/user - Update user profile
 export async function PATCH(request) {
   try {
     console.log('[USER UPDATE] Starting update process...');
@@ -40,15 +38,22 @@ export async function PATCH(request) {
 
     console.log('[USER UPDATE] Current user found:', currentUser.email);
 
-    // Parse form data
-    const formData = await request.formData();
-    const username = formData.get('username')?.trim();
-    const email = formData.get('email')?.trim();
-    const bio = formData.get('bio')?.trim();
-    const emailNotifications = formData.get('emailNotifications') === 'true';
-    const currentPassword = formData.get('currentPassword');
-    const newPassword = formData.get('newPassword');
-    const avatar = formData.get('avatar');
+    // Parse JSON data
+    const requestData = await request.json();
+    console.log('[USER UPDATE] Request data received:', requestData); // 🔥 DEBUG
+
+    const {
+      username,
+      email,
+      bio,
+      emailNotifications,
+      currentPassword,
+      newPassword,
+      avatarUrl
+    } = requestData;
+
+    console.log('[USER UPDATE] Parsed email:', email); // 🔥 DEBUG
+    console.log('[USER UPDATE] Current email:', currentUser.email); // 🔥 DEBUG
 
     // Validate required fields
     if (!username || !email) {
@@ -69,6 +74,7 @@ export async function PATCH(request) {
 
     // Check if username is taken by another user
     if (username !== currentUser.username) {
+      console.log('[USER UPDATE] Checking username availability...'); // 🔥 DEBUG
       const existingUsername = await User.findOne({ 
         username,
         _id: { $ne: currentUser._id }
@@ -83,25 +89,41 @@ export async function PATCH(request) {
 
     // Check if email is taken by another user
     if (email !== currentUser.email) {
+      console.log('[USER UPDATE] Email is different, checking availability...'); // 🔥 DEBUG
+      console.log('[USER UPDATE] Searching for email:', email); // 🔥 DEBUG
+      
       const existingEmail = await User.findOne({ 
         email,
         _id: { $ne: currentUser._id }
       });
+      
+      console.log('[USER UPDATE] Existing email found:', existingEmail); // 🔥 DEBUG
+      
       if (existingEmail) {
         return NextResponse.json(
           { success: false, error: 'Email already in use' },
           { status: 400 }
         );
       }
+    } else {
+      console.log('[USER UPDATE] Email is the same, no need to check availability'); // 🔥 DEBUG
     }
 
     // Prepare update data
     const updateData = {
-      username,
-      email,
-      bio: bio || '',
-      emailNotifications,
+      username: username.trim(),
+      email: email.trim(), // 🔥 Make sure email is trimmed
+      bio: bio?.trim() || '',
+      emailNotifications: emailNotifications !== false,
     };
+
+    console.log('[USER UPDATE] Update data prepared:', updateData); // 🔥 DEBUG
+
+    // Handle avatar URL
+    if (avatarUrl) {
+      updateData.avatar = avatarUrl;
+      console.log('[USER UPDATE] Avatar URL will be updated:', avatarUrl);
+    }
 
     // Handle password update for local users
     if (newPassword && currentUser.provider !== 'google') {
@@ -135,56 +157,27 @@ export async function PATCH(request) {
       console.log('[USER UPDATE] Password will be updated');
     }
 
-    // Handle avatar upload
-    if (avatar && typeof avatar === 'object' && avatar.arrayBuffer) {
-      try {
-        console.log('[USER UPDATE] Processing avatar upload...');
-        
-        // Validate file size (5MB max)
-        if (avatar.size > 5 * 1024 * 1024) {
-          return NextResponse.json(
-            { success: false, error: 'Avatar file size must be less than 5MB' },
-            { status: 400 }
-          );
-        }
-
-        // Validate file type
-        if (!avatar.type.startsWith('image/')) {
-          return NextResponse.json(
-            { success: false, error: 'Avatar must be an image file' },
-            { status: 400 }
-          );
-        }
-
-        // Create File object for upload
-        const buffer = await avatar.arrayBuffer();
-        const filename = `${randomUUID()}_${avatar.name}`;
-        const file = new File([buffer], filename, { type: avatar.type });
-        
-        // Upload to Appwrite
-        const uploadResult = await uploadImageToAppwrite(file);
-        if (uploadResult && uploadResult.url) {
-          updateData.avatar = uploadResult.url;
-          console.log('[USER UPDATE] Avatar uploaded successfully:', uploadResult.url);
-        }
-      } catch (uploadError) {
-        console.error('[USER UPDATE] Avatar upload failed:', uploadError);
-        return NextResponse.json(
-          { success: false, error: 'Failed to upload avatar' },
-          { status: 500 }
-        );
-      }
-    }
+    // 🔥 LOG THE EXACT UPDATE OPERATION
+    console.log('[USER UPDATE] About to update user with ID:', currentUser._id);
+    console.log('[USER UPDATE] Update data:', JSON.stringify(updateData, null, 2));
 
     // Update user in database
-    console.log('[USER UPDATE] Updating user with data:', Object.keys(updateData));
     const updatedUser = await User.findByIdAndUpdate(
       currentUser._id,
       { $set: updateData },
-      { new: true, runValidators: true }
+      { 
+        new: true, 
+        runValidators: true,
+        // 🔥 Add these options for better debugging
+        upsert: false,
+        strict: true
+      }
     );
 
+    console.log('[USER UPDATE] Updated user result:', updatedUser); // 🔥 DEBUG
+
     if (!updatedUser) {
+      console.log('[USER UPDATE] No user returned from update operation'); // 🔥 DEBUG
       return NextResponse.json(
         { success: false, error: 'Failed to update user' },
         { status: 500 }
@@ -192,11 +185,16 @@ export async function PATCH(request) {
     }
 
     console.log('[USER UPDATE] User updated successfully');
+    console.log('[USER UPDATE] New email in DB:', updatedUser.email); // 🔥 DEBUG
+
+    // 🔥 VERIFY THE UPDATE BY FETCHING FRESH DATA
+    const verificationUser = await User.findById(currentUser._id);
+    console.log('[USER UPDATE] Verification fetch - email:', verificationUser?.email); // 🔥 DEBUG
 
     // Return safe user data (no password)
     const safeUser = {
       _id: updatedUser._id,
-      id: updatedUser._id, // For compatibility
+      id: updatedUser._id,
       username: updatedUser.username,
       email: updatedUser.email,
       avatar: updatedUser.avatar,
@@ -207,6 +205,8 @@ export async function PATCH(request) {
       updatedAt: updatedUser.updatedAt,
     };
 
+    console.log('[USER UPDATE] Returning safe user data:', safeUser); // 🔥 DEBUG
+
     return NextResponse.json({
       success: true,
       message: 'Profile updated successfully',
@@ -215,6 +215,7 @@ export async function PATCH(request) {
 
   } catch (error) {
     console.error('[USER UPDATE] Error:', error);
+    console.error('[USER UPDATE] Error stack:', error.stack); // 🔥 DEBUG
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

@@ -159,6 +159,7 @@ export const authOptions = {
             token.username = freshUser.username;
             token.avatar = freshUser.avatar;
             token.bio = freshUser.bio;
+            token.email = freshUser.email;
             token.emailNotifications = freshUser.emailNotifications;
             // Keep existing provider and other fields
             

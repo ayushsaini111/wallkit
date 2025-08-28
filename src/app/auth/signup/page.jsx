@@ -2,28 +2,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import imageCompression from 'browser-image-compression';
+import { uploadImageToCloudinary } from '@/lib/appwrite/storagetwo';
+import { compressImage } from '@/utils/compressImage';
 import Link from 'next/link';
-import { Sparkles, Zap } from 'lucide-react';
 
-// Cloudinary upload function
-export const uploadImageToCloudinary = async (file) => {
-  const formData = new FormData();
-  formData.append('file', file);
-  
-  const res = await fetch('/api/wallpaperupload/uploadCloudinary', {
-    method: 'POST',
-    body: formData,
-  });
-  
-  const data = await res.json();
-  console.log("Cloudinary upload complete:", data);
-  
-  if (!res.ok) throw new Error(data.error || 'Cloudinary upload failed !!');
-  
-  // Returns object like { id, url }
-  return { id: data.id, url: data.url, size: data.size };
-};
 
 const Signup = () => {
   const [avatar, setAvatar] = useState(null);
@@ -78,7 +60,7 @@ const Signup = () => {
         useWebWorker: true,
       };
 
-      const compressedFile = await imageCompression(file, options);
+      const compressedFile = await compressImage(file, options);
       setAvatar(compressedFile);
       setAvatarPreview(URL.createObjectURL(compressedFile));
     } catch (error) {
