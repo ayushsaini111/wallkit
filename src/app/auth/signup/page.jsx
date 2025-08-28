@@ -2,9 +2,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import imageCompression from 'browser-image-compression';
 import { uploadImageToCloudinary } from '@/lib/appwrite/storagetwo';
 import { compressImage } from '@/utils/compressImage';
 import Link from 'next/link';
+import { Sparkles, Zap } from 'lucide-react';
+
 
 
 const Signup = () => {
@@ -49,26 +52,21 @@ const Signup = () => {
     }
   };
 
-  const handleAvatarChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+ const handleAvatarChange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
 
-    try {
-      const options = {
-        maxSizeMB: 0.5,
-        maxWidthOrHeight: 500,
-        useWebWorker: true,
-      };
+  try {
+    const compressedFile = await compressImage(file, 0.2, 500, 500); // use your util
+    setAvatar(compressedFile);
+    setAvatarPreview(URL.createObjectURL(compressedFile));
+  } catch (error) {
+    console.error('Image compression failed:', error);
+    setAvatar(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  }
+};
 
-      const compressedFile = await compressImage(file, options);
-      setAvatar(compressedFile);
-      setAvatarPreview(URL.createObjectURL(compressedFile));
-    } catch (error) {
-      console.error('Image compression failed:', error);
-      setAvatar(file);
-      setAvatarPreview(URL.createObjectURL(file));
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -101,20 +99,19 @@ const Signup = () => {
       let avatarUrl = null;
       
       // Upload avatar to Cloudinary if avatar exists
-      if (avatar) {
-        try {
-          // 1️⃣ Compress first
-          const compressedFile = await imageCompression(avatar, { quality: 0.1 });
-          const cloudinaryCompressedObj = await uploadImageToCloudinary(compressedFile);
-          const compressedUrl = cloudinaryCompressedObj.url;
-          avatarUrl = compressedUrl;
-        } catch (uploadError) {
-          console.error('Avatar upload failed:', uploadError);
-          setError('Avatar upload failed. Please try again.');
-          setLoading(false);
-          return;
-        }
-      }
+    if (avatar) {
+  try {
+    const compressedFile = await compressImage(avatar, 0.1, 500, 500); // lighter compression for upload
+    const cloudinaryCompressedObj = await uploadImageToCloudinary(compressedFile);
+    avatarUrl = cloudinaryCompressedObj.url;
+  } catch (uploadError) {
+    console.error('Avatar upload failed:', uploadError);
+    setError('Avatar upload failed. Please try again.');
+    setLoading(false);
+    return;
+  }
+}
+
 
       const body = new FormData();
       body.append('username', formData.username);
