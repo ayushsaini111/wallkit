@@ -1,4 +1,3 @@
-
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -6,6 +5,25 @@ import { signIn } from 'next-auth/react';
 import imageCompression from 'browser-image-compression';
 import Link from 'next/link';
 import { Sparkles, Zap } from 'lucide-react';
+
+// Cloudinary upload function
+export const uploadImageToCloudinary = async (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const res = await fetch('/api/wallpaperupload/uploadCloudinary', {
+    method: 'POST',
+    body: formData,
+  });
+  
+  const data = await res.json();
+  console.log("Cloudinary upload complete:", data);
+  
+  if (!res.ok) throw new Error(data.error || 'Cloudinary upload failed !!');
+  
+  // Returns object like { id, url }
+  return { id: data.id, url: data.url, size: data.size };
+};
 
 const Signup = () => {
   const [avatar, setAvatar] = useState(null);
@@ -98,19 +116,44 @@ const Signup = () => {
     setLoading(true);
 
     try {
+      let avatarUrl = null;
+      
+      // Upload avatar to Cloudinary if avatar exists
+      if (avatar) {
+        try {
+          // 1️⃣ Compress first
+          const compressedFile = await imageCompression(avatar, { quality: 0.1 });
+          const cloudinaryCompressedObj = await uploadImageToCloudinary(compressedFile);
+          const compressedUrl = cloudinaryCompressedObj.url;
+          avatarUrl = compressedUrl;
+        } catch (uploadError) {
+          console.error('Avatar upload failed:', uploadError);
+          setError('Avatar upload failed. Please try again.');
+          setLoading(false);
+          return;
+        }
+      }
+
       const body = new FormData();
       body.append('username', formData.username);
       body.append('email', formData.email);
       body.append('password', formData.password);
-      if (avatar) body.append('avatar', avatar);
+      if (avatarUrl) body.append('avatarUrl', avatarUrl);
 
-      const res = await fetch('/api/auth/signup', {
-        method: 'POST',
-        body
-      });
-      
+      // Signup.jsx (frontend)
+const res = await fetch('/api/auth/signup', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    username: formData.username,
+    email: formData.email,
+    password: formData.password,
+    avatarUrl
+  })
+});
+
       const data = await res.json();
-      console.log("dd",data);
+      console.log("dd", data);
 
       if (res.ok) {
         // After signup, immediately log in via NextAuth credentials
@@ -144,7 +187,6 @@ const Signup = () => {
       setLoading(false);
     }
   };
-
   return (
     <div className="max-h-screen bg-gradient-to-br pt-30 from-orange-50 via-red-50 to-pink-50 flex items-center justify-center p-4 relative overflow-y-auto">
       {/* Animated background elements with orange theme */}
