@@ -110,7 +110,8 @@ const Signup = () => {
       });
       
       const data = await res.json();
-      
+      console.log("dd",data);
+
       if (res.ok) {
         // After signup, immediately log in via NextAuth credentials
         const loginResult = await signIn('credentials', {
