@@ -7,15 +7,11 @@ import dbConnect from '@/lib/dbConnect';
 import { uploadImageToAppwrite } from '@/lib/appwrite/storage';
 import { sendWelcomeEmail } from "@/lib/mailer";
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth'; // ✅ Try this path first
-
-// If the above doesn't work, try these alternative imports:
-// import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-// import { authOptions } from '@/pages/api/auth/[...nextauth]';
+import { authOptions } from '@/lib/auth';
 
 console.log('🔧 Auth route loaded, authOptions available:', !!authOptions);
 
-// POST - Create new user (existing functionality)
+// POST - Create new user
 export async function POST(request) {
   try {
     console.log('[SIGNUP] Connecting to DB...');
@@ -28,7 +24,7 @@ export async function POST(request) {
     const password = formData.get('password');
     const avatar = formData.get('avatar');
 
-    let avatarUrl = null;
+    let avatarData = null;
 
     // ✅ Upload avatar to Appwrite
     if (avatar && typeof avatar === 'object' && avatar.arrayBuffer) {
@@ -45,8 +41,8 @@ export async function POST(request) {
       try {
         console.log('[SIGNUP] Uploading avatar to Appwrite...');
         const file = new File([buffer], avatar.name, { type: avatar.type });
-        avatarUrl = await uploadImageToAppwrite(file);
-        console.log('[SIGNUP] Avatar uploaded, URL:', avatarUrl);
+        avatarData = await uploadImageToAppwrite(file);
+        console.log('[SIGNUP] Avatar uploaded, data:', avatarData);
       } finally {
         await unlink(tempFilePath);
         console.log('[SIGNUP] Temp file deleted:', tempFilePath);
@@ -69,14 +65,14 @@ export async function POST(request) {
       return Response.json({ success: false, error: 'Username already taken' }, { status: 400 });
     }
 
-    // ✅ Create user
+    // ✅ Create user - Save the preview URL for avatar
     console.log('[SIGNUP] Creating new user...');
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({
       username,
       email,
       password: hashedPassword,
-      avatar: avatarUrl?.url || "",
+      avatar: avatarData?.downloadUrl || "", // ✅ Use previewUrl instead of url
       provider: 'local',
       emailNotifications: true,
     });

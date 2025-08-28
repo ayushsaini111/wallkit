@@ -522,7 +522,7 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
                       setIsSearchMode(false);
                       setSearchResults([]);
                     }}
-                    className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl sm:rounded-2xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-xl font-semibold text-base sm:text-lg hover-lift"
+                    className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-orange-500 to-pink-600 text-white rounded-xl sm:rounded-2xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-xl font-semibold text-base sm:text-lg hover-lift"
                   >
                     Clear Filters
                   </button>

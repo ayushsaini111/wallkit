@@ -3,7 +3,7 @@
 import Image from 'next/image';
 
 export default function Avatar({ src, alt, className = "" }) {
-  // console.log("Avatar src:", src);
+  console.log("Avatar src:", src);
 
   return (
     <div
@@ -15,6 +15,7 @@ export default function Avatar({ src, alt, className = "" }) {
         alt={alt || 'User Avatar'}
         width={40} // must provide
         height={40} // must provide
+        unoptimized
         className="w-full h-full object-cover"
       />
     </div>

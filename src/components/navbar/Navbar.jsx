@@ -21,6 +21,7 @@ const Navbar = ({ onCategorySelect }) => {
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [isMobileCategoryDropdownOpen, setIsMobileCategoryDropdownOpen] = useState(false);
   const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -112,6 +113,24 @@ const Navbar = ({ onCategorySelect }) => {
       const categoryParam = category.toLowerCase();
       router.push(`/?category=${categoryParam}`);
     }
+  };
+
+  // Handle logout click
+  const handleLogoutClick = () => {
+    setIsLogoutModalOpen(true);
+    setIsProfileDropdownOpen(false);
+    setIsMobileMenuOpen(false);
+  };
+
+  // Handle logout confirmation
+  const handleLogoutConfirm = () => {
+    logout();
+    setIsLogoutModalOpen(false);
+  };
+
+  // Handle logout cancel
+  const handleLogoutCancel = () => {
+    setIsLogoutModalOpen(false);
   };
 
   // Close dropdown when clicking outside
@@ -396,7 +415,7 @@ const Navbar = ({ onCategorySelect }) => {
                         {/* Logout Section */}
                         <div className="border-t border-gray-200/50 pt-2 mt-2">
                           <button
-                            onClick={logout}
+                            onClick={handleLogoutClick}
                             className="flex items-center gap-3 w-full px-4 py-2.5 text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-300 group"
                             aria-label="Logout"
                           >
@@ -562,10 +581,7 @@ const Navbar = ({ onCategorySelect }) => {
                     <span className="font-medium text-sm sm:text-base">Settings</span>
                   </Link>
                   <button
-                    onClick={() => {
-                      logout();
-                      setIsMobileMenuOpen(false);
-                    }}
+                    onClick={handleLogoutClick}
                     className="flex items-center gap-3 w-full p-3 sm:p-4 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-300"
                     aria-label="Logout"
                   >
@@ -603,8 +619,65 @@ const Navbar = ({ onCategorySelect }) => {
       {/* Navigation Spacer */}
       <div className="h-14 sm:h-16 lg:h-20" />
 
+      {/* Logout Confirmation Modal - Responsive */}
+      {isLogoutModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg animate-fadeIn">
+            {/* Modal Header */}
+            <div className="p-4 sm:p-6 lg:p-8 text-center border-b border-gray-100">
+              <div className="w-16 sm:w-20 lg:w-24 h-16 sm:h-20 lg:h-24 mx-auto mb-3 sm:mb-4 bg-gradient-to-br from-red-100 to-red-200 rounded-full flex items-center justify-center">
+                <LogOut className="w-8 sm:w-10 lg:w-12 h-8 sm:h-10 lg:h-12 text-red-600" />
+              </div>
+              <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-1 sm:mb-2">
+                Confirm Logout
+              </h3>
+              <p className="text-sm sm:text-base lg:text-lg text-gray-600">
+                Are you sure you want to sign out of your account?
+              </p>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-4 sm:p-6 lg:p-8">
+              <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <Avatar 
+                    src={user?.avatar} 
+                    alt={user?.username} 
+                    className="w-10 sm:w-12 lg:w-14 h-10 sm:h-12 lg:h-14 flex-shrink-0" 
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900 text-sm sm:text-base lg:text-lg truncate">
+                      {user?.username}
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-600 truncate">
+                      {user?.email}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                <button
+                  onClick={handleLogoutCancel}
+                  className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 lg:py-3.5 text-sm sm:text-base lg:text-lg font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleLogoutConfirm}
+                  className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 lg:py-3.5 text-sm sm:text-base lg:text-lg font-semibold text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-xl shadow-lg shadow-red-500/30 hover:shadow-red-500/40 transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-red-300"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Backdrop for Mobile Menu - NO BLUR */}
-      {(isMobileMenuOpen || isProfileDropdownOpen || isCategoryDropdownOpen || isNotificationDropdownOpen) && (
+      {(isMobileMenuOpen || isProfileDropdownOpen || isCategoryDropdownOpen || isNotificationDropdownOpen) && !isLogoutModalOpen && (
         <div
           className="fixed inset-0 bg-black/30 z-40"
           onClick={() => {
@@ -623,11 +696,11 @@ const Navbar = ({ onCategorySelect }) => {
         @keyframes fadeIn {
           from {
             opacity: 0;
-            transform: translateY(-10px);
+            transform: translateY(-10px) scale(0.95);
           }
           to {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateY(0) scale(1);
           }
         }
 
