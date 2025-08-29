@@ -230,7 +230,7 @@ const WallpaperCard = ({
 
         if (!avatar) {
             return (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center ring-2 ring-white/40">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-b from-amber-400 to-orange-600 flex items-center justify-center ring-2 ring-white/40">
                     <User className="w-5 h-5 text-white" />
                 </div>
             );

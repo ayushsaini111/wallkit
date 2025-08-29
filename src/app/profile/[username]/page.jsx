@@ -248,16 +248,16 @@ export default function ProfilePage() {
               <div className="relative">
                 <div className="w-32 h-32 rounded-3xl overflow-hidden ring-4 ring-gray-200 shadow-md">
                   <Image
-                    src={profile.user.avatar || '/default-avatar.png'}
+                    src={profile.user.avatar || '/avatar.png'}
                     alt={`${profile.user.username}'s avatar`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover bg-gradient-to-t from-orange-600 to-amber-400"
                     width={128}
                     height={128}
                   />
                 </div>
-                <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-gradient-to-r from-green-400 to-emerald-500 rounded-2xl flex items-center justify-center shadow-md">
+                {/* <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-gradient-to-r from-green-400 to-emerald-500 rounded-2xl flex items-center justify-center shadow-md">
                   <Star className="w-5 h-5 text-white" />
-                </div>
+                </div> */}
               </div>
 
               {/* Profile Info */}
@@ -410,10 +410,10 @@ export default function ProfilePage() {
             <div className="mt-8 text-center">
               <button
                 onClick={() => router.push('/upload')}
-                className="group relative text-sm px-4 py-3 bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 text-white rounded-2xl font-semibold  transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-3 mx-auto"
+                className="group relative text-sm px-4 py-3 bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 text-white rounded-2xl font-semibold  transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-95 flex items-center gap-3 mx-auto"
               >
                 <Upload className="w-6 h-6" />
-                <span>Upload More Wallpapers</span>
+                <span>Upload Wallpapers</span>
               </button>
             </div>
           )}

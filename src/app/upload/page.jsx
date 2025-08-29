@@ -16,6 +16,8 @@ const UploadWallpaper = () => {
     const [uploadResults, setUploadResults] = useState([]);
     const [currentTagInput, setCurrentTagInput] = useState({});
     const fileInputRef = useRef(null);
+    const [showRemoveConfirm, setShowRemoveConfirm] = useState(null);
+    const formSectionRef = useRef(null);
 
     // Predefined categories
     const categories = [
@@ -112,6 +114,16 @@ const UploadWallpaper = () => {
                 newTagInputs[file.id] = '';
             });
             setCurrentTagInput(prev => ({ ...prev, ...newTagInputs }));
+
+            // Scroll to form section after files are added
+            setTimeout(() => {
+                if (formSectionRef.current) {
+                    formSectionRef.current.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
+                }
+            }, 100);
         }
     };
 
@@ -137,16 +149,32 @@ const UploadWallpaper = () => {
         setCurrentTagInput(prev => ({ ...prev, [fileId]: value }));
     };
 
-    // Handle tag enter key
+    // Handle tag enter key and comma separation
     const handleTagKeyPress = (e, fileId) => {
-        if (e.key === 'Enter' && currentTagInput[fileId]?.trim()) {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            addTag(fileId);
+        }
+    };
+
+    // Handle tag blur (when user clicks away)
+    const handleTagBlur = (fileId) => {
+        addTag(fileId);
+    };
+
+    // Add tag helper function
+    const addTag = (fileId) => {
+        const tagValue = currentTagInput[fileId]?.trim();
+        if (tagValue) {
             const currentFile = selectedFiles.find(f => f.id === fileId);
-            const newTag = currentTagInput[fileId].trim();
+            // Split by comma and filter out empty strings
+            const newTags = tagValue.split(',')
+                .map(tag => tag.trim())
+                .filter(tag => tag.length > 0 && !currentFile.metadata.tags.includes(tag));
 
-            if (!currentFile.metadata.tags.includes(newTag)) {
-                updateFileMetadata(fileId, 'tags', [...currentFile.metadata.tags, newTag]);
+            if (newTags.length > 0) {
+                updateFileMetadata(fileId, 'tags', [...currentFile.metadata.tags, ...newTags]);
             }
-
             setCurrentTagInput(prev => ({ ...prev, [fileId]: '' }));
         }
     };
@@ -156,6 +184,16 @@ const UploadWallpaper = () => {
         const currentFile = selectedFiles.find(f => f.id === fileId);
         const updatedTags = currentFile.metadata.tags.filter((_, index) => index !== tagIndex);
         updateFileMetadata(fileId, 'tags', updatedTags);
+    };
+
+    // Confirm remove file (show popup)
+    const confirmRemoveFile = (fileId) => {
+        setShowRemoveConfirm(fileId);
+    };
+
+    // Cancel remove
+    const cancelRemove = () => {
+        setShowRemoveConfirm(null);
     };
 
     // Remove file from selection
@@ -183,6 +221,9 @@ const UploadWallpaper = () => {
             delete updated[fileId];
             return updated;
         });
+
+        // Close confirmation popup
+        setShowRemoveConfirm(null);
     };
 
     // Validate file data before upload
@@ -425,7 +466,7 @@ const UploadWallpaper = () => {
     if (!session) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
-                <div className="text-center p-6 md:p-12 bg-white rounded-lg md:rounded-2xl shadow-sm max-w-md w-full mx-4">
+                <div className="text-center p-6 md:p-12 bg-white rounded-lg md:rounded-2xl max-w-md w-full mx-4">
                     <div className="text-5xl md:text-7xl mb-4 md:mb-6">🔐</div>
                     <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">Access Required</h2>
                     <p className="text-gray-600 mb-6 md:mb-8 leading-relaxed text-sm md:text-base">
@@ -433,10 +474,10 @@ const UploadWallpaper = () => {
                     </p>
                     <a
                         href="/auth/login"
-                        className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 md:px-8 py-3 md:py-4 rounded-lg md:rounded-xl font-semibold transition-all duration-300 inline-flex items-center gap-2 md:gap-3 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 text-sm md:text-base"
+                        className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 md:px-8 py-3 md:py-4 rounded-lg md:rounded-xl font-semibold transition-all duration-300 inline-flex items-center gap-2 md:gap-3 transform hover:-translate-y-0.5 text-sm md:text-base"
                     >
                         <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013 3v1" />
                         </svg>
                         Sign In to Continue
                     </a>
@@ -445,7 +486,7 @@ const UploadWallpaper = () => {
         );
     }
 
-    return (
+      return (
         <div className="min-h-screen pt-4 bg-gradient-to-br from-gray-50 via-white to-blue-50">
             <div className="container mx-auto px-4 py-6 md:py-12">
                 <div className="max-w-7xl mx-auto">
@@ -456,7 +497,7 @@ const UploadWallpaper = () => {
                                 Upload Your Vision
                             </span>
                         </h1>
-                        <p className="text-sm leading-tight text-center md:text-xl text-gray-600 max-w-2xl mx-auto  px-4">
+                        <p className="text-sm leading-tight text-center md:text-xl text-gray-600 max-w-2xl mx-auto px-4">
                             Transform spaces and inspire others by uploading your stunning wallpapers.
                             Join our creative community and help others discover the perfect backdrop for their digital world.
                         </p>
@@ -466,8 +507,8 @@ const UploadWallpaper = () => {
                     <div className="mb-8 md:mb-12">
                         <div
                             className={`relative border-2 border-dashed rounded-lg md:rounded-3xl p-8 md:p-16 text-center transition-all duration-300 ${dragActive
-                                ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 scale-[1.01] md:scale-[1.02] shadow-md'
-                                : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50/50 shadow-sm'
+                                ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 scale-[1.01] md:scale-[1.02]'
+                                : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50/50'
                                 }`}
                             onDragEnter={handleDrag}
                             onDragLeave={handleDrag}
@@ -498,7 +539,7 @@ const UploadWallpaper = () => {
                                         type="button"
                                         onClick={() => fileInputRef.current?.click()}
                                         disabled={uploading}
-                                        className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white px-6 md:px-10 py-3 md:py-4 rounded-lg md:rounded-xl font-semibold transition-all duration-300 inline-flex items-center gap-2 md:gap-3 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none text-sm md:text-lg"
+                                        className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white px-6 md:px-10 py-3 md:py-4 rounded-lg md:rounded-xl font-semibold transition-all duration-300 inline-flex items-center gap-2 md:gap-3 transform hover:-translate-y-0.5 disabled:transform-none text-sm md:text-lg"
                                     >
                                         <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -534,7 +575,7 @@ const UploadWallpaper = () => {
                                     <div className="flex items-center gap-2 md:gap-3 sm:col-span-2 md:col-span-1">
                                         <div className="w-8 h-8 md:w-10 md:h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 flex-shrink-0">
                                             <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1a1 1 0 011-1h2a1 1 0 011 1v18a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1h2a1 1 0 011 1v3" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1a1 1 0 011-1h2a1 1 0 011 1v18a1 1 0 01-1-1H4a1 1 0 01-1-1V4a1 1 0 011-1h2a1 1 0 011 1v3" />
                                             </svg>
                                         </div>
                                         <div className="text-left">
@@ -549,7 +590,7 @@ const UploadWallpaper = () => {
 
                     {/* Selected Files - Responsive Layout */}
                     {selectedFiles.length > 0 && (
-                        <div className="mb-8 md:mb-12">
+                        <div ref={formSectionRef} className="mb-8 md:mb-12">
                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 md:mb-8">
                                 <div className="flex flex-wrap items-center gap-2 md:gap-4">
                                     <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
@@ -569,7 +610,7 @@ const UploadWallpaper = () => {
                             {/* Files Grid - Single column on mobile, two columns on larger screens */}
                             <div className="space-y-6 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0 xl:gap-8">
                                 {selectedFiles.map((fileData) => (
-                                    <div key={fileData.id} className="bg-white rounded-lg md:rounded-2xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-all duration-300">
+                                    <div key={fileData.id} className="bg-white rounded-lg md:rounded-2xl overflow-hidden border border-gray-100">
                                         {/* Image Preview - Consistent aspect ratio */}
                                         <div className="aspect-video relative bg-gradient-to-br from-gray-100 to-gray-200 group">
                                             <Image
@@ -593,7 +634,7 @@ const UploadWallpaper = () => {
                                             )}
 
                                             {/* Status badge */}
-                                            <div className={`absolute top-2 left-2 md:top-4 md:left-4 px-2 py-1 md:px-3 md:py-2 rounded-lg md:rounded-xl text-xs md:text-sm font-semibold ${getStatusColor(fileData.status)} flex items-center gap-1 md:gap-2 shadow-sm backdrop-blur-sm`}>
+                                            <div className={`absolute top-2 left-2 md:top-4 md:left-4 px-2 py-1 md:px-3 md:py-2 rounded-lg md:rounded-xl text-xs md:text-sm font-semibold ${getStatusColor(fileData.status)} flex items-center gap-1 md:gap-2 backdrop-blur-sm`}>
                                                 {getStatusIcon(fileData.status)}
                                                 <span className="hidden sm:inline">{fileData.status.charAt(0).toUpperCase() + fileData.status.slice(1)}</span>
                                             </div>
@@ -660,8 +701,9 @@ const UploadWallpaper = () => {
                                                             value={currentTagInput[fileData.id] || ''}
                                                             onChange={(e) => handleTagInput(fileData.id, e.target.value)}
                                                             onKeyPress={(e) => handleTagKeyPress(e, fileData.id)}
+                                                            onBlur={() => handleTagBlur(fileData.id)}
                                                             disabled={uploading || fileData.status === 'completed'}
-                                                            placeholder="Type a tag and press Enter..."
+                                                            placeholder="nature, sunset, mountains, blue, peaceful (separate with commas)"
                                                             className="w-full px-3 py-2 md:px-4 md:py-3 border border-gray-200 rounded-lg md:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:cursor-not-allowed text-sm transition-all duration-200"
                                                         />
 
@@ -690,7 +732,8 @@ const UploadWallpaper = () => {
                                                         )}
 
                                                         <p className="text-xs text-gray-500">
-                                                            Add relevant tags to help others discover your wallpaper
+                                                            <span className="hidden sm:inline">Add relevant tags to help others discover your wallpaper. Press Enter or use commas to separate tags.</span>
+                                                            <span className="sm:hidden">Separate tags with commas, then press Enter</span>
                                                         </p>
                                                     </div>
                                                 </div>
@@ -778,7 +821,7 @@ const UploadWallpaper = () => {
                                                 {/* Individual Remove Button */}
                                                 <div className="pt-2 md:pt-4">
                                                     <button
-                                                        onClick={() => removeFile(fileData.id)}
+                                                        onClick={() => confirmRemoveFile(fileData.id)}
                                                         disabled={uploading}
                                                         className="w-full bg-gray-100 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-gray-700 px-3 py-2 md:px-4 md:py-3 rounded-lg md:rounded-xl font-medium transition-all duration-200 disabled:bg-gray-50 disabled:cursor-not-allowed text-sm inline-flex items-center justify-center gap-2 border border-gray-200"
                                                     >
@@ -799,7 +842,7 @@ const UploadWallpaper = () => {
                                 <button
                                     onClick={uploadFiles}
                                     disabled={uploading || selectedFiles.every(f => f.status === 'completed') || pendingCount === 0}
-                                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 text-white px-6 py-3 md:px-8 md:py-4 rounded-lg md:rounded-xl font-semibold transition-all duration-300 inline-flex items-center justify-center gap-2 md:gap-3 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none text-sm md:text-lg"
+                                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 text-white px-6 py-3 md:px-8 md:py-4 rounded-lg md:rounded-xl font-semibold transition-all duration-300 inline-flex items-center justify-center gap-2 md:gap-3 transform hover:-translate-y-0.5 disabled:transform-none text-sm md:text-lg"
                                 >
                                     {uploading ? (
                                         <>
@@ -819,7 +862,7 @@ const UploadWallpaper = () => {
                                 <button
                                     onClick={clearFiles}
                                     disabled={uploading}
-                                    className="bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 disabled:from-gray-400 disabled:to-gray-500 text-white px-6 py-3 md:px-8 md:py-4 rounded-lg md:rounded-xl font-semibold transition-all duration-300 inline-flex items-center justify-center gap-2 md:gap-3 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:transform-none text-sm md:text-lg"
+                                    className="bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 disabled:from-gray-400 disabled:to-gray-500 text-white px-6 py-3 md:px-8 md:py-4 rounded-lg md:rounded-xl font-semibold transition-all duration-300 inline-flex items-center justify-center gap-2 md:gap-3 transform hover:-translate-y-0.5 disabled:transform-none text-sm md:text-lg"
                                 >
                                     <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -834,86 +877,24 @@ const UploadWallpaper = () => {
                     {/* Upload Results - Mobile responsive */}
                     {uploadResults.length > 0 && (
                         <div className="mb-8 md:mb-12">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 md:mb-8">
-                                <div className="flex flex-wrap items-center gap-2 md:gap-4">
-                                    <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Upload Results</h2>
-                                    <div className="flex gap-2">
-                                        {uploadResults.filter(r => r.status === 'success').length > 0 && (
-                                            <div className="bg-green-100 text-green-800 px-3 py-1 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-semibold">
-                                                {uploadResults.filter(r => r.status === 'success').length} successful
-                                            </div>
-                                        )}
-                                        {uploadResults.filter(r => r.status === 'error').length > 0 && (
-                                            <div className="bg-red-100 text-red-800 px-3 py-1 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-semibold">
-                                                {uploadResults.filter(r => r.status === 'error').length} failed
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+                            <div className="flex justify-center mb-6 md:mb-8">
                                 <button
                                     onClick={startOver}
-                                    className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg md:rounded-xl font-semibold transition-all duration-300 inline-flex items-center gap-2 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 text-sm"
+                                    className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 md:px-8 md:py-4 rounded-lg md:rounded-xl font-semibold transition-all duration-300 inline-flex items-center gap-2 md:gap-3 transform hover:-translate-y-0.5 text-sm md:text-lg"
                                 >
                                     <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                     </svg>
-                                    Upload More
+                                    Upload More Wallpapers
                                 </button>
-                            </div>
-
-                            <div className="bg-white rounded-lg md:rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                                <div className="space-y-0">
-                                    {uploadResults.map((result, index) => (
-                                        <div
-                                            key={result.id}
-                                            className={`p-4 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all duration-300 ${index !== uploadResults.length - 1 ? 'border-b border-gray-100' : ''
-                                                } ${result.status === 'success'
-                                                    ? 'bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100'
-                                                    : 'bg-gradient-to-r from-red-50 to-rose-50 hover:from-red-100 hover:to-rose-100'
-                                                }`}
-                                        >
-                                            <div className="flex items-center gap-3 md:gap-4 flex-1">
-                                                <div className={`flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl flex items-center justify-center shadow-sm ${result.status === 'success'
-                                                    ? 'bg-green-100 text-green-600'
-                                                    : 'bg-red-100 text-red-600'
-                                                    }`}>
-                                                    {result.status === 'success' ? (
-                                                        <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                        </svg>
-                                                    ) : (
-                                                        <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                        </svg>
-                                                    )}
-                                                </div>
-                                                <div className="flex-1">
-                                                    <p className="font-semibold text-gray-900 text-sm md:text-lg truncate">{result.name}</p>
-                                                    {result.error && (
-                                                        <p className="text-xs md:text-sm text-red-600 mt-1">{result.error}</p>
-                                                    )}
-                                                    {result.status === 'success' && (
-                                                        <p className="text-xs md:text-sm text-green-600 mt-1">Ready to inspire others!</p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className={`text-xs md:text-sm font-bold px-3 py-2 md:px-4 md:py-2 rounded-full text-center ${result.status === 'success'
-                                                ? 'text-green-700 bg-green-100'
-                                                : 'text-red-700 bg-red-100'
-                                                }`}>
-                                                {result.status === 'success' ? '✓ Uploaded' : '✗ Failed'}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
                             </div>
                         </div>
                     )}
 
                     {/* Enhanced Tips Section - Mobile responsive */}
-                    <div className="bg-white rounded-lg md:rounded-2xl shadow-sm border border-gray-100 p-4 md:p-8">
+                    <div className="bg-white rounded-lg md:rounded-2xl border border-gray-100 p-4 md:p-8">
                         <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
-                            <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg md:rounded-xl flex items-center justify-center text-white text-xl md:text-2xl shadow-sm">
+                            <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg md:rounded-xl flex items-center justify-center text-white text-xl md:text-2xl">
                                 💡
                             </div>
                             <h3 className="text-xl md:text-2xl font-bold text-gray-900">
@@ -923,7 +904,7 @@ const UploadWallpaper = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 mb-6 md:mb-8">
                             <div className="text-center p-4 md:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg md:rounded-xl border border-blue-100">
-                                <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl md:text-2xl mx-auto mb-3 md:mb-4 shadow-sm">
+                                <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl md:text-2xl mx-auto mb-3 md:mb-4">
                                     📸
                                 </div>
                                 <h4 className="font-bold text-gray-900 mb-2 md:mb-3 text-sm md:text-base">Perfect Quality</h4>
@@ -935,7 +916,7 @@ const UploadWallpaper = () => {
                             </div>
 
                             <div className="text-center p-4 md:p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg md:rounded-xl border border-green-100">
-                                <div className="w-12 h-12 md:w-16 md:h-16 bg-green-500 rounded-full flex items-center justify-center text-white text-xl md:text-2xl mx-auto mb-3 md:mb-4 shadow-sm">
+                                <div className="w-12 h-12 md:w-16 md:h-16 bg-green-500 rounded-full flex items-center justify-center text-white text-xl md:text-2xl mx-auto mb-3 md:mb-4">
                                     🏷️
                                 </div>
                                 <h4 className="font-bold text-gray-900 mb-2 md:mb-3 text-sm md:text-base">Smart Tagging</h4>
@@ -947,7 +928,7 @@ const UploadWallpaper = () => {
                             </div>
 
                             <div className="text-center p-4 md:p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg md:rounded-xl border border-purple-100">
-                                <div className="w-12 h-12 md:w-16 md:h-16 bg-purple-500 rounded-full flex items-center justify-center text-white text-xl md:text-2xl mx-auto mb-3 md:mb-4 shadow-sm">
+                                <div className="w-12 h-12 md:w-16 md:h-16 bg-purple-500 rounded-full flex items-center justify-center text-white text-xl md:text-2xl mx-auto mb-3 md:mb-4">
                                     ⚡
                                 </div>
                                 <h4 className="font-bold text-gray-900 mb-2 md:mb-3 text-sm md:text-base">Quick Upload</h4>
@@ -976,10 +957,44 @@ const UploadWallpaper = () => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Remove Confirmation Popup */}
+                    {showRemoveConfirm && (
+                        <div className="fixed inset-0 bg-black/40 backdrop-blur-lg flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-lg md:rounded-xl p-6 md:p-8 max-w-md w-full mx-4">
+                                <div className="text-center">
+                                    <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                                        <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </div>
+                                    <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">Remove File?</h3>
+                                    <p className="text-gray-600 mb-6 text-sm md:text-base">
+                                        Are you sure you want to remove this wallpaper? All entered information will be lost.
+                                    </p>
+                                    <div className="flex gap-3">
+                                        <button
+                                            onClick={cancelRemove}
+                                            className="flex-1 px-4 py-2 md:px-6 md:py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg md:rounded-xl font-semibold transition-all duration-200 text-sm md:text-base"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={() => removeFile(showRemoveConfirm)}
+                                            className="flex-1 px-4 py-2 md:px-6 md:py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg md:rounded-xl font-semibold transition-all duration-200 text-sm md:text-base"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
     );
+
 };
 
 export default UploadWallpaper;

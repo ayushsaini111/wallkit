@@ -344,17 +344,24 @@ const Navbar = ({ onCategorySelect }) => {
                       <div className="absolute top-full right-0 mt-3 w-64 xl:w-72 bg-white/98 rounded-xl shadow-2xl border border-gray-200/50 py-4 z-50 animate-fadeIn">
                         {/* User Header */}
                         <div className="px-4 pb-4 border-b border-gray-200/50">
-                          <div className="flex items-center gap-3">
+                         <Link
+                    href={`/profile/${user.username}`}
+                    className="flex items-center gap-3 p-3 sm:p-4 text-gray-800 hover:text-orange-600 bg-orange-50 rounded-lg transition-all duration-300"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <div className="flex items-center gap-3">
                             <Avatar 
                               src={user.avatar} 
                               alt={user.username} 
-                              className="w-10 xl:w-12 h-10 xl:h-12 ring-2 ring-orange-500 shadow-md flex-shrink-0" 
+                              className="w-10 xl:w-12 h-10 xl:h-12 ring-1 ring-orange-500 shadow-md flex-shrink-0" 
                             />
                             <div className="flex-1 ml-2 min-w-0">
                               <h3 className="font-semibold text-base xl:text-lg text-gray-900 truncate">{user.username}</h3>
                               <p className="text-xs xl:text-sm text-gray-600 truncate">{user.email}</p>
                             </div>
                           </div>
+                  </Link>
+                          
                         </div>
 
                         {/* Menu Items */}
@@ -534,7 +541,12 @@ const Navbar = ({ onCategorySelect }) => {
             {user ? (
               <div className="pt-3 sm:pt-4 border-t border-gray-200/50 space-y-3 sm:space-y-4">
                 {/* Mobile User Profile Card */}
-                <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-orange-50 rounded-xl border border-orange-100">
+                 <Link
+                    href={`/profile/${user.username}`}
+                    className="flex items-center gap-3 p-3 sm:p-4 text-gray-800 hover:text-orange-600 bg-orange-50 rounded-lg transition-all duration-300"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+              
                   <Avatar 
                     src={user.avatar} 
                     alt={user.username} 
@@ -544,7 +556,8 @@ const Navbar = ({ onCategorySelect }) => {
                     <p className="font-bold text-gray-900 text-base sm:text-lg truncate">{user.username}</p>
                     <p className="text-xs sm:text-sm text-gray-600 truncate">{user.email}</p>
                   </div>
-                </div>
+                
+                </Link>
 
                 {/* Mobile Profile Action Links */}
                 <nav className="space-y-2" aria-label="Profile actions">
@@ -554,7 +567,7 @@ const Navbar = ({ onCategorySelect }) => {
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <User className="w-4 sm:w-5 h-4 sm:h-5" />
-                    <span className="font-medium text-sm sm:text-base">Profile</span>
+                    <span className="font-medium text-sm sm:text-base">My Profile</span>
                   </Link>
                   <Link
                     href="/favorites"

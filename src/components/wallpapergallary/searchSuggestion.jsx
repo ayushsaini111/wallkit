@@ -337,9 +337,7 @@ export const SearchSuggestions = ({
         </button>
       ))}
       
-      <div className="px-6 py-2 text-xs text-gray-400 bg-gray-50/50 border-t border-gray-200/50">
-        Use ↑↓ to navigate, Enter to select
-      </div>
+      
     </div>
   );
 };

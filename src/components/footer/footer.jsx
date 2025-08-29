@@ -12,22 +12,22 @@ export default function ModernFooter() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-12 mb-14">
           
           {/* Logo and description */}
-          <div className="lg:col-span-2 text-center sm:text-left">
-            <div className="flex items-center justify-center sm:justify-start mb-8">
+          <div className="lg:col-span-2 text-left">
+            <div className="flex items-center justify-start mb-8">
               <span className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-orange-500 to-pink-600 bg-clip-text text-transparent">
                 WallPickr
               </span>
             </div>
-            <p className="text-gray-300 text-base sm:text-lg leading-relaxed max-w-lg mx-auto sm:mx-0 mb-8">
+            <p className="text-gray-300 text-base sm:text-lg leading-relaxed max-w-lg mb-8">
               Discover stunning wallpapers and transform your digital space with our curated collection of premium designs and artistic masterpieces.
             </p>
             <p className="text-gray-400 text-sm sm:text-base">Powered by Oryvia</p>
           </div>
           
           {/* Browse Links */}
-          <div className="text-center sm:text-left">
+          <div className="text-left">
             <h3 className="text-white font-semibold text-lg sm:text-xl mb-6">Browse</h3>
-            <ul className="space-y-3 sm:space-y-4">
+            <ul className="flex flex-col items-start space-y-3 sm:space-y-4">
               {[
                 { name: "Trending", href: "/trending" },
                 { name: "New Arrivals", href: "/" },
@@ -48,9 +48,9 @@ export default function ModernFooter() {
           </div>
 
           {/* Company Links */}
-          <div className="text-center sm:text-left">
+          <div className="text-left">
             <h3 className="text-white font-semibold text-lg sm:text-xl mb-6">Company</h3>
-            <ul className="space-y-3 sm:space-y-4">
+            <ul className="flex flex-col items-start space-y-3 sm:space-y-4">
               {["About Us", "Contact", "Support"].map((item) => (
                 <li key={item}>
                   <a
@@ -66,9 +66,9 @@ export default function ModernFooter() {
           </div>
 
           {/* Legal Links */}
-          <div className="text-center sm:text-left">
+          <div className="text-left">
             <h3 className="text-white font-semibold text-lg sm:text-xl mb-6">Legal</h3>
-            <ul className="space-y-3 sm:space-y-4">
+            <ul className="flex flex-col items-start space-y-3 sm:space-y-4">
               {["Cookie Policy", "Ad Policy"].map((item) => (
                 <li key={item}>
                   <a
