@@ -13,7 +13,7 @@ export default async function connectToDB() {
 
   if (!cached.promise) {
     cached.promise = mongoose.connect(MONGODB_URI, {
-      dbName: 'WallPickr', // optional
+      dbName: 'wallKit', // optional
       useNewUrlParser: true,
     }).then((mongoose) => mongoose);
   }
