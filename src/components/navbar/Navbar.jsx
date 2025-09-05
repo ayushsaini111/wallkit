@@ -52,7 +52,7 @@ const Navbar = ({ onCategorySelect }) => {
     const checkMobile = () => {
       const isMobileScreen = window.innerWidth < 1024;
       setIsMobile(isMobileScreen);
-      
+
       // Close desktop dropdowns on mobile
       if (isMobileScreen) {
         setIsProfileDropdownOpen(false);
@@ -97,7 +97,7 @@ const Navbar = ({ onCategorySelect }) => {
   // Handle category selection
   const handleCategorySelect = (category) => {
     console.log('Category selected in navbar:', category);
-    
+
     // Close all dropdowns
     setIsCategoryDropdownOpen(false);
     setIsMobileCategoryDropdownOpen(false);
@@ -234,7 +234,7 @@ const Navbar = ({ onCategorySelect }) => {
                   </NavLink>
                 );
               })}
-              
+
               {/* Categories Dropdown */}
               <div className="relative" ref={categoryRef}>
                 <button
@@ -261,7 +261,7 @@ const Navbar = ({ onCategorySelect }) => {
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Categories Grid */}
                     <div className="py-3 xl:py-4 max-h-72 xl:max-h-80 overflow-y-auto">
                       <div className="grid grid-cols-2 gap-1 px-3 xl:px-4">
@@ -344,24 +344,29 @@ const Navbar = ({ onCategorySelect }) => {
                       <div className="absolute top-full right-0 mt-3 w-64 xl:w-72 bg-white/98 rounded-xl shadow-2xl border border-gray-200/50 py-4 z-50 animate-fadeIn">
                         {/* User Header */}
                         <div className="px-4 pb-4 border-b border-gray-200/50">
-                         <Link
-                    href={`/profile/${user.username}`}
-                    className="flex items-center gap-3 p-3 sm:p-4 text-gray-800 hover:text-orange-600 bg-orange-50 rounded-lg transition-all duration-300"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <div className="flex items-center gap-3">
-                            <Avatar 
-                              src={user.avatar} 
-                              alt={user.username} 
-                              className="w-10 xl:w-12 h-10 xl:h-12 ring-1 ring-orange-500 shadow-md flex-shrink-0" 
-                            />
-                            <div className="flex-1 ml-2 min-w-0 line-clamp-2">
-                              <h3 className="font-semibold text-base xl:text-lg text-gray-900 truncate">{user.username}</h3>
-                              <p className="text-xs xl:text-sm text-gray-600 truncate">{user.email}</p>
+                          <Link
+                            href={`/profile/${user.username}`}
+                            className="flex items-center gap-3 p-3 sm:p-4 text-gray-800 hover:text-orange-600 bg-orange-50 rounded-lg transition-all duration-300"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            <div className="flex items-center gap-3">
+                              <Avatar
+                                src={user.avatar}
+                                alt={user.username}
+                                className="w-10 xl:w-12 h-10 xl:h-12 ring-1 ring-orange-500 shadow-md flex-shrink-0"
+                              />
+                              <div className="flex-1 min-w-0 break-words">
+                                <h3 className="font-semibold text-base xl:text-lg text-gray-900">
+                                  {user.username}
+                                </h3>
+                                <p className="text-xs xl:text-sm text-gray-600">
+                                  {user.email}
+                                </p>
+                              </div>
+
                             </div>
-                          </div>
-                  </Link>
-                          
+                          </Link>
+
                         </div>
 
                         {/* Menu Items */}
@@ -541,22 +546,22 @@ const Navbar = ({ onCategorySelect }) => {
             {user ? (
               <div className="pt-3 sm:pt-4 border-t border-gray-200/50 space-y-3 sm:space-y-4">
                 {/* Mobile User Profile Card */}
-                 <Link
-                    href={`/profile/${user.username}`}
-                    className="flex items-center gap-3 p-3 sm:p-4 text-gray-800 hover:text-orange-600 bg-orange-50 rounded-lg transition-all duration-300"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-              
-                  <Avatar 
-                    src={user.avatar} 
-                    alt={user.username} 
-                    className="w-12 sm:w-16 h-12 sm:h-16 shadow-md flex-shrink-0" 
+                <Link
+                  href={`/profile/${user.username}`}
+                  className="flex items-center gap-3 p-3 sm:p-4 text-gray-800 hover:text-orange-600 bg-orange-50 rounded-lg transition-all duration-300"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+
+                  <Avatar
+                    src={user.avatar}
+                    alt={user.username}
+                    className="w-12 sm:w-16 h-12 sm:h-16 shadow-md flex-shrink-0"
                   />
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-gray-900 text-base sm:text-lg truncate">{user.username}</p>
                     <p className="text-xs sm:text-sm text-gray-600 truncate">{user.email}</p>
                   </div>
-                
+
                 </Link>
 
                 {/* Mobile Profile Action Links */}
@@ -653,10 +658,10 @@ const Navbar = ({ onCategorySelect }) => {
             <div className="p-4 sm:p-6 lg:p-8">
               <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6">
                 <div className="flex items-center gap-2 sm:gap-3">
-                  <Avatar 
-                    src={user?.avatar} 
-                    alt={user?.username} 
-                    className="w-10 sm:w-12 lg:w-14 h-10 sm:h-12 lg:h-14 flex-shrink-0" 
+                  <Avatar
+                    src={user?.avatar}
+                    alt={user?.username}
+                    className="w-10 sm:w-12 lg:w-14 h-10 sm:h-12 lg:h-14 flex-shrink-0"
                   />
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-gray-900 text-sm sm:text-base lg:text-lg truncate">
