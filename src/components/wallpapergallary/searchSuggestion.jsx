@@ -59,21 +59,21 @@ export const SearchSuggestions = ({
           addSuggestion({ 
             type: 'title', 
             value: wp.title, 
-            icon: wp.imageUrl,
+            icon: wp.compressedUrl || wp.imageUrl,
             wallpaper: wp 
           }, 100);
         } else if (lowerTitle.startsWith(lowerSearchTerm)) {
           addSuggestion({ 
             type: 'title', 
             value: wp.title, 
-            icon: wp.imageUrl,
+            icon: wp.compressedUrl || wp.imageUrl,
             wallpaper: wp 
           }, 90);
         } else if (lowerTitle.includes(lowerSearchTerm)) {
           addSuggestion({ 
             type: 'title', 
             value: wp.title, 
-            icon: wp.imageUrl,
+            icon: wp.compressedUrl || wp.imageUrl,
             wallpaper: wp 
           }, 70);
         }
@@ -99,14 +99,14 @@ export const SearchSuggestions = ({
         addSuggestion({ 
           type: 'tag', 
           value: tag, 
-          icon: wp.imageUrl,
+          icon: wp.compressedUrl || wp.imageUrl,
           wallpaper: wp 
         }, 80);
       } else if (lowerTag.includes(lowerSearchTerm)) {
         addSuggestion({ 
           type: 'tag', 
           value: tag, 
-          icon: wp.imageUrl,
+          icon: wp.compressedUrl || wp.imageUrl,
           wallpaper: wp 
         }, 60);
       }

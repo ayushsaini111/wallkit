@@ -63,7 +63,7 @@ const HeroSection = ({
           addSuggestion({ 
             type: 'title', 
             value: wp.title, 
-            icon: wp.imageUrl,
+            icon: wp.compressedUrl || wp.imageUrl,
             wallpaper: wp 
           }, score);
         }
@@ -86,7 +86,7 @@ const HeroSection = ({
         addSuggestion({ 
           type: 'tag', 
           value: tag, 
-          icon: wallpaper.imageUrl,
+          icon: wallpaper.compressedUrl || wallpaper.imageUrl,
           wallpaper: wallpaper 
         }, score);
       });
