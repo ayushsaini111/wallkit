@@ -308,32 +308,38 @@ const WallpaperCard = ({
                             </button>
 
                             {/* Mobile Dropdown Menu */}
-                            {showMobileMenu && (
-                                <div className="absolute top-full right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-40 min-w-[140px]">
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setShowMobileMenu(false);
-                                            onEdit && onEdit(wallpaper);
-                                        }}
-                                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                                    >
-                                        <Pencil className="w-4 h-4 text-blue-500" />
-                                        Edit
-                                    </button>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setShowMobileMenu(false);
-                                            onDelete && onDelete(wallpaper);
-                                        }}
-                                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                        Delete
-                                    </button>
-                                </div>
-                            )}
+                            {/* Mobile Dropdown Menu - BETTER POSITIONING */}
+        {showMobileMenu && (
+            <div className="absolute top-full right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-200 overflow-visible z-[9999] min-w-[140px]"
+                 style={{
+                     // Ensure menu doesn't get cut off by adjusting position
+                     transform: 'translateX(-50%)',
+                     right: '50%'
+                 }}>
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setShowMobileMenu(false);
+                        onEdit && onEdit(wallpaper);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                    <Pencil className="w-4 h-4 text-blue-500" />
+                    Edit
+                </button>
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setShowMobileMenu(false);
+                        onDelete && onDelete(wallpaper);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                >
+                    <Trash2 className="w-4 h-4" />
+                    Delete
+                </button>
+            </div>
+        )}
                         </div>
                     )}
 

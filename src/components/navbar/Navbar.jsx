@@ -284,207 +284,205 @@ const Navbar = ({ onCategorySelect }) => {
 
             {/* Right Side Actions */}
             <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
-              {/* User Actions */}
-              {user ? (
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  {/* Notifications Button */}
-                  <div className="relative" ref={notificationRef}>
-                    <button
-                      onClick={() => setIsNotificationDropdownOpen(!isNotificationDropdownOpen)}
-                      className="relative p-1.5 sm:p-2 lg:p-2.5 rounded-xl transition-all duration-200 hover:scale-95 group bg-white/90"
-                      aria-label="Notifications"
-                    >
-                      <Bell className={`w-4 sm:w-5 lg:w-6 h-4 sm:h-5 lg:h-6 transition-all duration-300 text-gray-700 ${isNotificationDropdownOpen ? 'text-orange-500' : 'group-hover:text-orange-500'}`} />
+  {/* User Actions */}
+  {user ? (
+    <div className="flex items-center gap-1.5 sm:gap-2">
+      {/* Notifications Button */}
+      <div className="relative" ref={notificationRef}>
+        <button
+          onClick={() => setIsNotificationDropdownOpen(!isNotificationDropdownOpen)}
+          className="relative p-1.5 sm:p-2 lg:p-2.5 rounded-xl transition-all duration-200 hover:scale-95 group bg-white/90"
+          aria-label="Notifications"
+        >
+          <Bell className={`w-4 sm:w-5 lg:w-6 h-4 sm:h-5 lg:h-6 transition-all duration-300 text-gray-700 ${isNotificationDropdownOpen ? 'text-orange-500' : 'group-hover:text-orange-500'}`} />
 
-                      {/* Notification Badge */}
-                      {unreadCount > 0 && (
-                        <div className="absolute -top-0.5 -right-0.5 min-w-[16px] sm:min-w-[18px] lg:min-w-[20px] h-4 sm:h-4.5 lg:h-5 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center shadow-lg ">
-                          <span className="text-xs text-white font-bold px-0.5 sm:px-1">
-                            {unreadCount > 99 ? '99+' : unreadCount}
-                          </span>
-                        </div>
-                      )}
-                    </button>
+          {/* Notification Badge */}
+          {unreadCount > 0 && (
+            <div className="absolute -top-0.5 -right-0.5 min-w-[16px] sm:min-w-[18px] lg:min-w-[20px] h-4 sm:h-4.5 lg:h-5 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center shadow-lg ">
+              <span className="text-xs text-white font-bold px-0.5 sm:px-1">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            </div>
+          )}
+        </button>
 
-                    {/* Notification Dropdown */}
-                    <NotificationDropdown
-                      isOpen={isNotificationDropdownOpen}
-                      onClose={() => setIsNotificationDropdownOpen(false)}
-                      triggerRef={notificationRef}
-                      isMobile={isMobile}
-                    />
-                  </div>
+        {/* Notification Dropdown */}
+        <NotificationDropdown
+          isOpen={isNotificationDropdownOpen}
+          onClose={() => setIsNotificationDropdownOpen(false)}
+          triggerRef={notificationRef}
+          isMobile={isMobile}
+        />
+      </div>
 
-                  {/* Upload Button */}
-                  <Link
-                    href="/upload"
-                    className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-2.5 rounded-lg md:rounded-xl font-semibold transition-all duration-200 hover:scale-95 text-xs sm:text-sm lg:text-base bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg"
-                    aria-label="Upload wallpaper"
-                  >
-                    <Upload className="w-3  sm:w-4 lg:w-5 h-3 sm:h-4 lg:h-5" />
-                    <span className="hidden sm:inline">Upload</span>
-                  </Link>
+      {/* Upload Button */}
+      <Link
+        href="/upload"
+        className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-2.5 rounded-lg md:rounded-xl font-semibold transition-all duration-200 hover:scale-95 text-xs sm:text-sm lg:text-base bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg"
+        aria-label="Upload wallpaper"
+      >
+        <Upload className="w-3  sm:w-4 lg:w-5 h-3 sm:h-4 lg:h-5" />
+        <span className="hidden sm:inline">Upload</span>
+      </Link>
 
-                  {/* Profile Dropdown - Desktop Only */}
-                  <div className="hidden lg:block relative" ref={profileRef}>
-                    <button
-                      onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                      className="rounded-full transition-all duration-200 hover:scale-105 cursor-pointer"
-                      aria-label="Profile menu"
-                    >
-                      <Avatar
-                        src={user.avatar}
-                        alt={user.username}
-                        className="w-12 xl:w-12 h-12 xl:h-12 transition-all duration-200"
-                      />
-                    </button>
+      {/* Profile Dropdown - Desktop Only */}
+      <div className="hidden lg:block relative" ref={profileRef}>
+        <button
+          onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+          className="rounded-full transition-all duration-200 hover:scale-105 cursor-pointer"
+          aria-label="Profile menu"
+        >
+          <Avatar
+            src={user.avatar}
+            alt={user.username}
+            className="w-12 xl:w-12 h-12 xl:h-12 transition-all duration-200"
+          />
+        </button>
 
-                    {/* Profile Dropdown Menu */}
-                    {isProfileDropdownOpen && (
-                      <div className="absolute top-full right-0 mt-3 w-64 xl:w-72 bg-white/98 rounded-xl shadow-2xl border border-gray-200/50 py-4 z-50 animate-fadeIn">
-                        {/* User Header */}
-                        <div className="px-4 pb-4 border-b border-gray-200/50">
-                          <Link
-                            href={`/profile/${user.username}`}
-                            className="flex items-center gap-3 p-3 sm:p-4 text-gray-800 hover:text-orange-600 bg-orange-50 rounded-lg transition-all duration-300"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                          >
-                            <div className="flex items-center gap-3">
-                              <Avatar
-                                src={user.avatar}
-                                alt={user.username}
-                                className="w-10 xl:w-12 h-10 xl:h-12 ring-1 ring-orange-500 shadow-md flex-shrink-0"
-                              />
-                              <div className="flex-1 min-w-0 break-words">
-                                <h3 className="font-semibold text-base xl:text-lg text-gray-900">
-                                  {user.username}
-                                </h3>
-                                <p className="text-xs xl:text-sm text-gray-600">
-                                  {user.email}
-                                </p>
-                              </div>
-
-                            </div>
-                          </Link>
-
-                        </div>
-
-                        {/* Menu Items */}
-                        <nav className="py-2" aria-label="Profile menu">
-                          <Link
-                            href={`/profile/${user.username}`}
-                            className="flex items-center gap-3 px-4 py-2.5 text-gray-800 hover:text-orange-600 hover:bg-orange-50 transition-all duration-300 group"
-                          >
-                            <div className="w-7 xl:w-8 h-7 xl:h-8 bg-orange-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                              <User className="w-3.5 xl:w-4 h-3.5 xl:h-4 text-orange-600" />
-                            </div>
-                            <div>
-                              <span className="font-semibold text-sm xl:text-base">My Profile</span>
-                              <p className="text-xs text-gray-500">View profile</p>
-                            </div>
-                          </Link>
-
-                          <Link
-                            href="/favorites"
-                            className="flex items-center gap-3 px-4 py-2.5 text-gray-800 hover:text-red-600 hover:bg-red-50 transition-all duration-300 group"
-                          >
-                            <div className="w-7 xl:w-8 h-7 xl:h-8 bg-red-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                              <Heart className="w-3.5 xl:w-4 h-3.5 xl:h-4 text-red-600" />
-                            </div>
-                            <div>
-                              <span className="font-semibold text-sm xl:text-base">Favorites</span>
-                              <p className="text-xs text-gray-500">Liked wallpapers</p>
-                            </div>
-                          </Link>
-
-                          <Link
-                            href="/collections"
-                            className="flex items-center gap-3 px-4 py-2.5 text-gray-800 hover:text-purple-600 hover:bg-purple-50 transition-all duration-300 group"
-                          >
-                            <div className="w-7 xl:w-8 h-7 xl:h-8 bg-purple-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                              <Bookmark className="w-3.5 xl:w-4 h-3.5 xl:h-4 text-purple-600" />
-                            </div>
-                            <div className="flex-1">
-                              <span className="font-semibold text-sm xl:text-base">Collections</span>
-                              <p className="text-xs text-gray-500">Saved collections</p>
-                            </div>
-                          </Link>
-
-                          <Link
-                            href="/settings"
-                            className="flex items-center gap-3 px-4 py-2.5 text-gray-800 hover:text-gray-900 hover:bg-gray-50 transition-all duration-300 group"
-                          >
-                            <div className="w-7 xl:w-8 h-7 xl:h-8 bg-gray-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                              <Settings className="w-3.5 xl:w-4 h-3.5 xl:h-4 text-gray-700" />
-                            </div>
-                            <div>
-                              <span className="font-semibold text-sm xl:text-base">Settings</span>
-                              <p className="text-xs text-gray-500">Account preferences</p>
-                            </div>
-                          </Link>
-                        </nav>
-
-                        {/* Logout Section */}
-                        <div className="border-t border-gray-200/50 pt-2 mt-2">
-                          <button
-                            onClick={handleLogoutClick}
-                            className="flex items-center gap-3 w-full px-4 py-2.5 text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-300 group"
-                            aria-label="Logout"
-                          >
-                            <div className="w-7 xl:w-8 h-7 xl:h-8 bg-red-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                              <LogOut className="w-3.5 xl:w-4 h-3.5 xl:h-4 text-red-600" />
-                            </div>
-                            <div>
-                              <span className="font-semibold text-sm xl:text-base">Logout</span>
-                              <p className="text-xs text-red-400">Sign out of account</p>
-                            </div>
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                /* Guest User Actions */
-                <div className="hidden md:flex items-center gap-2">
-                  <Link
-                    href="/auth/signin"
-                    className={`px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-2.5 font-semibold rounded-lg transition-all duration-200 hover:scale-105 text-sm lg:text-base ${isScrolled
-                      ? 'text-gray-800 hover:text-gray-900 hover:bg-white/90 shadow-md hover:shadow-lg'
-                      : 'text-gray-800 hover:text-gray-900 hover:bg-white/30'
-                      }`}
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    href="/auth/signup"
-                    className="px-2 sm:px-3 lg:px-5 py-1.5 sm:py-2 lg:py-2.5 bg-gradient-to-r from-orange-500 via-red-500 to-pink-600 hover:from-orange-600 hover:via-red-600 hover:to-pink-700 text-white font-bold rounded-lg shadow-lg shadow-orange-500/30 hover:shadow-orange-500/40 transform hover:scale-105 transition-all duration-300 relative overflow-hidden group"
-                  >
-                    <span className="relative z-10 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm lg:text-base">
-                      <Plus className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
-                      Sign Up
-                    </span>
-                  </Link>
-                </div>
-              )}
-
-              {/* Mobile Menu Toggle */}
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className={`lg:hidden p-1.5 sm:p-2 rounded-lg transition-all duration-300 hover:scale-110 group ${isScrolled
-                  ? 'text-gray-700 hover:text-gray-900 hover:bg-white/90 shadow-md hover:shadow-lg'
-                  : 'text-gray-700 hover:text-gray-900 hover:bg-white/30'
-                  }`}
-                aria-label="Toggle mobile menu"
-                aria-expanded={isMobileMenuOpen}
+        {/* Profile Dropdown Menu */}
+        {isProfileDropdownOpen && (
+          <div className="absolute top-full right-0 mt-3 w-64 xl:w-72 bg-white/98 rounded-xl shadow-2xl border border-gray-200/50 py-4 z-50 animate-fadeIn">
+            {/* User Header */}
+            <div className="px-4 pb-4 border-b border-gray-200/50">
+              <Link
+                href={`/profile/${user.username}`}
+                className="flex items-center gap-3 p-3 sm:p-4 text-gray-800 hover:text-orange-600 bg-orange-50 rounded-lg transition-all duration-300"
+                onClick={() => setIsMobileMenuOpen(false)}
               >
-                {isMobileMenuOpen ? (
-                  <X className="w-5 sm:w-6 h-5 sm:h-6 group-hover:rotate-90 transition-transform duration-300" />
-                ) : (
-                  <Menu className="w-5 sm:w-6 h-5 sm:h-6 group-hover:scale-110 transition-transform duration-300" />
-                )}
+                <div className="flex items-center gap-3 w-full min-w-0">
+                  <Avatar
+                    src={user.avatar}
+                    alt={user.username}
+                    className="w-10 xl:w-12 h-10 xl:h-12 ring-1 ring-orange-500 shadow-md flex-shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-base xl:text-lg text-gray-900 truncate">
+                      {user.username}
+                    </h3>
+                    <p className="text-xs xl:text-sm text-gray-600 truncate">
+                      {user.email}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            </div>
+
+            {/* Menu Items */}
+            <nav className="py-2" aria-label="Profile menu">
+              <Link
+                href={`/profile/${user.username}`}
+                className="flex items-center gap-3 px-4 py-2.5 text-gray-800 hover:text-orange-600 hover:bg-orange-50 transition-all duration-300 group"
+              >
+                <div className="w-7 xl:w-8 h-7 xl:h-8 bg-orange-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <User className="w-3.5 xl:w-4 h-3.5 xl:h-4 text-orange-600" />
+                </div>
+                <div>
+                  <span className="font-semibold text-sm xl:text-base">My Profile</span>
+                  <p className="text-xs text-gray-500">View profile</p>
+                </div>
+              </Link>
+
+              <Link
+                href="/favorites"
+                className="flex items-center gap-3 px-4 py-2.5 text-gray-800 hover:text-red-600 hover:bg-red-50 transition-all duration-300 group"
+              >
+                <div className="w-7 xl:w-8 h-7 xl:h-8 bg-red-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Heart className="w-3.5 xl:w-4 h-3.5 xl:h-4 text-red-600" />
+                </div>
+                <div>
+                  <span className="font-semibold text-sm xl:text-base">Favorites</span>
+                  <p className="text-xs text-gray-500">Liked wallpapers</p>
+                </div>
+              </Link>
+
+              <Link
+                href="/collections"
+                className="flex items-center gap-3 px-4 py-2.5 text-gray-800 hover:text-purple-600 hover:bg-purple-50 transition-all duration-300 group"
+              >
+                <div className="w-7 xl:w-8 h-7 xl:h-8 bg-purple-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Bookmark className="w-3.5 xl:w-4 h-3.5 xl:h-4 text-purple-600" />
+                </div>
+                <div className="flex-1">
+                  <span className="font-semibold text-sm xl:text-base">Collections</span>
+                  <p className="text-xs text-gray-500">Saved collections</p>
+                </div>
+              </Link>
+
+              <Link
+                href="/settings"
+                className="flex items-center gap-3 px-4 py-2.5 text-gray-800 hover:text-gray-900 hover:bg-gray-50 transition-all duration-300 group"
+              >
+                <div className="w-7 xl:w-8 h-7 xl:h-8 bg-gray-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Settings className="w-3.5 xl:w-4 h-3.5 xl:h-4 text-gray-700" />
+                </div>
+                <div>
+                  <span className="font-semibold text-sm xl:text-base">Settings</span>
+                  <p className="text-xs text-gray-500">Account preferences</p>
+                </div>
+              </Link>
+            </nav>
+
+            {/* Logout Section */}
+            <div className="border-t border-gray-200/50 pt-2 mt-2">
+              <button
+                onClick={handleLogoutClick}
+                className="flex items-center gap-3 w-full px-4 py-2.5 text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-300 group"
+                aria-label="Logout"
+              >
+                <div className="w-7 xl:w-8 h-7 xl:h-8 bg-red-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <LogOut className="w-3.5 xl:w-4 h-3.5 xl:h-4 text-red-600" />
+                </div>
+                <div>
+                  <span className="font-semibold text-sm xl:text-base">Logout</span>
+                  <p className="text-xs text-red-400">Sign out of account</p>
+                </div>
               </button>
             </div>
+          </div>
+        )}
+      </div>
+    </div>
+  ) : (
+    /* Guest User Actions */
+    <div className="hidden md:flex items-center gap-2">
+      <Link
+        href="/auth/signin"
+        className={`px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-2.5 font-semibold rounded-lg transition-all duration-200 hover:scale-105 text-sm lg:text-base ${isScrolled
+          ? 'text-gray-800 hover:text-gray-900 hover:bg-white/90 shadow-md hover:shadow-lg'
+          : 'text-gray-800 hover:text-gray-900 hover:bg-white/30'
+          }`}
+      >
+        Login
+      </Link>
+      <Link
+        href="/auth/signup"
+        className="px-2 sm:px-3 lg:px-5 py-1.5 sm:py-2 lg:py-2.5 bg-gradient-to-r from-orange-500 via-red-500 to-pink-600 hover:from-orange-600 hover:via-red-600 hover:to-pink-700 text-white font-bold rounded-lg shadow-lg shadow-orange-500/30 hover:shadow-orange-500/40 transform hover:scale-105 transition-all duration-300 relative overflow-hidden group"
+      >
+        <span className="relative z-10 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm lg:text-base">
+          <Plus className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
+          Sign Up
+        </span>
+      </Link>
+    </div>
+  )}
+
+  {/* Mobile Menu Toggle */}
+  <button
+    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+    className={`lg:hidden p-1.5 sm:p-2 rounded-lg transition-all duration-300 hover:scale-110 group ${isScrolled
+      ? 'text-gray-700 hover:text-gray-900 hover:bg-white/90 shadow-md hover:shadow-lg'
+      : 'text-gray-700 hover:text-gray-900 hover:bg-white/30'
+      }`}
+    aria-label="Toggle mobile menu"
+    aria-expanded={isMobileMenuOpen}
+  >
+    {isMobileMenuOpen ? (
+      <X className="w-5 sm:w-6 h-5 sm:h-6 group-hover:rotate-90 transition-transform duration-300" />
+    ) : (
+      <Menu className="w-5 sm:w-6 h-5 sm:h-6 group-hover:scale-110 transition-transform duration-300" />
+    )}
+  </button>
+</div>
           </div>
         </div>
 
