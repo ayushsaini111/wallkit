@@ -355,7 +355,7 @@ const Navbar = ({ onCategorySelect }) => {
                               alt={user.username} 
                               className="w-10 xl:w-12 h-10 xl:h-12 ring-1 ring-orange-500 shadow-md flex-shrink-0" 
                             />
-                            <div className="flex-1 ml-2 min-w-0">
+                            <div className="flex-1 ml-2 min-w-0 line-clamp-2">
                               <h3 className="font-semibold text-base xl:text-lg text-gray-900 truncate">{user.username}</h3>
                               <p className="text-xs xl:text-sm text-gray-600 truncate">{user.email}</p>
                             </div>
