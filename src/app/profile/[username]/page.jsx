@@ -388,7 +388,7 @@ export default function ProfilePage() {
               </p>
             </div>
           ) : (
-            <div className="columns-2 gap-1 space-y-1 sm:columns-2 md:columns-3 lg:columns-3 xl:columns-3 xl:gap-3 xl:space-y-3  px-1 md:px-3 sm:px-4 w-full">
+            <div className="columns-2 gap-1 space-y-1 sm:columns-2 md:columns-3 lg:columns-3 xl:columns-3 xl:gap-3 xl:space-y-3  px-1 md:px-3 sm:px-4 w-full ">
               {sortedWallpapers.map((wallpaper, index) => (
                 <WallpaperCard
                   key={wallpaper._id}

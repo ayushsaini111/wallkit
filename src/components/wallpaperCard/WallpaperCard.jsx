@@ -270,13 +270,13 @@ const WallpaperCard = ({
         <>
             <div
                 ref={intersectionRef}
-                className="group relative cursor-pointer transform transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1 bg-white rounded-lg md:rounded-3xl shadow-xl hover:shadow-2xl overflow-hidden h-full w-full"
+className="group relative cursor-pointer transform transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1 bg-white rounded-lg md:rounded-3xl overflow-hidden shadow-xl hover:shadow-2x h-full w-full min-h-[100px] "
                 onClick={handleCardClick}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
             >
                 {/* Image Container */}
-                <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
+                <div className="relative w-full h-full  bg-gradient-to-br from-gray-100 to-gray-200">
                     {/* Error State */}
                     {imageError ? (
                         <div className="absolute inset-0 flex items-center justify-center text-gray-400">
@@ -289,7 +289,7 @@ const WallpaperCard = ({
                         <img
                             src={wallpaper.compressedUrl || wallpaper.imageUrl}
                             alt={wallpaper.title || 'Wallpaper'}
-                            className={`w-full h-full object-cover transition-all duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'
+                            className={`w-full h-full object-cover transition-all  duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'
                                 } ${isHovered ? 'scale-z-105' : 'scale-100'}`}
                             onLoad={() => setImageLoaded(true)}
                             onError={handleImageError}
@@ -302,38 +302,38 @@ const WallpaperCard = ({
                         <div className="absolute top-2 right-2 sm:hidden z-30">
                             <button
                                 onClick={toggleMobileMenu}
-                                className="p-2 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-black/70 transition-all"
+                                className="p-2 bg-black/30 backdrop-blur-sm text-white rounded-full hover:bg-black/50 transition-all"
                             >
                                 <MoreVertical className="w-4 h-4" />
                             </button>
 
                             {/* Mobile Dropdown Menu */}
-                            {showMobileMenu && (
-                                <div className="absolute top-full right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-40 min-w-[140px]">
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setShowMobileMenu(false);
-                                            onEdit && onEdit(wallpaper);
-                                        }}
-                                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                                    >
-                                        <Pencil className="w-4 h-4 text-blue-500" />
-                                        Edit
-                                    </button>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setShowMobileMenu(false);
-                                            onDelete && onDelete(wallpaper);
-                                        }}
-                                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                        Delete
-                                    </button>
-                                </div>
-                            )}
+                          {showMobileMenu && (
+    <div className="absolute top-full right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-40 flex">
+        <button
+            onClick={(e) => {
+                e.stopPropagation();
+                setShowMobileMenu(false);
+                onEdit && onEdit(wallpaper);
+            }}
+            className="flex items-center justify-center p-3 text-gray-700 hover:bg-blue-50 transition-colors"
+            title="Edit"
+        >
+            <Pencil className="w-4 h-4 text-blue-500" />
+        </button>
+        <button
+            onClick={(e) => {
+                e.stopPropagation();
+                setShowMobileMenu(false);
+                onDelete && onDelete(wallpaper);
+            }}
+            className="flex items-center justify-center p-3 text-red-600 hover:bg-red-50 transition-colors border-l border-gray-100"
+            title="Delete"
+        >
+            <Trash2 className="w-4 h-4" />
+        </button>
+    </div>
+)}
                         </div>
                     )}
 
