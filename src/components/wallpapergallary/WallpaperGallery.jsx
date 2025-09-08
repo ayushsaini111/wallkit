@@ -55,6 +55,7 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
     { name: 'Typography', icon: '🔠' },
     { name: 'Dark', icon: '🌙' },
     { name: 'Light', icon: '☀️' },
+    { name: 'Cartoon', icon: '☀️' },
     { name: 'Vintage', icon: '📻' },
     { name: 'Sports', icon: '🏅' },
     { name: 'Other', icon: '📦' }

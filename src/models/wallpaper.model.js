@@ -41,6 +41,7 @@ const wallpaperSchema = new mongoose.Schema(
         'Minimalist',
         'Animals',
         'Cityscape',
+        'Cartoon',
         'Space',
         'Technology',
         'Fantasy',
