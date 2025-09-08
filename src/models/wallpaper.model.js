@@ -53,6 +53,8 @@ const wallpaperSchema = new mongoose.Schema(
         '3D Renders',
         'Typography',
         'Dark',
+        'Anime',
+        'Superheroes',
         'Light',
         'Vintage',
         'Sports',

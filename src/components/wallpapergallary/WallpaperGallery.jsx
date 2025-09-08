@@ -37,6 +37,8 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
     { name: 'All', icon: '🌟' },
     { name: 'Nature', icon: '🌿' },
     { name: 'Abstract', icon: '🎨' },
+    { name: 'Anime', icon: '🎨' },
+    { name: 'Superheroes', icon: '🎨' },
     { name: 'Minimalist', icon: '⚪' },
     { name: 'Animals', icon: '🐾' },
     { name: 'Cityscape', icon: '🏙️' },
