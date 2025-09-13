@@ -315,16 +315,16 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Stats Grid - Updated to show different stats based on profile ownership */}
-        <div className={`grid ${isOwnProfile ? 'grid-cols-3 md:grid-cols-3 lg:grid-cols-6' : 'grid-cols-2 md:grid-cols-2 lg:grid-cols-4'} gap-1 my-5`}>
+        {/* Stats Grid - Updated to show different stats base on profile ownership */}
+        <div className={`grid ${isOwnProfile ? 'grid-cols-3 lg:gap-1 md:grid-cols-3 lg:grid-cols-6' : 'grid-cols-2 md:grid-cols-2 lg:grid-cols-4 lg:gap-2'} gap-1 my-5`}>
           <StatCard
-            icon={<Upload className="w-6 h-6" />}
+            icon={<Upload className="w-5 h-6" />}
             label="Uploads"
             value={profile.stats.totalUploads}
             color="blue"
           />
           <StatCard
-            icon={<Heart className="w-6 h-6" />}
+            icon={<Heart className="w-5 h-6" />}
             label="Likes"
             value={profile.stats.totalLikes}
             color="pink"
@@ -333,7 +333,7 @@ export default function ProfilePage() {
           {isOwnProfile && (
             <>
               <StatCard
-                icon={<Bookmark className="w-6 h-6" />}
+                icon={<Bookmark className="w-5 h-6" />}
                 label="Favorites"
                 value={profile.stats.totalFavorites}
                 color="purple"
@@ -341,13 +341,13 @@ export default function ProfilePage() {
             </>
           )}
           <StatCard
-            icon={<Download className="w-6 h-6" />}
+            icon={<Download className="w-5 h-6" />}
             label="Downloads"
             value={profile.stats.totalDownloads}
             color="green"
           />
           <StatCard
-            icon={<Users className="w-6 h-6" />}
+            icon={<Users className="w-5 h-6" />}
             label="Followers"
             value={displayFollowerCount}
             color="orange"
@@ -355,7 +355,7 @@ export default function ProfilePage() {
           {/* Only show following stats for owner profile */}
           {isOwnProfile && (
             <StatCard
-              icon={<Users className="w-6 h-6" />}
+              icon={<Users className="w-5 h-6" />}
               label="Following"
               value={profile.stats.following}
               color="teal"

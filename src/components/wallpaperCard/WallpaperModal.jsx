@@ -643,7 +643,7 @@ export const WallpaperModal = ({
 
               {/* Scrollable content area */}
               <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent px-6 lg:px-8 pb-6 lg:pb-8">
-                <div className="space-y-6">
+                <div className="space-y-5">
                   {/* Description */}
                   {wallpaper.description && (
                     <div className="text-sm text-gray-600 font-medium">
