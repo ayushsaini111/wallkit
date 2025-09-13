@@ -208,10 +208,6 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-6">
-          {/* <div className="relative">
-            <div className="w-20 h-20 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
-            <div className="absolute inset-0 w-20 h-20 border-4 border-gray-200 border-b-purple-500 rounded-full animate-spin animate-reverse"></div>
-          </div> */}
           <div className="text-gray-600 text-lg font-medium">Loading profile...</div>
         </div>
       </div>
@@ -241,8 +237,6 @@ export default function ProfilePage() {
         {/* Profile Header */}
         <div className="relative mb-2">
           <div className="bg-white rounded-3xl p-4 border border-gray-200 shadow-md">
-           
-
             <div className="relative flex flex-col md:flex-row items-center gap-4">
               {/* Avatar Section */}
               <div className="relative">
@@ -255,9 +249,6 @@ export default function ProfilePage() {
                     height={128}
                   />
                 </div>
-                {/* <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-gradient-to-r from-green-400 to-emerald-500 rounded-2xl flex items-center justify-center shadow-md">
-                  <Star className="w-5 h-5 text-white" />
-                </div> */}
               </div>
 
               {/* Profile Info */}
@@ -291,57 +282,57 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* Join Date */}
-              <div className="text-center">
-                <div className="text-gray-500 text-sm mb-1">Member since</div>
-                <div className="text-gray-800 font-semibold">
-                  {new Date(profile.user.createdAt || Date.now()).toLocaleDateString('en-US', {
-                    month: 'long',
-                    year: 'numeric'
-                  })}
+              {/* Join Date and Follow Button */}
+              <div className="text-center flex flex-col items-center gap-4">
+                <div>
+                  <div className="text-gray-500 text-sm mb-1">Member since</div>
+                  <div className="text-gray-800 font-semibold">
+                    {new Date(profile.user.createdAt || Date.now()).toLocaleDateString('en-US', {
+                      month: 'long',
+                      year: 'numeric'
+                    })}
+                  </div>
                 </div>
+
+                {/* Follow Button for other users' profiles */}
+                {!isOwnProfile && (
+                  <FollowButton
+                    userId={profile.user._id}
+                    onUnauthorizedAction={handleUnauthorizedAction}
+                    className="w-32 sm:w-36"
+                    showFollowerCount={false}
+                  />
+                )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-1 my-5">
+        {/* UPDATED: Stats Grid - Removed Favorites and Following */}
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3 my-5">
           <StatCard
-            icon={<Upload className="w-6 h-6" />}
+            icon={<Upload className="w-5 h-6" />}
             label="Uploads"
             value={profile.stats.totalUploads}
             color="blue"
           />
           <StatCard
-            icon={<Heart className="w-6 h-6" />}
+            icon={<Heart className="w-5 h-6" />}
             label="Likes"
             value={profile.stats.totalLikes}
             color="pink"
           />
           <StatCard
-            icon={<Bookmark className="w-6 h-6" />}
-            label="Favorites"
-            value={profile.stats.totalFavorites}
-            color="purple"
-          />
-          <StatCard
-            icon={<Download className="w-6 h-6" />}
+            icon={<Download className="w- h-6" />}
             label="Downloads"
             value={profile.stats.totalDownloads}
             color="green"
           />
           <StatCard
-            icon={<Users className="w-6 h-6" />}
+            icon={<Users className="w-5 h-6" />}
             label="Followers"
             value={displayFollowerCount}
             color="orange"
-          />
-          <StatCard
-            icon={<Users className="w-6 h-6" />}
-            label="Following"
-            value={profile.stats.following}
-            color="teal"
           />
         </div>
 
@@ -349,22 +340,8 @@ export default function ProfilePage() {
         <div className="relative">
           <div className="flex items-center justify-between pl-8 my-5">
             <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-              {/* <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center">
-                <LayoutGrid className="w-5 h-5 text-white" />
-              </div> */}
               {isOwnProfile ? 'Your Wallpapers' : `${profile.user.username}'s Wallpapers`}
-              <span className="text-lg font-normal text-gray-500">({sortedWallpapers.length})</span>
             </h2>
-
-            {/* Follow Button for other users' profiles */}
-            {!isOwnProfile && (
-              <FollowButton
-                userId={profile.user._id}
-                onUnauthorizedAction={handleUnauthorizedAction}
-                className="w-[15vw]"
-                showFollowerCount={false}
-              />
-            )}
           </div>
 
           <LoginPopup 
@@ -418,8 +395,6 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
-
-       
       </div>
 
       {/* Edit Wallpaper Modal */}
@@ -594,10 +569,10 @@ function StatCard({ icon, label, value, color }) {
         {icon}
       </div>
 
-      <p className="tetext-2xl md:text-3xl font-bold text-gray-800 mb-2 group-hover:scale-110 transition-transform duration-300">
+      <p className="text-2xl md:text-3xl font-bold text-gray-800 mb-2 group-hover:scale-110 transition-transform duration-300">
         {Number(value || 0).toLocaleString()}
       </p>
-      <p className="text-gray-600 text-sm font-medium uppercase  lg:tracking-wider tracking-wide">{label}</p>
+      <p className="text-gray-600 text-sm font-medium uppercase lg:tracking-wider tracking-wide">{label}</p>
     </div>
   );
 }

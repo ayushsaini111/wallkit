@@ -421,7 +421,7 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
 
   // Enhanced Loading Skeleton Component
   const LoadingSkeleton = () => (
-    <div className="columns-2 gap-1 space-y-1 sm:columns-2 md:columns-3 lg:columns-3 xl:columns-3 mx-auto px-3 sm:px-4 w-full" aria-label="Loading wallpapers">
+    <div className="columns-2 gap-2 space-y-1 sm:columns-2 md:columns-3 lg:columns-3  lg:gap-2 xl:columns-3 mx-auto px-2 sm:px-4 w-full" aria-label="Loading wallpapers">
       {[...Array(12)].map((_, i) => (
         <div 
           key={i} 
