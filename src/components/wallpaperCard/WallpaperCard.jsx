@@ -39,12 +39,13 @@ const WallpaperCard = ({
     // Use unified follow system
     const { isFollowing, followerCount } = useFollow(wallpaper.userDetails?._id);
 
-    // Use custom hooks - Pass the removal callback properly
+    // 🔧 FIX: Only pass onWallpaperRemoved to useToggleLike (for heart icon)
+    // Don't pass it to useToggleSave (for bookmark icon)
     const { isLiked, likeCount, toggleLike } = useToggleLike(
         wallpaper._id,
         wallpaper.likeCount || 0,
         onUnauthorizedAction,
-        onWallpaperRemoved // This will trigger immediate removal from favorites page
+        onWallpaperRemoved // This should only remove on unlike
     );
 
     const {
@@ -56,7 +57,7 @@ const WallpaperCard = ({
     } = useToggleSave(
         wallpaper._id,
         onUnauthorizedAction,
-        onWallpaperRemoved
+        null // 🔧 FIX: Don't pass onWallpaperRemoved here - save/unsave shouldn't remove from favorites
     );
 
     const { handleDownload, downloadCount } = useDownloadHandler(wallpaper);
@@ -69,7 +70,6 @@ const WallpaperCard = ({
     const [profileImageLoaded, setProfileImageLoaded] = useState(false);
     const [profileImageError, setProfileImageError] = useState(false);
     const [viewCount, setViewCount] = useState(wallpaper.viewCount || 0);
-    // 🆕 NEW: Mobile menu state
     const [showMobileMenu, setShowMobileMenu] = useState(false);
 
     // Refs and tracking
@@ -201,13 +201,13 @@ const WallpaperCard = ({
         setImageLoaded(true);
     }, []);
 
-    // 🆕 NEW: Toggle mobile menu
+    // Toggle mobile menu
     const toggleMobileMenu = useCallback((e) => {
         e.stopPropagation();
         setShowMobileMenu(prev => !prev);
     }, []);
 
-    // 🆕 NEW: Close mobile menu when clicking outside
+    // Close mobile menu when clicking outside
     useEffect(() => {
         const handleClickOutside = () => {
             if (showMobileMenu) {
@@ -223,6 +223,22 @@ const WallpaperCard = ({
             document.removeEventListener('click', handleClickOutside);
         };
     }, [showMobileMenu]);
+
+    // 🔧 FIX: Enhanced toggle handlers with proper event handling
+    const handleLikeClick = useCallback((e) => {
+        e.stopPropagation();
+        toggleLike();
+    }, [toggleLike]);
+
+    const handleSaveClick = useCallback((e) => {
+        e.stopPropagation();
+        toggleSave();
+    }, [toggleSave]);
+
+    const handleDownloadClick = useCallback((e) => {
+        e.stopPropagation();
+        handleDownload(e);
+    }, [handleDownload]);
 
     // Profile Image Component
     const ProfileImage = useCallback(() => {
@@ -270,13 +286,13 @@ const WallpaperCard = ({
         <>
             <div
                 ref={intersectionRef}
-className="group relative cursor-pointer transform transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1 bg-white rounded-lg md:rounded-3xl overflow-hidden shadow-xl hover:shadow-2x h-full w-full min-h-[100px] "
+                className="group relative cursor-pointer transform transition-all duration-300 ease-out hover:scale-[1.02] hover:-translate-y-1 bg-white rounded-lg md:rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl h-full w-full min-h-[100px]"
                 onClick={handleCardClick}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
             >
                 {/* Image Container */}
-                <div className="relative w-full h-full  bg-gradient-to-br from-gray-100 to-gray-200">
+                <div className="relative w-full h-full bg-gradient-to-br from-gray-100 to-gray-200">
                     {/* Error State */}
                     {imageError ? (
                         <div className="absolute inset-0 flex items-center justify-center text-gray-400">
@@ -289,15 +305,15 @@ className="group relative cursor-pointer transform transition-all duration-300 e
                         <img
                             src={wallpaper.compressedUrl || wallpaper.imageUrl}
                             alt={wallpaper.title || 'Wallpaper'}
-                            className={`w-full h-full object-cover transition-all  duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'
-                                } ${isHovered ? 'scale-z-105' : 'scale-100'}`}
+                            className={`w-full h-full object-cover transition-all duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'
+                                } ${isHovered ? 'scale-105' : 'scale-100'}`}
                             onLoad={() => setImageLoaded(true)}
                             onError={handleImageError}
-                            loading={index < 6 ? 'eager' : 'eager'}
+                            loading={index < 6 ? 'eager' : 'lazy'}
                         />
                     )}
 
-                    {/* 🆕 Mobile Edit/Delete Menu (Only for profile page - owner actions) */}
+                    {/* Mobile Edit/Delete Menu (Only for profile page - owner actions) */}
                     {showOwnerActions && (
                         <div className="absolute top-2 right-2 sm:hidden z-30">
                             <button
@@ -308,32 +324,32 @@ className="group relative cursor-pointer transform transition-all duration-300 e
                             </button>
 
                             {/* Mobile Dropdown Menu */}
-                          {showMobileMenu && (
-    <div className="absolute top-full right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-40 flex">
-        <button
-            onClick={(e) => {
-                e.stopPropagation();
-                setShowMobileMenu(false);
-                onEdit && onEdit(wallpaper);
-            }}
-            className="flex items-center justify-center p-3 text-gray-700 hover:bg-blue-50 transition-colors"
-            title="Edit"
-        >
-            <Pencil className="w-4 h-4 text-blue-500" />
-        </button>
-        <button
-            onClick={(e) => {
-                e.stopPropagation();
-                setShowMobileMenu(false);
-                onDelete && onDelete(wallpaper);
-            }}
-            className="flex items-center justify-center p-3 text-red-600 hover:bg-red-50 transition-colors border-l border-gray-100"
-            title="Delete"
-        >
-            <Trash2 className="w-4 h-4" />
-        </button>
-    </div>
-)}
+                            {showMobileMenu && (
+                                <div className="absolute top-full right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-40 flex">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShowMobileMenu(false);
+                                            onEdit && onEdit(wallpaper);
+                                        }}
+                                        className="flex items-center justify-center p-3 text-gray-700 hover:bg-blue-50 transition-colors"
+                                        title="Edit"
+                                    >
+                                        <Pencil className="w-4 h-4 text-blue-500" />
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShowMobileMenu(false);
+                                            onDelete && onDelete(wallpaper);
+                                        }}
+                                        className="flex items-center justify-center p-3 text-red-600 hover:bg-red-50 transition-colors border-l border-gray-100"
+                                        title="Delete"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -344,24 +360,28 @@ className="group relative cursor-pointer transform transition-all duration-300 e
                         {/* Regular Action Buttons (Desktop - Top Right) */}
                         {!showOwnerActions && (
                             <div className="absolute top-4 right-4 flex-col gap-2 z-20 hidden sm:flex">
+                                {/* ❤️ LIKE BUTTON - This should remove wallpaper from favorites when unliked */}
                                 <button
-                                    onClick={toggleLike}
+                                    onClick={handleLikeClick}
                                     className={`p-3 rounded-2xl transform hover:scale-105 shadow-lg transition-all duration-300 ${isLiked
                                             ? 'bg-red-500 text-white scale-105 shadow-red-500/50'
                                             : 'bg-white/20 text-white hover:bg-white/30'
                                         } ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}`}
                                     style={{ transitionDelay: '50ms' }}
+                                    title={isLiked ? 'Remove from favorites' : 'Add to favorites'}
                                 >
                                     <Heart className={`w-5 h-5 ${isLiked ? 'fill-white' : ''}`} />
                                 </button>
 
+                                {/* 🔖 SAVE BUTTON - This should NOT remove wallpaper from favorites */}
                                 <button
-                                    onClick={toggleSave}
+                                    onClick={handleSaveClick}
                                     className={`p-3 rounded-2xl transform hover:scale-105 shadow-lg transition-all duration-300 ${isSaved
                                             ? 'bg-blue-500 text-white scale-105 shadow-blue-500/50'
                                             : 'bg-white/20 text-white hover:bg-white/30'
                                         } ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}`}
                                     style={{ transitionDelay: '100ms' }}
+                                    title={isSaved ? 'Remove from collection' : 'Save to collection'}
                                 >
                                     <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-white' : ''}`} />
                                 </button>
@@ -394,10 +414,11 @@ className="group relative cursor-pointer transform transition-all duration-300 e
                         {/* Download Button - Bottom Right (Desktop) */}
                         <div className="absolute bottom-6 right-4 z-20 hidden sm:block">
                             <button
-                                onClick={(e) => { e.stopPropagation(); handleDownload(e); }}
+                                onClick={handleDownloadClick}
                                 className={`sm:p-3 lg:p-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-2xl transition-all duration-300 backdrop-blur-xl transform hover:scale-110 shadow-xl ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
                                     }`}
                                 style={{ transitionDelay: '300ms' }}
+                                title="Download wallpaper"
                             >
                                 <Download className="w-6 h-6" />
                             </button>
@@ -452,9 +473,9 @@ className="group relative cursor-pointer transform transition-all duration-300 e
                 wallpaper={wallpaper}
                 showModal={showModal}
                 onClose={closeModal}
-                onToggleLike={toggleLike}
-                onToggleSave={toggleSave}
-                onDownload={handleDownload}
+                onToggleLike={handleLikeClick}
+                onToggleSave={handleSaveClick}
+                onDownload={handleDownloadClick}
                 onUnauthorizedAction={onUnauthorizedAction}
                 isLiked={isLiked}
                 isSaved={isSaved}
