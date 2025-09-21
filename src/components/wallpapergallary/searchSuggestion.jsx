@@ -263,20 +263,24 @@ export const SearchSuggestions = ({
   return (
     <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-2xl rounded-3xl border-2 border-white/30 shadow-2xl z-[60] overflow-hidden animate-fadeIn">
       {displaySuggestions.map((suggestion, index) => (
-        <div
-          key={`${suggestion.type}-${suggestion.value}-${index}`}
-          onMouseEnter={() => onMouseEnter?.(index)}
-          onMouseDown={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onSuggestionClick?.(suggestion);
-          }}
-          className={`w-full px-6 py-2 lg:py-4 text-left rounded-2xl transition-all duration-300 flex items-center gap-4 text-gray-700 mb-2 last:mb-0 group cursor-pointer ${
-            selectedIndex === index 
-              ? 'bg-gradient-to-r from-blue-50 to-purple-50 text-gray-900 scale-[1.02]' 
-              : 'hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-gray-900'
-          }`}
-        >
+     // In SearchSuggestions component, update the suggestion div:
+<div
+  key={`${suggestion.type}-${suggestion.value}-${index}`}
+  id={`suggestion-${index}`} // Add this for aria-activedescendant
+  role="option"
+  aria-selected={selectedIndex === index}
+  onMouseEnter={() => onMouseEnter?.(index)}
+  onMouseDown={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onSuggestionClick?.(suggestion);
+  }}
+  className={`w-full px-6 py-2 lg:py-4 text-left rounded-2xl transition-all duration-300 flex items-center gap-4 text-gray-700 mb-2 last:mb-0 group cursor-pointer ${
+    selectedIndex === index 
+      ? 'bg-gradient-to-r from-blue-50 to-purple-50 text-gray-900 scale-[1.02]' 
+      : 'hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-gray-900'
+  }`}
+>
           <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden flex-shrink-0">
             {suggestion.type === 'title' || suggestion.type === 'tag' ? (
               <img 

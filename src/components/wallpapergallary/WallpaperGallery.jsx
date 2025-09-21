@@ -33,6 +33,7 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
   const observerRef = useRef(null);
   const searchTimeoutRef = useRef(null);
   const categoryNavRef = useRef(null);
+  
 
   // Categories - Optimized for performance
   const categories = useMemo(() => [
@@ -69,19 +70,35 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
       setSelectedCategory(initialCategory);
     }
   }, [initialCategory]);
-  const scrollToSelectedCategory = useCallback((categoryName) => {
+ const scrollToSelectedCategory = useCallback((categoryName) => {
   if (!categoryNavRef.current) return;
   
+  const normalizedCategory = categoryName.toLowerCase() === 'all' ? 'all' : categoryName.toLowerCase();
   const categoryButton = categoryNavRef.current.querySelector(
-    `button[data-category="${categoryName.toLowerCase()}"]`
+    `button[data-category="${normalizedCategory}"]`
   );
   
   if (categoryButton) {
-    categoryButton.scrollIntoView({
-      behavior: 'smooth',
-      block: 'nearest',
-      inline: 'center'
-    });
+    // First ensure the nav is visible
+    const navTop = categoryNavRef.current.getBoundingClientRect().top;
+    if (navTop < 0 || navTop > window.innerHeight) {
+      categoryNavRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    
+    // Then scroll the button into view within the nav
+    setTimeout(() => {
+      categoryButton.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center'
+      });
+      
+      // Add a visual highlight effect
+      categoryButton.classList.add('ring-4', 'ring-orange-300');
+      setTimeout(() => {
+        categoryButton.classList.remove('ring-4', 'ring-orange-300');
+      }, 1000);
+    }, 300);
   }
 }, []);
 
@@ -308,14 +325,29 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
   }, [performGlobalSearch]);
 
   // Handle search submission
-  const handleSearchSubmit = useCallback((query) => {
-    if (query && query.length >= 2) {
-      performGlobalSearch(query);
-    }
-  }, [performGlobalSearch]);
+// Add this after handleSearchChange function
+// Handle search submission
+const handleSearchSubmit = useCallback((query) => {
+  if (query && query.length >= 2) {
+    performGlobalSearch(query);
+    
+    // Scroll to categories section if needed
+    setTimeout(() => {
+      const categoriesNav = document.querySelector('nav[aria-label="Wallpaper categories"]');
+      if (categoriesNav) {
+        const navTop = categoriesNav.getBoundingClientRect().top;
+        // Only scroll if categories are not visible
+        if (navTop < 0 || navTop > window.innerHeight) {
+          categoriesNav.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    }, 100);
+  }
+}, [performGlobalSearch]);
 
   // Handle suggestion click - Routes to category URL for category suggestions
- const handleSuggestionClick = useCallback((suggestion) => {
+// Replace your handleSuggestionClick function with this:
+const handleSuggestionClick = useCallback((suggestion) => {
   if (suggestion.type === 'category') {
     // Route to category URL and scroll to it
     const categoryName = suggestion.value.toLowerCase();
@@ -334,8 +366,19 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
     setSearchTerm(suggestion.value);
     performGlobalSearch(suggestion.value);
   }
-}, [performGlobalSearch, scrollToSelectedCategory]);
-
+  
+  // Gentle scroll to show categories
+  setTimeout(() => {
+    const categoriesNav = document.querySelector('nav[aria-label="Wallpaper categories"]');
+    if (categoriesNav) {
+      const navTop = categoriesNav.getBoundingClientRect().top;
+      // Only scroll if categories are not visible
+      if (navTop > window.innerHeight || navTop < 0) {
+        categoriesNav.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  }, 100);
+}, [performGlobalSearch, scrollToSelectedCategory, setSelectedCategory, setSearchTerm, setIsSearchMode, setSearchResults, setSearchQuery]);
   // Handle category selection
   const handleCategorySelect = useCallback((category) => {
     setSelectedCategory(category.toLowerCase());
@@ -346,12 +389,30 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
   }, []);
 
   // Clear search function
-  const clearSearch = useCallback(() => {
-    setSearchTerm('');
-    setIsSearchMode(false);
-    setSearchResults([]);
-    setSearchQuery('');
-  }, []);
+  // In WallpaperGallery component, update the clearSearch function:
+// In WallpaperGallery component
+const clearSearch = useCallback(() => {
+  setSearchTerm('');
+  setIsSearchMode(false);
+  setSearchResults([]);
+  setSearchQuery('');
+  setSelectedCategory('all');
+  
+  // Scroll to categories section smoothly
+  setTimeout(() => {
+    const categoriesNav = document.querySelector('nav[aria-label="Wallpaper categories"]');
+    if (categoriesNav) {
+      const navTop = categoriesNav.getBoundingClientRect().top + window.pageYOffset;
+      window.scrollTo({
+        top: navTop - 80, // 80px offset to show categories nicely
+        behavior: 'smooth'
+      });
+    }
+    
+    // Also scroll to "All" category button
+    scrollToSelectedCategory('all');
+  }, 100);
+}, [scrollToSelectedCategory]);
 
   // Load more wallpapers function
   const loadMoreWallpapers = useCallback(async () => {
@@ -499,14 +560,14 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
       {/* Enhanced Styles Component */}
       <EnhancedStyles />
       
-      <HeroSection className=""
-        searchTerm={searchTerm}
-        onSearchChange={handleSearchChange}
-        onSearchSubmit={handleSearchSubmit}
-        suggestions={suggestions}
-        onSuggestionClick={handleSuggestionClick}
-        wallpapers={allWallpapers.length > 0 ? allWallpapers : wallpapers} // Use all wallpapers for suggestions if available
-      />
+    <HeroSection className=""
+  searchTerm={searchTerm}
+  onSearchChange={handleSearchChange}
+  onSearchSubmit={handleSearchSubmit}
+  suggestions={suggestions}
+  onSuggestionClick={handleSuggestionClick} // Pass your function here
+  wallpapers={allWallpapers.length > 0 ? allWallpapers : wallpapers}
+/>
      
       {/* Main Content */}
       <main className="max-w-7xl mx-auto md:px-3 sm:px-4 lg:px-6 py-3 sm:py-8 relative z-10">
@@ -539,15 +600,14 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
   </div>
 </nav>
 
-          {/* Search Results Header */}
-         {isSearchMode && (
+
+{isSearchMode && (
   <div className="bg-white/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm border border-gray-100 mx-1 sm:mx-0">
     <div className="flex items-center justify-between gap-4">
       <div>
         <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
           Searched for : "{searchQuery}"
         </h2>
-        
       </div>
       <button
         onClick={clearSearch}
@@ -586,18 +646,31 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
                   <p className="text-gray-500 text-base sm:text-lg mb-6 sm:mb-8">
                     {isSearchMode ? 'Try different keywords or browse categories' : 'Try adjusting your search or category'}
                   </p>
-                  <button
-                    onClick={() => {
-                      setSearchTerm('');
-                      setSelectedCategory('all');
-                      setIsSearchMode(false);
-                      setSearchResults([]);
-                      setSearchQuery('');
-                    }}
-                    className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-orange-500 to-pink-600 text-white rounded-xl sm:rounded-2xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-xl font-semibold text-base sm:text-lg hover-lift"
-                  >
-                    {isSearchMode ? 'Clear Search' : 'Clear Filters'}
-                  </button>
+<button
+  onClick={() => {
+    setSearchTerm('');
+    setSelectedCategory('all');
+    setIsSearchMode(false);
+    setSearchResults([]);
+    setSearchQuery('');
+    
+    // Scroll to categories and highlight "All"
+    setTimeout(() => {
+      const categoriesNav = document.querySelector('nav[aria-label="Wallpaper categories"]');
+      if (categoriesNav) {
+        const navTop = categoriesNav.getBoundingClientRect().top + window.pageYOffset;
+        window.scrollTo({
+          top: navTop - 80,
+          behavior: 'smooth'
+        });
+      }
+      scrollToSelectedCategory('all');
+    }, 100);
+  }}
+  className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-orange-500 to-pink-600 text-white rounded-xl sm:rounded-2xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-xl font-semibold text-base sm:text-lg hover-lift"
+>
+  {isSearchMode ? 'Clear Search' : 'Clear Filters'}
+</button>
                 </div>
               </div>
             ) : (
