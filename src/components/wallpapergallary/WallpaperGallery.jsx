@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, X } from 'lucide-react';
 
 // Import separated components
 import HeroSection from '@/components/wallpapergallary/heroSection';
@@ -25,6 +25,7 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
   const [isSearchMode, setIsSearchMode] = useState(false); // Track if we're in search mode
   const [searchResults, setSearchResults] = useState([]); // Store search results
   const [allWallpapersLoaded, setAllWallpapersLoaded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(''); // Store the actual search query being displayed
   
   const skeletonHeights = [240, 280, 320, 260, 300, 350, 270, 310, 290, 330, 250, 370];
 
@@ -161,10 +162,12 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
     if (!query || query.length < 2) {
       setSearchResults([]);
       setIsSearchMode(false);
+      setSearchQuery('');
       return;
     }
 
     setIsSearchMode(true);
+    setSearchQuery(query);
 
     try {
       // First try API search
@@ -272,6 +275,7 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
     if (!value.trim()) {
       setIsSearchMode(false);
       setSearchResults([]);
+      setSearchQuery('');
       return;
     }
 
@@ -282,6 +286,7 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
       } else if (value.trim().length === 0) {
         setIsSearchMode(false);
         setSearchResults([]);
+        setSearchQuery('');
       }
     }, 300);
   }, [performGlobalSearch]);
@@ -312,6 +317,15 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
     setSearchTerm(''); // Clear search when category changes
     setIsSearchMode(false); // Exit search mode
     setSearchResults([]);
+    setSearchQuery('');
+  }, []);
+
+  // Clear search function
+  const clearSearch = useCallback(() => {
+    setSearchTerm('');
+    setIsSearchMode(false);
+    setSearchResults([]);
+    setSearchQuery('');
   }, []);
 
   // Load more wallpapers function
@@ -495,6 +509,26 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
             </div>
           </nav>
 
+          {/* Search Results Header */}
+         {isSearchMode && (
+  <div className="bg-white/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm border border-gray-100 mx-1 sm:mx-0">
+    <div className="flex items-center justify-between gap-4">
+      <div>
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
+          Searched for : "{searchQuery}"
+        </h2>
+        
+      </div>
+      <button
+        onClick={clearSearch}
+        className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors text-gray-700"
+      >
+        <X className="w-4 h-4" />
+        Clear
+      </button>
+    </div>
+  </div>
+)}
           {/* Gallery Section */}
           <section aria-label="Wallpaper gallery">
             {error ? (
@@ -516,18 +550,23 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
               <div className="text-center py-20 sm:py-24">
                 <div className="bg-white/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-12 sm:p-16 max-w-md sm:max-w-lg mx-auto shadow-2xl border border-gray-100 animate-scaleIn">
                   <div className="text-6xl sm:text-8xl mb-4 sm:mb-6" aria-hidden="true">🔍</div>
-                  <p className="text-gray-700 text-xl sm:text-2xl font-bold mb-2 sm:mb-3">No wallpapers found</p>
-                  <p className="text-gray-500 text-base sm:text-lg mb-6 sm:mb-8">Try adjusting your search or category</p>
+                  <p className="text-gray-700 text-xl sm:text-2xl font-bold mb-2 sm:mb-3">
+                    {isSearchMode ? `No results for "${searchQuery}"` : 'No wallpapers found'}
+                  </p>
+                  <p className="text-gray-500 text-base sm:text-lg mb-6 sm:mb-8">
+                    {isSearchMode ? 'Try different keywords or browse categories' : 'Try adjusting your search or category'}
+                  </p>
                   <button
                     onClick={() => {
                       setSearchTerm('');
                       setSelectedCategory('all');
                       setIsSearchMode(false);
                       setSearchResults([]);
+                      setSearchQuery('');
                     }}
                     className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-orange-500 to-pink-600 text-white rounded-xl sm:rounded-2xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-xl font-semibold text-base sm:text-lg hover-lift"
                   >
-                    Clear Filters
+                    {isSearchMode ? 'Clear Search' : 'Clear Filters'}
                   </button>
                 </div>
               </div>
@@ -545,6 +584,18 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
                     )
                   )}
                 </div>
+                  {/* <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2 lg:gap-3 xl:gap-4 px-1 md:px-3 sm:px-4 w-full">
+                  {filteredWallpapers.map((wallpaper, index) =>
+                    !wallpaper.isPrivate && (
+                      <WallpaperCard
+                        key={wallpaper._id}
+                        wallpaper={wallpaper}
+                        index={index}
+                        onUnauthorizedAction={handleUnauthorizedAction}
+                      />
+                    )
+                  )}
+                </div> */}
                 
                 {/* Loading More Indicator - Only show if not in search mode */}
                 {!isSearchMode && loadingMore && (

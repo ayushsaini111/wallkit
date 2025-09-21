@@ -1,174 +1,152 @@
-// useToggleSave.js - Hook for handling wallpaper saves/collections
-
-import { useState, useCallback, useEffect } from 'react';
+// useToggleSave.js
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { StorageService } from './StorageService';
-
-// Collections cache
-const collectionsCache = new Map();
-const collectionsPromises = new Map();
-
-const fetchCollectionsOptimized = async (userId) => {
-  if (!userId) return [];
-
-  // Check memory cache first
-  const memoryCache = collectionsCache.get(userId);
-  if (memoryCache && Date.now() - memoryCache.timestamp < 10 * 60 * 1000) {
-    return memoryCache.data;
-  }
-
-  // Check localStorage cache
-  const localCache = StorageService.getCachedCollections(userId);
-  if (localCache) {
-    collectionsCache.set(userId, { data: localCache, timestamp: Date.now() });
-    return localCache;
-  }
-
-  // Check if there's already a pending request
-  if (collectionsPromises.has(userId)) {
-    return await collectionsPromises.get(userId);
-  }
-
-  // Make API request
-  const promise = fetch("/api/collection")
-    .then(res => res.json())
-    .then(data => {
-      const collections = data.success && Array.isArray(data.collections) ? data.collections : [];
-      
-      // Cache the results
-      collectionsCache.set(userId, { data: collections, timestamp: Date.now() });
-      StorageService.setCachedCollections(userId, collections);
-      
-      return collections;
-    })
-    .catch(err => {
-      console.error('Error fetching collections:', err);
-      return [];
-    })
-    .finally(() => {
-      collectionsPromises.delete(userId);
-    });
-
-  collectionsPromises.set(userId, promise);
-  return await promise;
-};
 
 export const useToggleSave = (wallpaperId, onUnauthorizedAction, onWallpaperRemoved) => {
   const { data: session, status: sessionStatus } = useSession();
   const [isSaved, setIsSaved] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const mountedRef = useRef(true);
 
-  // Initialize saved state from localStorage
   useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
+
+  // Initialize from localStorage on mount and when wallpaperId or sessionStatus changes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (sessionStatus === 'loading') return;
-    
+
     const saved = StorageService.getSavedWallpapers();
+    console.log('[useToggleSave] init saved list for', wallpaperId, saved);
     setIsSaved(saved.includes(wallpaperId));
   }, [wallpaperId, sessionStatus]);
 
-  // Check wallpaper saved status in collections
-  const checkWallpaperSavedStatus = useCallback(async (wallpaperId) => {
-    if (!session?.user) return false;
-
-    try {
-      const collections = await fetchCollectionsOptimized(session.user._id);
-      return collections.some(collection =>
-        collection.wallpaperPreview?.some(wp => wp._id === wallpaperId) ||
-        (Array.isArray(collection.wallpapers) && collection.wallpapers.includes(wallpaperId))
-      );
-    } catch (error) {
-      console.error('Error checking wallpaper saved status:', error);
-      return false;
-    }
-  }, [session?.user]);
-
-  // Sync saved state with backend collections
+  // Listen for same-tab and cross-tab changes
   useEffect(() => {
-    if (sessionStatus === 'loading' || !session?.user) return;
+    const refreshFromStorage = () => {
+      const saved = StorageService.getSavedWallpapers();
+      const nowSaved = saved.includes(wallpaperId);
+      // debug
+      console.log('[useToggleSave] refreshFromStorage', wallpaperId, nowSaved);
+      setIsSaved(nowSaved);
+    };
 
-    let mounted = true;
-
-    const syncSavedState = async () => {
-      try {
-        const isCurrentlySaved = await checkWallpaperSavedStatus(wallpaperId);
-        if (mounted) {
-          setIsSaved(isCurrentlySaved);
-
-          // Update localStorage to match backend state
-          const savedWallpapers = StorageService.getSavedWallpapers();
-          if (isCurrentlySaved && !savedWallpapers.includes(wallpaperId)) {
-            savedWallpapers.push(wallpaperId);
-            StorageService.updateSavedWallpapers(savedWallpapers);
-          } else if (!isCurrentlySaved && savedWallpapers.includes(wallpaperId)) {
-            const updated = savedWallpapers.filter(id => id !== wallpaperId);
-            StorageService.updateSavedWallpapers(updated);
-          }
-        }
-      } catch (error) {
-        console.error('Error syncing saved state:', error);
+    const storageHandler = (e) => {
+      // cross-tab: only react when the sync key changes (minimize noise)
+      if (!e || e.key === 'savedWallpapersSync') {
+        refreshFromStorage();
       }
     };
 
-    const timeoutId = setTimeout(syncSavedState, 1000);
-    return () => {
-      mounted = false;
-      clearTimeout(timeoutId);
+    const customHandler = (e) => {
+      // same-tab custom event
+      refreshFromStorage();
     };
-  }, [session?.user, wallpaperId, sessionStatus, checkWallpaperSavedStatus]);
 
+    window.addEventListener('storage', storageHandler);
+    window.addEventListener('savedWallpapersChanged', customHandler);
+
+    // run once
+    refreshFromStorage();
+
+    return () => {
+      window.removeEventListener('storage', storageHandler);
+      window.removeEventListener('savedWallpapersChanged', customHandler);
+    };
+  }, [wallpaperId]);
+
+  // toggleSave: open modal if no explicit API, otherwise optimistic persist to configured endpoint
   const toggleSave = useCallback(async (e) => {
     e?.stopPropagation();
-
     if (sessionStatus === 'loading' || isLoading) return;
 
     if (!session?.user) {
-      onUnauthorizedAction?.("save");
+      onUnauthorizedAction?.('save');
       return;
     }
 
-    // Open collections modal instead of direct API call
-    setModalOpen(true);
-  }, [session?.user, sessionStatus, isLoading, onUnauthorizedAction]);
+    // If developer set explicit api in env, use it; else open modal (safe)
+    const explicitEndpoint = typeof window !== 'undefined' && process?.env?.NEXT_PUBLIC_TOGGLE_SAVE_API
+      ? process.env.NEXT_PUBLIC_TOGGLE_SAVE_API
+      : null;
 
-  const handleModalClose = useCallback(() => {
-    setModalOpen(false);
-  }, []);
+    if (!explicitEndpoint) {
+      // safe UX: open collection modal for manual save
+      setModalOpen(true);
+      return;
+    }
 
+    setIsLoading(true);
+
+    // optimistic update
+    const currentSaved = StorageService.getSavedWallpapers();
+    const currentlySaved = currentSaved.includes(wallpaperId);
+    const newList = currentlySaved ? currentSaved.filter(id => id !== wallpaperId) : [...currentSaved, wallpaperId];
+
+    if (currentlySaved) {
+      onWallpaperRemoved?.(wallpaperId);
+      setIsSaved(false);
+    } else {
+      setIsSaved(true);
+    }
+    StorageService.updateSavedWallpapers(newList);
+
+    try {
+      const res = await fetch(explicitEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ wallpaperId, action: currentlySaved ? 'unsave' : 'save' })
+      });
+
+      let data = null;
+      try { data = await res.json(); } catch (err) {}
+
+      if (res.ok && (data === null || data.success !== false)) {
+        // persisted
+        console.log('[useToggleSave] persisted to', explicitEndpoint, data);
+      } else {
+        console.error('[useToggleSave] persist failed', { status: res.status, data });
+        // revert
+        StorageService.updateSavedWallpapers(currentSaved);
+        setIsSaved(currentSaved.includes(wallpaperId));
+        // fallback: open modal so user can manually save
+        setModalOpen(true);
+      }
+    } catch (err) {
+      console.error('[useToggleSave] network error', err);
+      StorageService.updateSavedWallpapers(currentSaved);
+      setIsSaved(currentSaved.includes(wallpaperId));
+      setModalOpen(true);
+      alert('Network error. Could not save wallpaper; opening collections as fallback.');
+    } finally {
+      if (mountedRef.current) setIsLoading(false);
+    }
+  }, [session, sessionStatus, wallpaperId, isLoading, onUnauthorizedAction, onWallpaperRemoved]);
+
+  const handleModalClose = useCallback(() => setModalOpen(false), []);
   const handleCollectionSave = useCallback((saved) => {
-    setIsSaved(saved);
-
-    // Update localStorage
+    setIsSaved(Boolean(saved));
     const savedWallpapers = StorageService.getSavedWallpapers();
     if (saved && !savedWallpapers.includes(wallpaperId)) {
-      const updated = [...savedWallpapers, wallpaperId];
-      StorageService.updateSavedWallpapers(updated);
+      StorageService.updateSavedWallpapers([...savedWallpapers, wallpaperId]);
     } else if (!saved && savedWallpapers.includes(wallpaperId)) {
-      const updated = savedWallpapers.filter(id => id !== wallpaperId);
-      StorageService.updateSavedWallpapers(updated);
+      StorageService.updateSavedWallpapers(savedWallpapers.filter(id => id !== wallpaperId));
+      onWallpaperRemoved?.(wallpaperId);
     }
-
-    // Handle wallpaper removal callback
-    if (!saved && onWallpaperRemoved) {
-      onWallpaperRemoved(wallpaperId);
-    }
-
-    // Clear collections cache to force refresh
-    if (session?.user) {
-      collectionsCache.delete(session.user._id);
-    }
-  }, [wallpaperId, onWallpaperRemoved, session?.user]);
+  }, [wallpaperId, onWallpaperRemoved]);
 
   const setSavedState = useCallback((saved) => {
-    setIsSaved(saved);
+    setIsSaved(Boolean(saved));
     const savedWallpapers = StorageService.getSavedWallpapers();
-    
     if (saved && !savedWallpapers.includes(wallpaperId)) {
-      const updated = [...savedWallpapers, wallpaperId];
-      StorageService.updateSavedWallpapers(updated);
+      StorageService.updateSavedWallpapers([...savedWallpapers, wallpaperId]);
     } else if (!saved && savedWallpapers.includes(wallpaperId)) {
-      const updated = savedWallpapers.filter(id => id !== wallpaperId);
-      StorageService.updateSavedWallpapers(updated);
+      StorageService.updateSavedWallpapers(savedWallpapers.filter(id => id !== wallpaperId));
     }
   }, [wallpaperId]);
 
@@ -182,6 +160,3 @@ export const useToggleSave = (wallpaperId, onUnauthorizedAction, onWallpaperRemo
     isLoading
   };
 };
-
-// Export collections utilities
-export { fetchCollectionsOptimized, collectionsCache };

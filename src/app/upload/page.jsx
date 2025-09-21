@@ -1,14 +1,16 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { uploadImageToAppwrite } from '@/lib/appwrite/storage';
 import { uploadImageToCloudinary } from '@/lib/appwrite/storagetwo';
 import { compressImage } from '@/utils/compressImage';
 
 const UploadWallpaper = () => {
     const { data: session } = useSession();
+    const router = useRouter();
     const [dragActive, setDragActive] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [uploading, setUploading] = useState(false);
@@ -18,6 +20,8 @@ const UploadWallpaper = () => {
     const fileInputRef = useRef(null);
     const [showRemoveConfirm, setShowRemoveConfirm] = useState(null);
     const formSectionRef = useRef(null);
+    const [allUploadsComplete, setAllUploadsComplete] = useState(false);
+    const [redirectCountdown, setRedirectCountdown] = useState(3);
 
     // Predefined categories
     const categories = [
@@ -46,6 +50,22 @@ const UploadWallpaper = () => {
         'Sports',
         'Other'
     ];
+
+    // Handle countdown and redirect
+    useEffect(() => {
+        let interval;
+        if (allUploadsComplete && redirectCountdown > 0) {
+            interval = setInterval(() => {
+                setRedirectCountdown(prev => prev - 1);
+            }, 1000);
+        } else if (allUploadsComplete && redirectCountdown === 0) {
+            router.push(`/profile/${session.user.username}`);
+        }
+
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [allUploadsComplete, redirectCountdown, router]);
 
     // Handle drag events
     const handleDrag = (e) => {
@@ -255,11 +275,11 @@ const UploadWallpaper = () => {
 
         // Validate files
         const validationErrors = [];
-        selectedFiles.forEach(fileData => {
-            if (fileData.status === 'pending') {
-                const error = validateFileData(fileData);
-                if (error) validationErrors.push(`${fileData.name}: ${error}`);
-            }
+        const pendingFiles = selectedFiles.filter(fileData => fileData.status === 'pending');
+        
+        pendingFiles.forEach(fileData => {
+            const error = validateFileData(fileData);
+            if (error) validationErrors.push(`${fileData.name}: ${error}`);
         });
 
         if (validationErrors.length > 0) {
@@ -383,6 +403,16 @@ const UploadWallpaper = () => {
         const results = await Promise.all(uploadPromises);
         setUploadResults(results.filter(Boolean));
         setUploading(false);
+
+        // Check if all uploads were successful
+        const successfulUploads = results.filter(result => result && result.status === 'success');
+        if (successfulUploads.length > 0 && successfulUploads.length === pendingFiles.length) {
+            // Clear the form after successful upload
+            setTimeout(() => {
+                clearFiles();
+                setAllUploadsComplete(true);
+            }, 1000);
+        }
     };
 
     // Clear all files
@@ -403,6 +433,8 @@ const UploadWallpaper = () => {
     // Start over (reset everything)
     const startOver = () => {
         clearFiles();
+        setAllUploadsComplete(false);
+        setRedirectCountdown(3);
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
@@ -489,110 +521,158 @@ const UploadWallpaper = () => {
         );
     }
 
-      return (
+    return (
         <div className="min-h-screen pt-4 bg-gradient-to-br from-gray-50 via-white to-blue-50">
             <div className="container mx-auto px-4 py-6 md:py-12">
                 <div className="max-w-7xl mx-auto">
+                    {/* Success Message with Redirect */}
+                    {allUploadsComplete && (
+                        <div className="mb-8 md:mb-12">
+                            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg md:rounded-2xl p-8 text-center">
+                                <div className="w-16 h-16 mx-auto mb-4 bg-green-500 rounded-full flex items-center justify-center">
+                                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-2xl md:text-3xl font-bold text-green-800 mb-4">
+                                    Successfully uploaded!
+                                </h3>
+                                <p className="text-green-700 mb-6 text-lg">
+                                    Your wallpapers have been successfully uploaded and are now available in your profile.
+                                </p>
+                                <div className="space-y-4">
+                                    <div className="text-green-600 text-sm">
+                                        Redirecting to your profile in {redirectCountdown} seconds...
+                                    </div>
+                                    <div className="flex flex-col sm:flex-row justify-center gap-3">
+                                        <button
+                                            onClick={() => router.push('/profile')}
+                                            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 inline-flex items-center justify-center gap-2"
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            </svg>
+                                            Go to Profile Now
+                                        </button>
+                                        <button
+                                            onClick={startOver}
+                                            className="bg-white hover:bg-gray-50 text-green-600 border border-green-200 px-6 py-3 rounded-lg font-semibold transition-all duration-300 inline-flex items-center justify-center gap-2"
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                            Upload More
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Enhanced Header */}
-                    <div className="text-center mb-8 md:mb-16">
-                        <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-4 md:mb-6 leading-tight">
-                            <span className="bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 bg-clip-text text-transparent">
-                                Upload Your Vision
-                            </span>
-                        </h1>
-                        <p className="text-sm leading-tight text-center md:text-xl text-gray-600 max-w-2xl mx-auto px-4">
-                            Transform spaces and inspire others by uploading your stunning wallpapers.
-                            Join our creative community and help others discover the perfect backdrop for their digital world.
-                        </p>
-                    </div>
+                    {!allUploadsComplete && (
+                        <div className="text-center mb-8 md:mb-16">
+                            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-4 md:mb-6 leading-tight">
+                                <span className="bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 bg-clip-text text-transparent">
+                                    Upload Your Vision
+                                </span>
+                            </h1>
+                            <p className="text-sm leading-tight text-center md:text-xl text-gray-600 max-w-2xl mx-auto px-4">
+                                Transform spaces and inspire others by uploading your stunning wallpapers.
+                                Join our creative community and help others discover the perfect backdrop for their digital world.
+                            </p>
+                        </div>
+                    )}
 
                     {/* Enhanced Upload Area */}
-                    <div className="mb-8 md:mb-12">
-                        <div
-                            className={`relative border-2 border-dashed rounded-lg md:rounded-3xl p-8 md:p-16 text-center transition-all duration-300 ${dragActive
-                                ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 scale-[1.01] md:scale-[1.02]'
-                                : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50/50'
-                                }`}
-                            onDragEnter={handleDrag}
-                            onDragLeave={handleDrag}
-                            onDragOver={handleDrag}
-                            onDrop={handleDrop}
-                        >
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                multiple
-                                accept="image/*"
-                                onChange={handleFileSelect}
-                                className="hidden"
-                            />
+                    {!allUploadsComplete && (
+                        <div className="mb-8 md:mb-12">
+                            <div
+                                className={`relative border-2 border-dashed rounded-lg md:rounded-3xl p-8 md:p-16 text-center transition-all duration-300 ${dragActive
+                                    ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 scale-[1.01] md:scale-[1.02]'
+                                    : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50/50'
+                                    }`}
+                                onDragEnter={handleDrag}
+                                onDragLeave={handleDrag}
+                                onDragOver={handleDrag}
+                                onDrop={handleDrop}
+                            >
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    multiple
+                                    accept="image/*"
+                                    onChange={handleFileSelect}
+                                    className="hidden"
+                                />
 
-                            <div className="space-y-4 md:space-y-8">
-                                <div className={`text-5xl md:text-8xl transition-all duration-300 ${dragActive ? 'scale-110 md:scale-125' : ''}`}>
-                                    {dragActive ? '🎯' : '🖼️'}
-                                </div>
-                                <div>
-                                    <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2 md:mb-4">
-                                        {dragActive ? 'Drop your masterpieces here!' : 'Upload Your Wallpapers'}
-                                    </h3>
-                                    <p className="text-gray-600 mb-4 md:mb-8 text-sm md:text-lg">
-                                        Drag and drop your images here, or click to browse your collection
-                                    </p>
-                                    <button
-                                        type="button"
-                                        onClick={() => fileInputRef.current?.click()}
-                                        disabled={uploading}
-                                        className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white px-6 md:px-10 py-3 md:py-4 rounded-lg md:rounded-xl font-semibold transition-all duration-300 inline-flex items-center gap-2 md:gap-3 transform hover:-translate-y-0.5 disabled:transform-none text-sm md:text-lg"
-                                    >
-                                        <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                        </svg>
-                                        Browse Files
-                                    </button>
-                                </div>
+                                <div className="space-y-4 md:space-y-8">
+                                    <div className={`text-5xl md:text-8xl transition-all duration-300 ${dragActive ? 'scale-110 md:scale-125' : ''}`}>
+                                        {dragActive ? '🎯' : '🖼️'}
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2 md:mb-4">
+                                            {dragActive ? 'Drop your masterpieces here!' : 'Upload Your Wallpapers'}
+                                        </h3>
+                                        <p className="text-gray-600 mb-4 md:mb-8 text-sm md:text-lg">
+                                            Drag and drop your images here, or click to browse your collection
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={() => fileInputRef.current?.click()}
+                                            disabled={uploading}
+                                            className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white px-6 md:px-10 py-3 md:py-4 rounded-lg md:rounded-xl font-semibold transition-all duration-300 inline-flex items-center gap-2 md:gap-3 transform hover:-translate-y-0.5 disabled:transform-none text-sm md:text-lg"
+                                        >
+                                            <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                            </svg>
+                                            Browse Files
+                                        </button>
+                                    </div>
 
-                                {/* Feature highlights - responsive grid */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 text-xs md:text-sm text-gray-500 max-w-3xl mx-auto">
-                                    <div className="flex items-center gap-2 md:gap-3">
-                                        <div className="w-8 h-8 md:w-10 md:h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 flex-shrink-0">
-                                            <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                            </svg>
+                                    {/* Feature highlights - responsive grid */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 text-xs md:text-sm text-gray-500 max-w-3xl mx-auto">
+                                        <div className="flex items-center gap-2 md:gap-3">
+                                            <div className="w-8 h-8 md:w-10 md:h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 flex-shrink-0">
+                                                <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                            </div>
+                                            <div className="text-left">
+                                                <div className="font-medium text-gray-700 text-sm">Multiple Formats</div>
+                                                <div className="text-xs">JPG, PNG, WebP, GIF</div>
+                                            </div>
                                         </div>
-                                        <div className="text-left">
-                                            <div className="font-medium text-gray-700 text-sm">Multiple Formats</div>
-                                            <div className="text-xs">JPG, PNG, WebP, GIF</div>
+                                        <div className="flex items-center gap-2 md:gap-3">
+                                            <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 flex-shrink-0">
+                                                <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                </svg>
+                                            </div>
+                                            <div className="text-left">
+                                                <div className="font-medium text-gray-700 text-sm">Large Files</div>
+                                                <div className="text-xs">Up to 50MB each</div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="flex items-center gap-2 md:gap-3">
-                                        <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 flex-shrink-0">
-                                            <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                            </svg>
-                                        </div>
-                                        <div className="text-left">
-                                            <div className="font-medium text-gray-700 text-sm">Large Files</div>
-                                            <div className="text-xs">Up to 50MB each</div>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2 md:gap-3 sm:col-span-2 md:col-span-1">
-                                        <div className="w-8 h-8 md:w-10 md:h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 flex-shrink-0">
-                                            <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1a1 1 0 011-1h2a1 1 0 011 1v18a1 1 0 01-1-1H4a1 1 0 01-1-1V4a1 1 0 011-1h2a1 1 0 011 1v3" />
-                                            </svg>
-                                        </div>
-                                        <div className="text-left">
-                                            <div className="font-medium text-gray-700 text-sm">High Quality</div>
-                                            <div className="text-xs">1920×1080+ recommended</div>
+                                        <div className="flex items-center gap-2 md:gap-3 sm:col-span-2 md:col-span-1">
+                                            <div className="w-8 h-8 md:w-10 md:h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 flex-shrink-0">
+                                                <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1a1 1 0 011-1h2a1 1 0 011 1v18a1 1 0 01-1-1H4a1 1 0 01-1-1V4a1 1 0 011-1h2a1 1 0 011 1v3" />
+                                                </svg>
+                                            </div>
+                                            <div className="text-left">
+                                                <div className="font-medium text-gray-700 text-sm">High Quality</div>
+                                                <div className="text-xs">1920×1080+ recommended</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Selected Files - Responsive Layout */}
-                    {selectedFiles.length > 0 && (
+                    {selectedFiles.length > 0 && !allUploadsComplete && (
                         <div ref={formSectionRef} className="mb-8 md:mb-12">
                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 md:mb-8">
                                 <div className="flex flex-wrap items-center gap-2 md:gap-4">
@@ -877,89 +957,74 @@ const UploadWallpaper = () => {
                         </div>
                     )}
 
-                    {/* Upload Results - Mobile responsive */}
-                    {uploadResults.length > 0 && (
-                        <div className="mb-8 md:mb-12">
-                            <div className="flex justify-center mb-6 md:mb-8">
-                                <button
-                                    onClick={startOver}
-                                    className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 md:px-8 md:py-4 rounded-lg md:rounded-xl font-semibold transition-all duration-300 inline-flex items-center gap-2 md:gap-3 transform hover:-translate-y-0.5 text-sm md:text-lg"
-                                >
-                                    <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                    </svg>
-                                    Upload More Wallpapers
-                                </button>
+                    {/* Enhanced Tips Section - Mobile responsive */}
+                    {!allUploadsComplete && (
+                        <div className="bg-white rounded-lg md:rounded-2xl border border-gray-100 p-4 md:p-8">
+                            <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
+                                <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg md:rounded-xl flex items-center justify-center text-white text-xl md:text-2xl">
+                                    💡
+                                </div>
+                                <h3 className="text-xl md:text-2xl font-bold text-gray-900">
+                                    Pro Tips for Amazing Uploads
+                                </h3>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 mb-6 md:mb-8">
+                                <div className="text-center p-4 md:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg md:rounded-xl border border-blue-100">
+                                    <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl md:text-2xl mx-auto mb-3 md:mb-4">
+                                        📸
+                                    </div>
+                                    <h4 className="font-bold text-gray-900 mb-2 md:mb-3 text-sm md:text-base">Perfect Quality</h4>
+                                    <div className="text-xs md:text-sm text-gray-600 space-y-1 md:space-y-2">
+                                        <p>• High resolution (1920×1080+)</p>
+                                        <p>• Sharp and clear details</p>
+                                        <p>• Proper aspect ratios</p>
+                                    </div>
+                                </div>
+
+                                <div className="text-center p-4 md:p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg md:rounded-xl border border-green-100">
+                                    <div className="w-12 h-12 md:w-16 md:h-16 bg-green-500 rounded-full flex items-center justify-center text-white text-xl md:text-2xl mx-auto mb-3 md:mb-4">
+                                        🏷️
+                                    </div>
+                                    <h4 className="font-bold text-gray-900 mb-2 md:mb-3 text-sm md:text-base">Smart Tagging</h4>
+                                    <div className="text-xs md:text-sm text-gray-600 space-y-1 md:space-y-2">
+                                        <p>• Use descriptive keywords</p>
+                                        <p>• Include colors and moods</p>
+                                        <p>• Think like a searcher</p>
+                                    </div>
+                                </div>
+
+                                <div className="text-center p-4 md:p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg md:rounded-xl border border-purple-100">
+                                    <div className="w-12 h-12 md:w-16 md:h-16 bg-purple-500 rounded-full flex items-center justify-center text-white text-xl md:text-2xl mx-auto mb-3 md:mb-4">
+                                        ⚡
+                                    </div>
+                                    <h4 className="font-bold text-gray-900 mb-2 md:mb-3 text-sm md:text-base">Quick Upload</h4>
+                                    <div className="text-xs md:text-sm text-gray-600 space-y-1 md:space-y-2">
+                                        <p>• Drag & drop multiple files</p>
+                                        <p>• Fill all required fields</p>
+                                        <p>• Use JPG for faster uploads</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-4 md:p-6 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg md:rounded-xl border border-amber-200">
+                                <div className="flex items-start gap-3 md:gap-4">
+                                    <div className="w-8 h-8 md:w-10 md:h-10 bg-amber-500 rounded-full flex items-center justify-center text-white flex-shrink-0">
+                                        <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-amber-900 mb-1 md:mb-2 text-sm md:text-lg">Remember</p>
+                                        <p className="text-amber-800 leading-relaxed text-xs md:text-sm">
+                                            Quality wallpapers with great titles, proper categories, and relevant tags get discovered more often!
+                                            Take a moment to fill out all the details - it helps the community find exactly what they're looking for.
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
-
-                    {/* Enhanced Tips Section - Mobile responsive */}
-                    <div className="bg-white rounded-lg md:rounded-2xl border border-gray-100 p-4 md:p-8">
-                        <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
-                            <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg md:rounded-xl flex items-center justify-center text-white text-xl md:text-2xl">
-                                💡
-                            </div>
-                            <h3 className="text-xl md:text-2xl font-bold text-gray-900">
-                                Pro Tips for Amazing Uploads
-                            </h3>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 mb-6 md:mb-8">
-                            <div className="text-center p-4 md:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg md:rounded-xl border border-blue-100">
-                                <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl md:text-2xl mx-auto mb-3 md:mb-4">
-                                    📸
-                                </div>
-                                <h4 className="font-bold text-gray-900 mb-2 md:mb-3 text-sm md:text-base">Perfect Quality</h4>
-                                <div className="text-xs md:text-sm text-gray-600 space-y-1 md:space-y-2">
-                                    <p>• High resolution (1920×1080+)</p>
-                                    <p>• Sharp and clear details</p>
-                                    <p>• Proper aspect ratios</p>
-                                </div>
-                            </div>
-
-                            <div className="text-center p-4 md:p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg md:rounded-xl border border-green-100">
-                                <div className="w-12 h-12 md:w-16 md:h-16 bg-green-500 rounded-full flex items-center justify-center text-white text-xl md:text-2xl mx-auto mb-3 md:mb-4">
-                                    🏷️
-                                </div>
-                                <h4 className="font-bold text-gray-900 mb-2 md:mb-3 text-sm md:text-base">Smart Tagging</h4>
-                                <div className="text-xs md:text-sm text-gray-600 space-y-1 md:space-y-2">
-                                    <p>• Use descriptive keywords</p>
-                                    <p>• Include colors and moods</p>
-                                    <p>• Think like a searcher</p>
-                                </div>
-                            </div>
-
-                            <div className="text-center p-4 md:p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg md:rounded-xl border border-purple-100">
-                                <div className="w-12 h-12 md:w-16 md:h-16 bg-purple-500 rounded-full flex items-center justify-center text-white text-xl md:text-2xl mx-auto mb-3 md:mb-4">
-                                    ⚡
-                                </div>
-                                <h4 className="font-bold text-gray-900 mb-2 md:mb-3 text-sm md:text-base">Quick Upload</h4>
-                                <div className="text-xs md:text-sm text-gray-600 space-y-1 md:space-y-2">
-                                    <p>• Drag & drop multiple files</p>
-                                    <p>• Fill all required fields</p>
-                                    <p>• Use JPG for faster uploads</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="p-4 md:p-6 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg md:rounded-xl border border-amber-200">
-                            <div className="flex items-start gap-3 md:gap-4">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-amber-500 rounded-full flex items-center justify-center text-white flex-shrink-0">
-                                    <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p className="font-bold text-amber-900 mb-1 md:mb-2 text-sm md:text-lg">Remember</p>
-                                    <p className="text-amber-800 leading-relaxed text-xs md:text-sm">
-                                        Quality wallpapers with great titles, proper categories, and relevant tags get discovered more often!
-                                        Take a moment to fill out all the details - it helps the community find exactly what they're looking for.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
                     {/* Remove Confirmation Popup */}
                     {showRemoveConfirm && (

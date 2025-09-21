@@ -14,9 +14,11 @@ const HeroSection = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
   const [generatedSuggestions, setGeneratedSuggestions] = useState([]);
+  const [bestMatchPreview, setBestMatchPreview] = useState(null);
   const searchRef = useRef(null);
+  const suggestionsRef = useRef(null);
 
-  // Generate suggestions based on ALL wallpapers (not filtered by category)
+  // Generate suggestions and find best match for preview
   useEffect(() => {
     if (searchTerm.length > 0 && wallpapers.length > 0) {
       const lowerSearchTerm = searchTerm.toLowerCase();
@@ -35,6 +37,8 @@ const HeroSection = ({
       const categoryIcons = {
         'Nature': '🌿',
         'Abstract': '🎨',
+        'Anime': '🎨',
+        'Superheroes': '🎨',
         'Minimalist': '⚪',
         'Animals': '🐾',
         'Cityscape': '🏙️',
@@ -51,6 +55,7 @@ const HeroSection = ({
         'Typography': '🔠',
         'Dark': '🌙',
         'Light': '☀️',
+        'Cartoon': '☀️',
         'Vintage': '📻',
         'Sports': '🏅',
         'Other': '📦'
@@ -162,12 +167,33 @@ const HeroSection = ({
         .slice(0, 8);
       
       setGeneratedSuggestions(sortedSuggestions);
+      
+      // Set best match for preview (highest scoring suggestion with wallpaper)
+      const bestMatch = sortedSuggestions.find(s => s.wallpaper);
+      setBestMatchPreview(bestMatch);
+      
       setShowSuggestions(sortedSuggestions.length > 0);
     } else {
       setGeneratedSuggestions([]);
+      setBestMatchPreview(null);
       setShowSuggestions(false);
     }
   }, [searchTerm, wallpapers]);
+
+  // Handle search submit
+  const handleSearchSubmit = useCallback(() => {
+    if (searchTerm.trim()) {
+      onSearchSubmit?.(searchTerm.trim());
+      setShowSuggestions(false);
+      setSelectedSuggestionIndex(-1);
+      
+      // Smooth scroll to content area
+      const contentArea = document.querySelector('main');
+      if (contentArea) {
+        contentArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  }, [searchTerm, onSearchSubmit]);
 
   // Handle keyboard navigation
   const handleKeyDown = useCallback((e) => {
@@ -195,12 +221,8 @@ const HeroSection = ({
         }
       }
       
-      // Default: perform search with the typed term
-      if (searchTerm.trim()) {
-        onSearchSubmit?.(searchTerm.trim());
-        setShowSuggestions(false);
-        setSelectedSuggestionIndex(-1);
-      }
+      // Default: perform search
+      handleSearchSubmit();
       return;
     }
 
@@ -230,24 +252,35 @@ const HeroSection = ({
         }
         break;
     }
-  }, [showSuggestions, generatedSuggestions, suggestions, selectedSuggestionIndex, searchTerm, onSearchSubmit]);
+  }, [showSuggestions, generatedSuggestions, suggestions, selectedSuggestionIndex, searchTerm, handleSearchSubmit]);
 
   // Handle suggestion click
   const handleSuggestionClick = useCallback((suggestion) => {
     onSuggestionClick?.(suggestion);
     setShowSuggestions(false);
     setSelectedSuggestionIndex(-1);
-    if (searchRef.current) {
-      searchRef.current.focus();
-    }
+    
+    // Smooth scroll to content area
+    setTimeout(() => {
+      const contentArea = document.querySelector('main');
+      if (contentArea) {
+        contentArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   }, [onSuggestionClick]);
 
   // Handle search input blur with delay for suggestion clicks
-  const handleSearchBlur = useCallback(() => {
+  const handleSearchBlur = useCallback((e) => {
+    // Don't close if clicking on suggestions
+    if (suggestionsRef.current && suggestionsRef.current.contains(e.relatedTarget)) {
+      return;
+    }
+    
+    // Longer delay to ensure click events fire before blur
     setTimeout(() => {
       setShowSuggestions(false);
       setSelectedSuggestionIndex(-1);
-    }, 150);
+    }, 200);
   }, []);
 
   const handleSearchFocus = useCallback(() => {
@@ -261,6 +294,20 @@ const HeroSection = ({
     setSelectedSuggestionIndex(index);
   }, []);
 
+  // Handle clicks outside to close suggestions
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target) &&
+          suggestionsRef.current && !suggestionsRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+        setSelectedSuggestionIndex(-1);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
     <header className="bg-[url('/heroGradient.png')] bg-cover bg-center bg-no-repeat min-h-[30vh] sm:min-h-[45vh] md:min-h-[50vh] lg:min-h-[45vh] relative overflow-visible -mt-14 sm:-mt-16 lg:-mt-20 pt-14 sm:pt-16 lg:pt-10">
       <div className="relative max-w-[1400px] mx-auto px-3 sm:px-4 md:px-6 pt-8 sm:pt-12 md:pt-16 pb-4 sm:pb-6 md:pb-8">
@@ -272,18 +319,31 @@ const HeroSection = ({
             </h1>
           </div>
           
-          {/* Enhanced Search with Keyboard Navigation */}
-          <div className="relative max-w-[80vw]  sm:max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto mb-6 sm:mb-8 px-4 sm:px-0">
+          {/* Enhanced Search with Preview and Search Button */}
+          <div className="relative max-w-[80vw] sm:max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto mb-6 sm:mb-8 px-4 sm:px-0">
             <div className="relative group">
               <label htmlFor="wallpaper-search" className="sr-only">Search wallpapers</label>
-              {/* <Search className="absolute left-4 sm:left-6 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 sm:w-6 h-10 sm:h-6 group-focus-within:text-blue-500 transition-colors" aria-hidden="true" /> */}
+              
+              {/* Best Match Preview */}
+              {bestMatchPreview && bestMatchPreview.wallpaper && (
+                <div className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden border-2 border-white/30 shadow-lg z-10">
+                  <img 
+                    src={bestMatchPreview.icon} 
+                    alt={bestMatchPreview.value}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
+              
               <input
                 ref={searchRef}
                 id="wallpaper-search"
                 type="search"
                 placeholder="Search wallpapers, categories, tags..."
-                className="w-full pl-12 sm:pl-16 pr-6 sm:pr-8 py-2 sm:py-4 md:py-3 bg-white/95 backdrop-blur-xl border-2 border-white/20 rounded-2xl sm:rounded-3xl text-gray-700 placeholder-gray-500 focus:bg-white focus:ring-4 focus:ring-blue-100/50 transition-all duration-500 text-sm sm:text-base md:text-lg focus:outline-none shadow-2xl hover:shadow-3xl group-focus-within:scale-[1.02] relative"
-                // style={{ zIndex: 70 }}
+                className={`w-full ${bestMatchPreview?.wallpaper ? 'pl-14 sm:pl-16' : 'pl-4 sm:pl-6'} pr-14 sm:pr-16 py-2 sm:py-4 md:py-3 bg-white/95 backdrop-blur-xl border-2 border-white/20 rounded-2xl sm:rounded-3xl text-gray-700 placeholder-gray-500 focus:bg-white focus:ring-4 focus:ring-blue-100/50 transition-all duration-500 text-sm sm:text-base md:text-lg focus:outline-none shadow-2xl hover:shadow-3xl group-focus-within:scale-[1.02] relative`}
                 value={searchTerm}
                 onChange={(e) => onSearchChange?.(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -295,10 +355,23 @@ const HeroSection = ({
                 aria-autocomplete="list"
                 aria-activedescendant={selectedSuggestionIndex >= 0 ? `suggestion-${selectedSuggestionIndex}` : undefined}
               />
+              
+              {/* Search Button */}
+              <button
+                type="button"
+                className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2  text-gray-700 p-2 sm:p-2.5 rounded-xl sm:rounded-xl   hover:scale-105 z-10"
+                aria-label="Search wallpapers"
+                onClick={handleSearchSubmit}
+              >
+                <Search className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
             </div>
             
             {/* Enhanced Search Suggestions with Keyboard Navigation */}
-            <div className="absolute top-full left-0 right-0 mt-2" style={{ zIndex: 9999 }}>
+            <div 
+              ref={suggestionsRef}
+              className="absolute top-full left-0 right-0 mt-2 z-[60]"
+            >
               <SearchSuggestions
                 showSuggestions={showSuggestions}
                 suggestions={suggestions.length > 0 ? suggestions : generatedSuggestions}

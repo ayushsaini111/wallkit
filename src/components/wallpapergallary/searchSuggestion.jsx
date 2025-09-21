@@ -261,14 +261,12 @@ export const SearchSuggestions = ({
   if (!showSuggestions || displaySuggestions.length === 0) return null;
 
   return (
-    <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-2xl rounded-3xl border-2 border-white/30 shadow-2xl z-[9999] overflow-hidden animate-fadeIn">
+    <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-2xl rounded-3xl border-2 border-white/30 shadow-2xl z-[60] overflow-hidden animate-fadeIn">
       {displaySuggestions.map((suggestion, index) => (
-        <button
+        <div
           key={`${suggestion.type}-${suggestion.value}-${index}`}
-          type="button"
-          onMouseDown={(e) => e.preventDefault()}
           onMouseEnter={() => onMouseEnter?.(index)}
-          onClick={(e) => {
+          onMouseDown={(e) => {
             e.preventDefault();
             e.stopPropagation();
             onSuggestionClick?.(suggestion);
@@ -303,28 +301,6 @@ export const SearchSuggestions = ({
           
           <div className="flex-1  min-w-45 lg:min-w-0">
             <div className=" text-sm truncate">{suggestion.value}</div>
-            {/* <div className="text-sm text-gray-500 capitalize flex items-center gap-1">
-              {suggestion.type === 'category' && (
-                <span className="inline-flex items-center gap-1">
-                  📂 Category
-                </span>
-              )}
-              {suggestion.type === 'tag' && (
-                <span className="inline-flex items-center gap-1">
-                  🏷️ Tag
-                </span>
-              )}
-              {suggestion.type === 'title' && (
-                <span className="inline-flex items-center gap-1">
-                  🖼️ Wallpaper
-                </span>
-              )}
-              {suggestion.type === 'popular' && (
-                <span className="inline-flex items-center gap-1">
-                  🔥 Popular
-                </span>
-              )}
-            </div> */}
           </div>
           
           <div className={`transition-opacity ${
@@ -334,10 +310,8 @@ export const SearchSuggestions = ({
               <span className="text-blue-600 font-bold">→</span>
             </div>
           </div>
-        </button>
+        </div>
       ))}
-      
-      
     </div>
   );
 };
