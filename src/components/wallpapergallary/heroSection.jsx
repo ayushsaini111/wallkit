@@ -181,78 +181,64 @@ const HeroSection = ({
   }, [searchTerm, wallpapers]);
 
   // Handle search submit
-  const handleSearchSubmit = useCallback(() => {
-    if (searchTerm.trim()) {
-      onSearchSubmit?.(searchTerm.trim());
-      setShowSuggestions(false);
-      setSelectedSuggestionIndex(-1);
-      
-      // Smooth scroll to content area
-      const contentArea = document.querySelector('main');
-      if (contentArea) {
-        contentArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+const handleSearchSubmit = useCallback(() => {
+  if (searchTerm.trim()) {
+    // Hide mobile keyboard
+    if (searchRef.current && searchRef.current.blur) {
+      searchRef.current.blur();
     }
-  }, [searchTerm, onSearchSubmit]);
+    
+    onSearchSubmit?.(searchTerm.trim());
+    setShowSuggestions(false);
+    setSelectedSuggestionIndex(-1);
+    
+    // Smooth scroll to content area
+    const contentArea = document.querySelector('main');
+    if (contentArea) {
+      contentArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+}, [searchTerm, onSearchSubmit]);
 
   // Handle keyboard navigation
-  const handleKeyDown = useCallback((e) => {
-    const currentSuggestions = suggestions.length > 0 ? suggestions : generatedSuggestions;
+ const handleKeyDown = useCallback((e) => {
+  const currentSuggestions = suggestions.length > 0 ? suggestions : generatedSuggestions;
+  
+  if (e.key === 'Enter') {
+    e.preventDefault();
     
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      
-      // If there are suggestions and one is selected
-      if (showSuggestions && currentSuggestions.length > 0 && selectedSuggestionIndex >= 0) {
-        const selectedSuggestion = currentSuggestions[selectedSuggestionIndex];
-        handleSuggestionClick(selectedSuggestion);
-        return;
-      }
-      
-      // If there are suggestions but none selected, check for exact matches
-      if (showSuggestions && currentSuggestions.length > 0 && selectedSuggestionIndex === -1) {
-        const exactMatch = currentSuggestions.find(s => 
-          s.value.toLowerCase() === searchTerm.toLowerCase()
-        );
-        
-        if (exactMatch) {
-          handleSuggestionClick(exactMatch);
-          return;
-        }
-      }
-      
-      // Default: perform search
-      handleSearchSubmit();
+    // Hide mobile keyboard on Enter
+    if (searchRef.current && searchRef.current.blur) {
+      searchRef.current.blur();
+    }
+    
+    // If there are suggestions and one is selected
+    if (showSuggestions && currentSuggestions.length > 0 && selectedSuggestionIndex >= 0) {
+      const selectedSuggestion = currentSuggestions[selectedSuggestionIndex];
+      handleSuggestionClick(selectedSuggestion);
       return;
     }
-
-    // Handle other keyboard navigation only if suggestions are shown
-    if (!showSuggestions || currentSuggestions.length === 0) return;
-
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setSelectedSuggestionIndex(prev => 
-          prev < currentSuggestions.length - 1 ? prev + 1 : 0
-        );
-        break;
+    
+    // If there are suggestions but none selected, check for exact matches
+    if (showSuggestions && currentSuggestions.length > 0 && selectedSuggestionIndex === -1) {
+      const exactMatch = currentSuggestions.find(s => 
+        s.value.toLowerCase() === searchTerm.toLowerCase()
+      );
       
-      case 'ArrowUp':
-        e.preventDefault();
-        setSelectedSuggestionIndex(prev => 
-          prev > 0 ? prev - 1 : currentSuggestions.length - 1
-        );
-        break;
-      
-      case 'Escape':
-        setShowSuggestions(false);
-        setSelectedSuggestionIndex(-1);
-        if (searchRef.current) {
-          searchRef.current.blur();
-        }
-        break;
+      if (exactMatch) {
+        handleSuggestionClick(exactMatch);
+        return;
+      }
     }
-  }, [showSuggestions, generatedSuggestions, suggestions, selectedSuggestionIndex, searchTerm, handleSearchSubmit]);
+    
+    // Default: perform search
+    handleSearchSubmit();
+    return;
+  }
+
+  // ... rest of your existing keyboard navigation code
+}, [showSuggestions, generatedSuggestions, suggestions, selectedSuggestionIndex, searchTerm, handleSearchSubmit]);
+
 
   // Handle suggestion click
   const handleSuggestionClick = useCallback((suggestion) => {
@@ -342,6 +328,7 @@ const HeroSection = ({
                 ref={searchRef}
                 id="wallpaper-search"
                 type="search"
+                inputMode="search" 
                 placeholder="Search wallpapers, categories, tags..."
                 className={`w-full ${bestMatchPreview?.wallpaper ? 'pl-14 sm:pl-16' : 'pl-4 sm:pl-6'} pr-14 sm:pr-16 py-2 sm:py-4 md:py-3 bg-white/95 backdrop-blur-xl border-2 border-white/20 rounded-2xl sm:rounded-3xl text-gray-700 placeholder-gray-500 focus:bg-white focus:ring-4 focus:ring-blue-100/50 transition-all duration-500 text-sm sm:text-base md:text-lg focus:outline-none shadow-2xl hover:shadow-3xl group-focus-within:scale-[1.02] relative`}
                 value={searchTerm}

@@ -32,6 +32,7 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
   // Refs
   const observerRef = useRef(null);
   const searchTimeoutRef = useRef(null);
+  const categoryNavRef = useRef(null);
 
   // Categories - Optimized for performance
   const categories = useMemo(() => [
@@ -68,6 +69,21 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
       setSelectedCategory(initialCategory);
     }
   }, [initialCategory]);
+  const scrollToSelectedCategory = useCallback((categoryName) => {
+  if (!categoryNavRef.current) return;
+  
+  const categoryButton = categoryNavRef.current.querySelector(
+    `button[data-category="${categoryName.toLowerCase()}"]`
+  );
+  
+  if (categoryButton) {
+    categoryButton.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'center'
+    });
+  }
+}, []);
 
   // Simple Levenshtein distance function for fuzzy matching
   const levenshteinDistance = (str1, str2) => {
@@ -299,17 +315,26 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
   }, [performGlobalSearch]);
 
   // Handle suggestion click - Routes to category URL for category suggestions
-  const handleSuggestionClick = useCallback((suggestion) => {
-    if (suggestion.type === 'category') {
-      // Route to category URL
-      const categoryName = suggestion.value.toLowerCase();
-      window.location.href = `/?category=${categoryName}`;
-    } else {
-      // For title, tag, or other suggestions - perform global search
-      setSearchTerm(suggestion.value);
-      performGlobalSearch(suggestion.value);
-    }
-  }, [performGlobalSearch]);
+ const handleSuggestionClick = useCallback((suggestion) => {
+  if (suggestion.type === 'category') {
+    // Route to category URL and scroll to it
+    const categoryName = suggestion.value.toLowerCase();
+    setSelectedCategory(categoryName);
+    setSearchTerm(''); // Clear search when category changes
+    setIsSearchMode(false); // Exit search mode
+    setSearchResults([]);
+    setSearchQuery('');
+    
+    // Scroll to the selected category in the navigation
+    setTimeout(() => {
+      scrollToSelectedCategory(categoryName);
+    }, 100);
+  } else {
+    // For title, tag, or other suggestions - perform global search
+    setSearchTerm(suggestion.value);
+    performGlobalSearch(suggestion.value);
+  }
+}, [performGlobalSearch, scrollToSelectedCategory]);
 
   // Handle category selection
   const handleCategorySelect = useCallback((category) => {
@@ -488,26 +513,31 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
         <div className="space-y-3 px-1 sm:space-y-8">
           {/* Categories Navigation */}
           <nav aria-label="Wallpaper categories">
-            <div className="flex items-center justify-center">
-              <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide max-w-full" role="tablist">
-                {categories.map(category => (
-                  <button
-                    key={category.name}
-                    onClick={() => handleCategorySelect(category.name)}
-                    className={`flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2 sm:py-3 mt-1 ml-1 rounded-2xl sm:rounded-3xl font-semibold transition-all duration-200 whitespace-nowrap text-sm sm:text-base group ${
-                      selectedCategory === category.name.toLowerCase() || (selectedCategory === 'all' && category.name === 'All')
-                        ? ' bg-orange-500  text-white scale-105 ring-2 ring-orange-200'
-                        : 'bg-white/80 text-gray-700 hover:bg-white shadow-sm hover:scale-105 hover:shadow-lg'
-                    }`}
-                    role="tab"
-                    aria-selected={selectedCategory === category.name.toLowerCase() || (selectedCategory === 'all' && category.name === 'All')}
-                  >
-                    <span>{category.name}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </nav>
+  <div className="flex items-center justify-center">
+    <div 
+      ref={categoryNavRef}
+      className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide max-w-full scroll-smooth" 
+      role="tablist"
+    >
+      {categories.map(category => (
+        <button
+          key={category.name}
+          data-category={category.name.toLowerCase()}
+          onClick={() => handleCategorySelect(category.name)}
+          className={`flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2 sm:py-3 mt-1 ml-1 rounded-2xl sm:rounded-3xl font-semibold transition-all duration-200 whitespace-nowrap text-sm sm:text-base group ${
+            selectedCategory === category.name.toLowerCase() || (selectedCategory === 'all' && category.name === 'All')
+              ? ' bg-orange-500  text-white scale-105 ring-2 ring-orange-200'
+              : 'bg-white/80 text-gray-700 hover:bg-white shadow-sm hover:scale-105 hover:shadow-lg'
+          }`}
+          role="tab"
+          aria-selected={selectedCategory === category.name.toLowerCase() || (selectedCategory === 'all' && category.name === 'All')}
+        >
+          <span>{category.name}</span>
+        </button>
+      ))}
+    </div>
+  </div>
+</nav>
 
           {/* Search Results Header */}
          {isSearchMode && (
@@ -515,7 +545,7 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
     <div className="flex items-center justify-between gap-4">
       <div>
         <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
-          Search for : "{searchQuery}"
+          Searched for : "{searchQuery}"
         </h2>
         
       </div>
