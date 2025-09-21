@@ -515,7 +515,7 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
     <div className="flex items-center justify-between gap-4">
       <div>
         <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
-          Searched for : "{searchQuery}"
+          Search for : "{searchQuery}"
         </h2>
         
       </div>
