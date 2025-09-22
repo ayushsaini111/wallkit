@@ -189,18 +189,18 @@ const HeroSection = ({
   
   // Small delay to ensure keyboard is hidden before other actions
   setTimeout(() => {
-    onSuggestionClick?.(suggestion);
-    setShowSuggestions(false);
-    setSelectedSuggestionIndex(-1);
-    
-    // Smooth scroll to content area
-    setTimeout(() => {
-      const contentArea = document.querySelector('main');
-      if (contentArea) {
-        contentArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 100);
-  }, 100); // Small delay to ensure blur takes effect
+  const navbar = document.querySelector('nav');
+  const navbarHeight = navbar ? navbar.offsetHeight : 0;
+  
+  const contentArea = document.querySelector('main');
+  if (contentArea) {
+    const contentPosition = contentArea.getBoundingClientRect().top + window.pageYOffset;
+    window.scrollTo({
+      top: contentPosition - navbarHeight - 20,
+      behavior: 'smooth'
+    });
+  }
+}, 100); // Small delay to ensure blur takes effect
 }, [onSuggestionClick]);
 
   // Handle search submit - MOVED BEFORE handleKeyDown
@@ -216,10 +216,16 @@ const HeroSection = ({
       setSelectedSuggestionIndex(-1);
       
       // Smooth scroll to content area
+      const navbar = document.querySelector('nav');
+const navbarHeight = navbar ? navbar.offsetHeight : 0;
       const contentArea = document.querySelector('main');
-      if (contentArea) {
-        contentArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+if (contentArea) {
+  const contentPosition = contentArea.getBoundingClientRect().top + window.pageYOffset;
+  window.scrollTo({
+    top: contentPosition - navbarHeight - 20,
+    behavior: 'smooth'
+  });
+}
     }
   }, [searchTerm, onSearchSubmit]);
 

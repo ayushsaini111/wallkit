@@ -118,26 +118,43 @@ const Navbar = ({ onCategorySelect }) => {
   };
 
   // Handle category selection
-  const handleCategorySelect = (category) => {
-    console.log('Category selected in navbar:', category);
+ // Inside the handleCategorySelect function in the Navbar component:
+// Inside the handleCategorySelect function in the Navbar component:
+// Handle category selection
+const handleCategorySelect = (category) => {
+  console.log('Category selected in navbar:', category);
 
-    // Close all dropdowns
-    setIsCategoryDropdownOpen(false);
-    setIsMobileCategoryDropdownOpen(false);
-    setIsMobileMenuOpen(false);
+  // Close all dropdowns
+  setIsCategoryDropdownOpen(false);
+  setIsMobileCategoryDropdownOpen(false);
+  setIsMobileMenuOpen(false);
 
-    // If we're on the home page, directly select the category
-    if (pathname === '/') {
-      if (onCategorySelect) {
-        onCategorySelect(category.toLowerCase());
-      }
-    } else {
-      // If we're on another page, navigate to home with category parameter
-      const categoryParam = category.toLowerCase();
-      router.push(`/?category=${categoryParam}`);
+  // If we're on the home page, directly select the category
+  if (pathname === '/') {
+    if (onCategorySelect) {
+      onCategorySelect(category.toLowerCase());
+      
+      // Add this new code - scroll with navbar offset
+      setTimeout(() => {
+        const navbar = document.querySelector('nav');
+        const navbarHeight = navbar ? navbar.offsetHeight : 0;
+        
+        const categoriesNav = document.querySelector('nav[aria-label="Wallpaper categories"]');
+        if (categoriesNav) {
+          const navTop = categoriesNav.getBoundingClientRect().top + window.pageYOffset;
+          window.scrollTo({
+            top: navTop - navbarHeight - 20, // Navbar height plus padding
+            behavior: 'smooth'
+          });
+        }
+      }, 200);
     }
-  };
-
+  } else {
+    // If we're on another page, navigate to home with category parameter
+    const categoryParam = category.toLowerCase();
+    router.push(`/?category=${categoryParam}`);
+  }
+};
   // Handle logout click
   const handleLogoutClick = () => {
     setIsLogoutModalOpen(true);

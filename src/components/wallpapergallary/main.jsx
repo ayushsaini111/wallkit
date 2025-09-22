@@ -26,8 +26,7 @@ const MainPage = () => {
     <div className="min-h-screen">
       <Navbar onCategorySelect={handleCategorySelect} />
       <WallpaperGallery 
-        key={selectedCategory} 
-        initialCategory={selectedCategory}
+        initialCategory={selectedCategory}  // Remove the key prop
       />
     </div>
   );

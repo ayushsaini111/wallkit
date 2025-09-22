@@ -33,6 +33,7 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
   const observerRef = useRef(null);
   const searchTimeoutRef = useRef(null);
   const categoryNavRef = useRef(null);
+  const isInitialMount = useRef(true);
   
 
   // Categories - Optimized for performance
@@ -65,12 +66,8 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
   ], []);
 
   // Update selected category when initialCategory changes
-  useEffect(() => {
-    if (initialCategory !== selectedCategory) {
-      setSelectedCategory(initialCategory);
-    }
-  }, [initialCategory]);
- const scrollToSelectedCategory = useCallback((categoryName) => {
+  // Update selected category when initialCategory changes
+  const scrollToSelectedCategory = useCallback((categoryName) => {
   if (!categoryNavRef.current) return;
   
   const normalizedCategory = categoryName.toLowerCase() === 'all' ? 'all' : categoryName.toLowerCase();
@@ -101,6 +98,44 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
     }, 300);
   }
 }, []);
+// Update selected category when initialCategory changes
+useEffect(() => {
+  // Always update the category, even if it's the same
+  setSelectedCategory(initialCategory);
+  
+  // Clear search mode when category changes from navbar
+  setSearchTerm('');
+  setIsSearchMode(false);
+  setSearchResults([]);
+  setSearchQuery('');
+  
+  // Skip scrolling on initial mount/page load
+  if (isInitialMount.current) {
+    isInitialMount.current = false;
+    return;
+  }
+  
+  // Only scroll on subsequent category changes (not on initial load)
+  setTimeout(() => {
+    // Get navbar height dynamically
+    const navbar = document.querySelector('nav');
+    const navbarHeight = navbar ? navbar.offsetHeight : 0;
+    
+    // First scroll to the categories section
+    const categoriesNav = document.querySelector('nav[aria-label="Wallpaper categories"]');
+    if (categoriesNav) {
+      const navTop = categoriesNav.getBoundingClientRect().top + window.pageYOffset;
+      window.scrollTo({
+        top: navTop - navbarHeight - 20, // Navbar height plus 20px extra padding
+        behavior: 'smooth'
+      });
+    }
+    
+    // Then scroll to the specific category button
+    scrollToSelectedCategory(initialCategory);
+  }, 300); // Delay to ensure DOM is updated
+}, [initialCategory, scrollToSelectedCategory]);
+
 
   // Simple Levenshtein distance function for fuzzy matching
   const levenshteinDistance = (str1, str2) => {
@@ -380,12 +415,16 @@ const handleSuggestionClick = useCallback((suggestion) => {
   }, 100);
 }, [performGlobalSearch, scrollToSelectedCategory, setSelectedCategory, setSearchTerm, setIsSearchMode, setSearchResults, setSearchQuery]);
   // Handle category selection
- const handleCategorySelect = useCallback((category) => {
+const handleCategorySelect = useCallback((category) => {
   setSelectedCategory(category.toLowerCase());
-  setSearchTerm(''); // Clear search when category changes
-  setIsSearchMode(false); // Exit search mode
+  setSearchTerm('');
+  setIsSearchMode(false); 
   setSearchResults([]);
   setSearchQuery('');
+  
+  // Get navbar height dynamically
+  const navbar = document.querySelector('nav');
+  const navbarHeight = navbar ? navbar.offsetHeight : 0;
   
   // Scroll to categories section and highlight selected category
   setTimeout(() => {
@@ -393,7 +432,7 @@ const handleSuggestionClick = useCallback((suggestion) => {
     if (categoriesNav) {
       const navTop = categoriesNav.getBoundingClientRect().top + window.pageYOffset;
       window.scrollTo({
-        top: navTop - 100, // 100px offset from top
+        top: navTop - navbarHeight - 20, // Navbar height plus padding
         behavior: 'smooth'
       });
     }
@@ -617,7 +656,7 @@ const clearSearch = useCallback(() => {
 
 
 {isSearchMode && (
-  <div className="bg-white/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl py-3 sm:px-6 shadow-sm border border-gray-100 mx-1 sm:mx-0">
+  <div className="bg-white/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl py-3 px-2 sm:px-6 shadow-sm border border-gray-100 mx-1 sm:mx-0">
     <div className="flex items-center justify-between gap-4">
       <div>
         <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
