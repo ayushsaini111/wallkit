@@ -178,23 +178,79 @@ export const WallpaperModal = ({
   }, []);
 
   // Enhanced close function
-  const handleClose = useCallback((e) => {
-    e?.stopPropagation();
+ const handleClose = useCallback((e) => {
+  e?.stopPropagation();
 
-    setIsClosing(true);
+  setIsClosing(true);
 
-    setTimeout(() => {
-      if (typeof window !== 'undefined') {
-        const url = new URL(window.location);
-        url.searchParams.delete('wallpaper');
-        window.history.replaceState(null, '', url.toString());
-      }
+  // Immediately restore body scroll
+  document.body.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.width = '';
 
-      onClose();
-      document.body.style.overflow = 'unset';
-      setIsClosing(false);
-    }, 150);
-  }, [onClose]);
+  setTimeout(() => {
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location);
+      url.searchParams.delete('wallpaper');
+      window.history.replaceState(null, '', url.toString());
+    }
+
+    onClose();
+    setIsClosing(false);
+  }, 150);
+}, [onClose]);
+
+// Also update the useEffect for modal cleanup:
+useEffect(() => {
+  if (!showModal) return;
+
+  // Prevent body scroll when modal is open
+  document.body.style.overflow = 'hidden';
+  document.body.style.position = 'fixed';
+  document.body.style.width = '100%';
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      handleClose(e);
+    }
+  };
+
+  const handlePopState = (e) => {
+    e.preventDefault();
+    handleClose(e);
+  };
+
+  // Handle logo clicks and other navigation while modal is open
+  const handleGlobalClick = (e) => {
+    // Check if clicked element is a navigation link (logo, nav items)
+    const target = e.target.closest('a[href="/"]') || e.target.closest('a[href^="/"]');
+    if (target && target.getAttribute('href') !== window.location.pathname + window.location.search) {
+      // Navigation is happening, close modal
+      handleClose(e);
+    }
+  };
+
+  document.addEventListener('keydown', handleKeyDown);
+  window.addEventListener('popstate', handlePopState);
+  document.addEventListener('click', handleGlobalClick, true); // Use capture phase
+
+  window.history.pushState({ modalOpen: true }, '', window.location.href);
+
+  return () => {
+    document.removeEventListener('keydown', handleKeyDown);
+    window.removeEventListener('popstate', handlePopState);
+    document.removeEventListener('click', handleGlobalClick, true);
+    
+    // Restore body scroll
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+
+    if (window.history.state?.modalOpen) {
+      window.history.back();
+    }
+  };
+}, [showModal, handleClose]);
 
   // Update URL when modal opens
   useEffect(() => {

@@ -182,6 +182,13 @@ const HeroSection = ({
 
   // Handle suggestion click - MOVED BEFORE handleKeyDown
   const handleSuggestionClick = useCallback((suggestion) => {
+  // Hide mobile keyboard immediately when suggestion is clicked
+  if (searchRef.current && searchRef.current.blur) {
+    searchRef.current.blur();
+  }
+  
+  // Small delay to ensure keyboard is hidden before other actions
+  setTimeout(() => {
     onSuggestionClick?.(suggestion);
     setShowSuggestions(false);
     setSelectedSuggestionIndex(-1);
@@ -193,7 +200,8 @@ const HeroSection = ({
         contentArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }, 100);
-  }, [onSuggestionClick]);
+  }, 100); // Small delay to ensure blur takes effect
+}, [onSuggestionClick]);
 
   // Handle search submit - MOVED BEFORE handleKeyDown
   const handleSearchSubmit = useCallback(() => {

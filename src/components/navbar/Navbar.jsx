@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef ,useCallback} from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Avatar from '../Avatar';
 import NotificationDropdown from './notificaionDropDown';
@@ -37,6 +37,29 @@ const Navbar = ({ onCategorySelect }) => {
     'People', 'Architecture', 'Cars & Vehicles', 'Art & Illustration',
     '3D Renders', 'Typography', 'Dark', 'Light', 'Vintage', 'Sports', 'Other'
   ];
+  const handleLogoClick = useCallback((e) => {
+  // Close any open modals first
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('wallpaper')) {
+    e.preventDefault();
+    
+    // Close the modal by clearing the URL parameter
+    const url = new URL(window.location);
+    url.searchParams.delete('wallpaper');
+    window.history.replaceState(null, '', url.toString());
+    
+    // Restore body scroll
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    
+    // Navigate to home page after modal cleanup
+    setTimeout(() => {
+      router.push('/');
+    }, 100);
+  }
+  // If no modal is open, normal navigation will proceed
+}, [router])
 
   // Handle scroll effect
   useEffect(() => {
@@ -213,13 +236,17 @@ const Navbar = ({ onCategorySelect }) => {
           <div className="flex justify-between items-center h-14 sm:h-16 lg:h-20">
 
             {/* Logo Section */}
-            <Link href="/" className="flex items-center justify-center gap-2 group lg:flex-initial">
-              <div className="flex flex-col">
-                <h1 className="text-lg sm:text-xl lg:text-2xl font-black bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">
-                  WallPickr
-                </h1>
-              </div>
-            </Link>
+           <Link 
+  href="/" 
+  className="flex items-center justify-center gap-2 group lg:flex-initial"
+  onClick={handleLogoClick}
+>
+  <div className="flex flex-col">
+    <h1 className="text-lg sm:text-xl lg:text-2xl font-black bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">
+      WallPickr
+    </h1>
+  </div>
+</Link>
 
             {/* Desktop Navigation Links */}
             <div className={`hidden lg:flex items-center gap-2 xl:gap-3 rounded-xl p-1.5 transition-all duration-300 ${isScrolled
@@ -318,7 +345,7 @@ const Navbar = ({ onCategorySelect }) => {
       {/* Upload Button */}
       <Link
         href="/upload"
-        className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-2.5 rounded-lg md:rounded-xl font-semibold transition-all duration-200 hover:scale-95 text-xs sm:text-sm lg:text-base bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg"
+        className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-2.5 rounded-lg md:rounded-xl font-semibold transition-all duration-200 hover:scale-95 text-xs sm:text-sm lg:text-base bg-gradient-to-r from-green-500 to-green-600 text-white shadow-sm"
         aria-label="Upload wallpaper"
       >
         <Upload className="w-3  sm:w-4 lg:w-5 h-3 sm:h-4 lg:h-5" />
@@ -580,14 +607,14 @@ const Navbar = ({ onCategorySelect }) => {
                     <Heart className="w-4 sm:w-5 h-4 sm:h-5" />
                     <span className="font-medium text-sm sm:text-base">Favorites</span>
                   </Link>
-                  <Link
+                  {/* <Link
                     href="/collections"
                     className="flex items-center gap-3 p-3 sm:p-4 text-gray-800 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-300"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <Bookmark className="w-4 sm:w-5 h-4 sm:h-5" />
                     <span className="font-medium text-sm sm:text-base">Collections</span>
-                  </Link>
+                  </Link> */}
                   <Link
                     href="/settings"
                     className="flex items-center gap-3 p-3 sm:p-4 text-gray-800 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-300"

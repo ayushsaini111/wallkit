@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { WallpaperCard } from "@/components/wallpaperCard/WallpaperCard";
-import { Heart, RefreshCw, Sparkles, ArrowLeft } from "lucide-react";
+import { Heart, RefreshCw, Sparkles, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Loading from "@/components/loading";
 
@@ -202,11 +202,11 @@ export default function FavoritesPage() {
               </p>
               <button 
                 onClick={() => router.push('/')}
-                className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-full hover:from-gray-900 hover:to-black transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-3xl group"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-orange-500 to-pink-600 text-white rounded-full hover:from-orange-600 hover:to-pink-600 transition-all duration-200 transform hover:scale-95 shadow-sm hover:shadow-lg group"
               >
-                <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
                 <span className="font-semibold text-lg">Explore More Wallpapers</span>
-                <div className="w-6 h-6 border-2 border-white/60 border-l-0 border-b-0 transform rotate-45 group-hover:translate-x-1 transition-transform duration-300"></div>
+          <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform duration-300" />
+
               </button>
             </div>
           )}

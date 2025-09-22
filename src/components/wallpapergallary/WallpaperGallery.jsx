@@ -380,13 +380,28 @@ const handleSuggestionClick = useCallback((suggestion) => {
   }, 100);
 }, [performGlobalSearch, scrollToSelectedCategory, setSelectedCategory, setSearchTerm, setIsSearchMode, setSearchResults, setSearchQuery]);
   // Handle category selection
-  const handleCategorySelect = useCallback((category) => {
-    setSelectedCategory(category.toLowerCase());
-    setSearchTerm(''); // Clear search when category changes
-    setIsSearchMode(false); // Exit search mode
-    setSearchResults([]);
-    setSearchQuery('');
-  }, []);
+ const handleCategorySelect = useCallback((category) => {
+  setSelectedCategory(category.toLowerCase());
+  setSearchTerm(''); // Clear search when category changes
+  setIsSearchMode(false); // Exit search mode
+  setSearchResults([]);
+  setSearchQuery('');
+  
+  // Scroll to categories section and highlight selected category
+  setTimeout(() => {
+    const categoriesNav = document.querySelector('nav[aria-label="Wallpaper categories"]');
+    if (categoriesNav) {
+      const navTop = categoriesNav.getBoundingClientRect().top + window.pageYOffset;
+      window.scrollTo({
+        top: navTop - 100, // 100px offset from top
+        behavior: 'smooth'
+      });
+    }
+    
+    // Scroll to the selected category button within the nav
+    scrollToSelectedCategory(category.toLowerCase());
+  }, 100);
+}, [scrollToSelectedCategory]);
 
   // Clear search function
   // In WallpaperGallery component, update the clearSearch function:
@@ -588,7 +603,7 @@ const clearSearch = useCallback(() => {
           className={`flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2 sm:py-3 mt-1 ml-1 rounded-2xl sm:rounded-3xl font-semibold transition-all duration-200 whitespace-nowrap text-sm sm:text-base group ${
             selectedCategory === category.name.toLowerCase() || (selectedCategory === 'all' && category.name === 'All')
               ? ' bg-orange-500  text-white scale-105 ring-2 ring-orange-200'
-              : 'bg-white/80 text-gray-700 hover:bg-white shadow-sm hover:scale-105 hover:shadow-lg'
+              : 'bg-white/80 text-gray-700  shadow-sm hover:scale-105 hover:bg-gray-100'
           }`}
           role="tab"
           aria-selected={selectedCategory === category.name.toLowerCase() || (selectedCategory === 'all' && category.name === 'All')}
@@ -602,7 +617,7 @@ const clearSearch = useCallback(() => {
 
 
 {isSearchMode && (
-  <div className="bg-white/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm border border-gray-100 mx-1 sm:mx-0">
+  <div className="bg-white/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl py-3 sm:px-6 shadow-sm border border-gray-100 mx-1 sm:mx-0">
     <div className="flex items-center justify-between gap-4">
       <div>
         <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
@@ -638,7 +653,7 @@ const clearSearch = useCallback(() => {
               <LoadingSkeleton />
             ) : filteredWallpapers.length === 0 ? (
               <div className="text-center py-20 sm:py-24">
-                <div className="bg-white/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-12 sm:p-16 max-w-md sm:max-w-lg mx-auto shadow-2xl border border-gray-100 animate-scaleIn">
+                <div className="bg-white/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-12 sm:p-16 max-w-md sm:max-w-lg mx-auto border border-gray-100 animate-scaleIn">
                   <div className="text-6xl sm:text-8xl mb-4 sm:mb-6" aria-hidden="true">🔍</div>
                   <p className="text-gray-700 text-xl sm:text-2xl font-bold mb-2 sm:mb-3">
                     {isSearchMode ? `No results for "${searchQuery}"` : 'No wallpapers found'}
@@ -667,7 +682,7 @@ const clearSearch = useCallback(() => {
       scrollToSelectedCategory('all');
     }, 100);
   }}
-  className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-orange-500 to-pink-600 text-white rounded-xl sm:rounded-2xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-xl font-semibold text-base sm:text-lg hover-lift"
+  className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-orange-500 to-pink-600 text-white rounded-xl  hover:from-orange-600 hover:to-pink-600 transition-all duration-300 font-semibold text-base hover-lift sm:text-lg"
 >
   {isSearchMode ? 'Clear Search' : 'Clear Filters'}
 </button>
