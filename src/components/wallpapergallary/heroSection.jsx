@@ -189,18 +189,25 @@ const HeroSection = ({
   
   // Small delay to ensure keyboard is hidden before other actions
   setTimeout(() => {
-  const navbar = document.querySelector('nav');
-  const navbarHeight = navbar ? navbar.offsetHeight : 0;
-  
-  const contentArea = document.querySelector('main');
-  if (contentArea) {
-    const contentPosition = contentArea.getBoundingClientRect().top + window.pageYOffset;
-    window.scrollTo({
-      top: contentPosition - navbarHeight - 20,
-      behavior: 'smooth'
-    });
-  }
-}, 100); // Small delay to ensure blur takes effect
+    // This line is missing - it's critical for passing the selection to the parent
+    onSuggestionClick?.(suggestion);
+    
+    setShowSuggestions(false);
+    setSelectedSuggestionIndex(-1);
+    
+    // Scroll with navbar offset
+    const navbar = document.querySelector('nav');
+    const navbarHeight = navbar ? navbar.offsetHeight : 0;
+    
+    const contentArea = document.querySelector('main');
+    if (contentArea) {
+      const contentPosition = contentArea.getBoundingClientRect().top + window.pageYOffset;
+      window.scrollTo({
+        top: contentPosition - navbarHeight - 20,
+        behavior: 'smooth'
+      });
+    }
+  }, 100); // Small delay to ensure blur takes effect
 }, [onSuggestionClick]);
 
   // Handle search submit - MOVED BEFORE handleKeyDown
