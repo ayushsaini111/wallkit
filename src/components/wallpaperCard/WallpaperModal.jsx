@@ -527,7 +527,7 @@ useEffect(() => {
                         ) : (
                           <>
                             <Download className="w-4 h-4" />
-                            Free Download
+                            Download
                           </>
                         )}
                       </button>
@@ -771,7 +771,7 @@ useEffect(() => {
                       ) : (
                         <>
                           <Download className="w-6 h-6" />
-                          Free Download
+                          Download
                         </>
                       )}
                     </button>
