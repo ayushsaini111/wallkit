@@ -8,6 +8,83 @@ import { uploadImageToAppwrite } from '@/lib/appwrite/storage';
 import { uploadImageToCloudinary } from '@/lib/appwrite/storagetwo';
 import { compressImage } from '@/utils/compressImage';
 
+// Toast Component
+const Toast = ({ message, type, isVisible, onClose }) => {
+    useEffect(() => {
+        if (isVisible) {
+            const timer = setTimeout(() => {
+                onClose();
+            }, 4000);
+            return () => clearTimeout(timer);
+        }
+    }, [isVisible, onClose]);
+
+    if (!isVisible) return null;
+
+    const getToastStyles = () => {
+        switch (type) {
+            case 'success':
+                return 'bg-green-500 text-white';
+            case 'info':
+                return 'bg-blue-500 text-white';
+            case 'warning':
+                return 'bg-amber-500 text-white';
+            case 'error':
+                return 'bg-red-500 text-white';
+            default:
+                return 'bg-gray-500 text-white';
+        }
+    };
+
+    const getIcon = () => {
+        switch (type) {
+            case 'success':
+                return (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                );
+            case 'info':
+                return (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                );
+            case 'warning':
+                return (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                );
+            case 'error':
+                return (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                );
+            default:
+                return null;
+        }
+    };
+
+    return (
+        <div className="fixed bottom-4 right-4 z-50 max-w-md animate-slide-in">
+            <div className={`${getToastStyles()} px-6 py-4 rounded-lg shadow-lg flex items-center gap-3`}>
+                {getIcon()}
+                <span className="font-medium">{message}</span>
+                <button
+                    onClick={onClose}
+                    className="ml-auto hover:opacity-75 transition-opacity"
+                >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    );
+};
+
 const UploadWallpaper = () => {
     const { data: session } = useSession();
     const router = useRouter();
@@ -20,52 +97,48 @@ const UploadWallpaper = () => {
     const fileInputRef = useRef(null);
     const [showRemoveConfirm, setShowRemoveConfirm] = useState(null);
     const formSectionRef = useRef(null);
-    const [allUploadsComplete, setAllUploadsComplete] = useState(false);
-    const [redirectCountdown, setRedirectCountdown] = useState(3);
+    
+    // Toast state
+    const [toast, setToast] = useState({ message: '', type: '', isVisible: false });
+    
+    // Navigation state
+    const [isNavigating, setIsNavigating] = useState(false);
+    const [navigationCountdown, setNavigationCountdown] = useState(0);
 
     // Predefined categories
     const categories = [
-        'Nature',
-        'Abstract',
-        'Minimalist',
-        'Animals',
-        'Cityscape',
-        'Anime',
-        'Superheroes',
-        'Cartoon',
-        'Space',
-        'Technology',
-        'Fantasy',
-        'Textures & Patterns',
-        'Food & Drinks',
-        'People',
-        'Architecture',
-        'Cars & Vehicles',
-        'Art & Illustration',
-        '3D Renders',
-        'Typography',
-        'Dark',
-        'Light',
-        'Vintage',
-        'Sports',
-        'Other'
+        'Nature', 'Abstract', 'Minimalist', 'Animals', 'Cityscape', 'Anime',
+        'Superheroes', 'Cartoon', 'Space', 'Technology', 'Fantasy',
+        'Textures & Patterns', 'Food & Drinks', 'People', 'Architecture',
+        'Cars & Vehicles', 'Art & Illustration', '3D Renders', 'Typography',
+        'Dark', 'Light', 'Vintage', 'Sports', 'Other'
     ];
 
-    // Handle countdown and redirect
+    // Show toast function
+    const showToast = (message, type) => {
+        setToast({ message, type, isVisible: true });
+    };
+
+    // Hide toast function
+    const hideToast = () => {
+        setToast(prev => ({ ...prev, isVisible: false }));
+    };
+
+    // Navigation countdown effect
     useEffect(() => {
         let interval;
-        if (allUploadsComplete && redirectCountdown > 0) {
+        if (isNavigating && navigationCountdown > 0) {
             interval = setInterval(() => {
-                setRedirectCountdown(prev => prev - 1);
+                setNavigationCountdown(prev => prev - 1);
             }, 1000);
-        } else if (allUploadsComplete && redirectCountdown === 0) {
-            router.push(`/profile/${session.user.username}`);
+        } else if (isNavigating && navigationCountdown === 0) {
+            router.push(`/profile/${session?.user?.username || ''}`);
         }
 
         return () => {
             if (interval) clearInterval(interval);
         };
-    }, [allUploadsComplete, redirectCountdown, router]);
+    }, [isNavigating, navigationCountdown, router, session]);
 
     // Handle drag events
     const handleDrag = (e) => {
@@ -99,14 +172,12 @@ const UploadWallpaper = () => {
     // Process selected files
     const handleFiles = (files) => {
         const validFiles = Array.from(files).filter(file => {
-            // Check if file is an image
             if (!file.type.startsWith('image/')) {
-                alert(`${file.name} is not a valid image file`);
+                showToast(`${file.name} is not a valid image file`, 'error');
                 return false;
             }
-            // Check file size (max 50MB for wallpapers)
             if (file.size > 50 * 1024 * 1024) {
-                alert(`${file.name} is too large. Maximum size is 50MB`);
+                showToast(`${file.name} is too large. Maximum size is 50MB`, 'error');
                 return false;
             }
             return true;
@@ -121,7 +192,7 @@ const UploadWallpaper = () => {
                 size: file.size,
                 status: 'pending',
                 metadata: {
-                    title: file.name.split('.')[0], // Remove extension for default title
+                    title: file.name.split('.')[0],
                     description: '',
                     tags: [],
                     category: 'Other',
@@ -131,14 +202,14 @@ const UploadWallpaper = () => {
 
             setSelectedFiles(prev => [...filesWithPreview, ...prev]);
 
-            // Initialize tag inputs for new files
             const newTagInputs = {};
             filesWithPreview.forEach(file => {
                 newTagInputs[file.id] = '';
             });
             setCurrentTagInput(prev => ({ ...prev, ...newTagInputs }));
 
-            // Scroll to form section after files are added
+            showToast(`${validFiles.length} file${validFiles.length !== 1 ? 's' : ''} added successfully`, 'success');
+
             setTimeout(() => {
                 if (formSectionRef.current) {
                     formSectionRef.current.scrollIntoView({ 
@@ -155,13 +226,7 @@ const UploadWallpaper = () => {
         setSelectedFiles(prev =>
             prev.map(f =>
                 f.id === fileId
-                    ? {
-                        ...f,
-                        metadata: {
-                            ...f.metadata,
-                            [field]: value
-                        }
-                    }
+                    ? { ...f, metadata: { ...f.metadata, [field]: value } }
                     : f
             )
         );
@@ -172,7 +237,7 @@ const UploadWallpaper = () => {
         setCurrentTagInput(prev => ({ ...prev, [fileId]: value }));
     };
 
-    // Handle tag enter key and comma separation
+    // Handle tag key press
     const handleTagKeyPress = (e, fileId) => {
         if (e.key === 'Enter' || e.key === ',') {
             e.preventDefault();
@@ -180,7 +245,7 @@ const UploadWallpaper = () => {
         }
     };
 
-    // Handle tag blur (when user clicks away)
+    // Handle tag blur
     const handleTagBlur = (fileId) => {
         addTag(fileId);
     };
@@ -190,7 +255,6 @@ const UploadWallpaper = () => {
         const tagValue = currentTagInput[fileId]?.trim();
         if (tagValue) {
             const currentFile = selectedFiles.find(f => f.id === fileId);
-            // Split by comma and filter out empty strings
             const newTags = tagValue.split(',')
                 .map(tag => tag.trim())
                 .filter(tag => tag.length > 0 && !currentFile.metadata.tags.includes(tag));
@@ -209,7 +273,7 @@ const UploadWallpaper = () => {
         updateFileMetadata(fileId, 'tags', updatedTags);
     };
 
-    // Confirm remove file (show popup)
+    // Confirm remove file
     const confirmRemoveFile = (fileId) => {
         setShowRemoveConfirm(fileId);
     };
@@ -223,7 +287,6 @@ const UploadWallpaper = () => {
     const removeFile = (fileId) => {
         setSelectedFiles(prev => {
             const updatedFiles = prev.filter(f => f.id !== fileId);
-            // Cleanup object URL to prevent memory leaks
             const fileToRemove = prev.find(f => f.id === fileId);
             if (fileToRemove?.preview) {
                 URL.revokeObjectURL(fileToRemove.preview);
@@ -231,45 +294,35 @@ const UploadWallpaper = () => {
             return updatedFiles;
         });
 
-        // Cleanup tag input
         setCurrentTagInput(prev => {
             const updated = { ...prev };
             delete updated[fileId];
             return updated;
         });
 
-        // Also remove from upload progress if exists
         setUploadProgress(prev => {
             const updated = { ...prev };
             delete updated[fileId];
             return updated;
         });
 
-        // Close confirmation popup
         setShowRemoveConfirm(null);
+        showToast('File removed successfully', 'info');
     };
 
     // Validate file data before upload
     const validateFileData = (fileData) => {
         const { title, description, category } = fileData.metadata;
 
-        if (!title.trim()) {
-            return 'Title is required';
-        }
-        if (title.trim().length < 3) {
-            return 'Title must be at least 3 characters long';
-        }
-        if (description.trim().length > 500) {
-            return 'Description must be less than 500 characters';
-        }
-        if (!category) {
-            return 'Category is required';
-        }
+        if (!title.trim()) return 'Title is required';
+        if (title.trim().length < 3) return 'Title must be at least 3 characters long';
+        if (description.trim().length > 500) return 'Description must be less than 500 characters';
+        if (!category) return 'Category is required';
 
         return null;
     };
 
-    // Upload files using existing logic
+    // Upload files with improved UX
     const uploadFiles = async () => {
         if (selectedFiles.length === 0) return;
 
@@ -283,18 +336,22 @@ const UploadWallpaper = () => {
         });
 
         if (validationErrors.length > 0) {
-            alert('Please fix the following errors:\n\n' + validationErrors.join('\n'));
+            showToast('Please fix validation errors before uploading', 'error');
             return;
         }
 
         setUploading(true);
 
-        // Run uploads simultaneously
-        const uploadPromises = selectedFiles.map(async (fileData) => {
-            if (fileData.status !== 'pending') return null;
+        let uploadedCount = 0;
+        const totalFiles = pendingFiles.length;
 
+        // Show initial upload toast
+        showToast(`Starting upload of ${totalFiles} file${totalFiles !== 1 ? 's' : ''}...`, 'info');
+
+        // Process files one by one for better UX
+        for (const fileData of pendingFiles) {
             try {
-                // Mark uploading
+                // Mark as uploading
                 setUploadProgress(prev => ({
                     ...prev,
                     [fileData.id]: { status: 'uploading', progress: 0 }
@@ -303,12 +360,12 @@ const UploadWallpaper = () => {
                     prev.map(f => f.id === fileData.id ? { ...f, status: 'uploading' } : f)
                 );
 
-                // 1️⃣ Compress first
+                // Compress and upload compressed version
                 const compressedFile = await compressImage(fileData.file, { quality: 0.1 });
                 const cloudinaryCompressedObj = await uploadImageToCloudinary(compressedFile);
                 const compressedUrl = cloudinaryCompressedObj.url;
 
-                // 2️⃣ Save compressed URL immediately to backend
+                // Save compressed URL to backend
                 const formData = new FormData();
                 formData.append('title', fileData.metadata.title);
                 formData.append('description', fileData.metadata.description);
@@ -330,8 +387,9 @@ const UploadWallpaper = () => {
                 }
 
                 const wallpaperId = savedData.wallpaper._id;
+                uploadedCount++;
 
-                // Mark success for user immediately
+                // Mark success immediately
                 setUploadProgress(prev => ({
                     ...prev,
                     [fileData.id]: { status: 'completed', progress: 100 }
@@ -344,7 +402,9 @@ const UploadWallpaper = () => {
                     )
                 );
 
-                // 3️⃣ Upload original in background
+                showToast(`${fileData.name} uploaded successfully! (${uploadedCount}/${totalFiles})`, 'success');
+
+                // Upload original in background (non-blocking)
                 (async () => {
                     try {
                         let uploadedObj = null;
@@ -371,14 +431,6 @@ const UploadWallpaper = () => {
                     }
                 })();
 
-                return {
-                    id: fileData.id,
-                    name: fileData.name,
-                    status: 'success',
-                    uploadedId: wallpaperId,
-                    url: compressedUrl
-                };
-
             } catch (error) {
                 console.error(`Error uploading ${fileData.name}:`, error);
 
@@ -390,34 +442,28 @@ const UploadWallpaper = () => {
                     prev.map(f => f.id === fileData.id ? { ...f, status: 'error' } : f)
                 );
 
-                return {
-                    id: fileData.id,
-                    name: fileData.name,
-                    status: 'error',
-                    error: error.message
-                };
+                showToast(`Failed to upload ${fileData.name}`, 'error');
             }
-        });
+        }
 
-        // Wait for all uploads (run in parallel)
-        const results = await Promise.all(uploadPromises);
-        setUploadResults(results.filter(Boolean));
         setUploading(false);
 
-        // Check if all uploads were successful
-        const successfulUploads = results.filter(result => result && result.status === 'success');
-        if (successfulUploads.length > 0 && successfulUploads.length === pendingFiles.length) {
-            // Clear the form after successful upload
+        // If all uploads successful, navigate to profile
+        if (uploadedCount === totalFiles && uploadedCount > 0) {
+            showToast(`${totalFiles} wallpaper${totalFiles !== 1 ? 's' : ''} uploaded successfully!`, 'success');
+            
+            // Start navigation countdown
             setTimeout(() => {
-                clearFiles();
-                setAllUploadsComplete(true);
-            }, 1000);
+                setIsNavigating(true);
+                setNavigationCountdown(3); // 3 seconds countdown
+            }, 1500); // Wait 1.5 seconds before showing navigation dialog
+        } else if (uploadedCount > 0) {
+            showToast(`${uploadedCount}/${totalFiles} files uploaded successfully`, 'warning');
         }
     };
 
     // Clear all files
     const clearFiles = () => {
-        // Cleanup object URLs
         selectedFiles.forEach(fileData => {
             if (fileData.preview) {
                 URL.revokeObjectURL(fileData.preview);
@@ -428,16 +474,20 @@ const UploadWallpaper = () => {
         setUploadProgress({});
         setUploadResults([]);
         setCurrentTagInput({});
+        showToast('All files cleared', 'info');
     };
 
-    // Start over (reset everything)
-    const startOver = () => {
-        clearFiles();
-        setAllUploadsComplete(false);
-        setRedirectCountdown(3);
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
+    // Navigate to profile manually
+    const navigateToProfile = () => {
+        setIsNavigating(true);
+        setNavigationCountdown(1);
+    };
+
+    // Cancel navigation
+    const cancelNavigation = () => {
+        setIsNavigating(false);
+        setNavigationCountdown(0);
+        showToast('Navigation cancelled', 'info');
     };
 
     // Format file size
@@ -496,6 +546,7 @@ const UploadWallpaper = () => {
 
     // Count pending uploads
     const pendingCount = selectedFiles.filter(f => f.status === 'pending').length;
+    const completedCount = selectedFiles.filter(f => f.status === 'completed').length;
 
     // If not authenticated, show login prompt
     if (!session) {
@@ -512,7 +563,7 @@ const UploadWallpaper = () => {
                         className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 md:px-8 py-3 md:py-4 rounded-lg md:rounded-xl font-semibold transition-all duration-300 inline-flex items-center gap-2 md:gap-3 transform hover:-translate-y-0.5 text-sm md:text-base"
                     >
                         <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013 3v1" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3v1" />
                         </svg>
                         Sign In to Continue
                     </a>
@@ -523,156 +574,181 @@ const UploadWallpaper = () => {
 
     return (
         <div className="min-h-screen pt-4 bg-gradient-to-br from-gray-50 via-white to-blue-50">
+            {/* Toast Component */}
+            <Toast 
+                message={toast.message} 
+                type={toast.type} 
+                isVisible={toast.isVisible} 
+                onClose={hideToast} 
+            />
+
+            {/* Navigation Overlay */}
+            {isNavigating && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-40">
+                    <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 text-center">
+                        <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                            <svg className="w-8 h-8 text-blue-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">Navigating to Profile</h3>
+                        <p className="text-gray-600 mb-6">
+                            Taking you to your profile in {navigationCountdown} second{navigationCountdown !== 1 ? 's' : ''}...
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => router.push(`/profile/${session?.user?.username || ''}`)}
+                                className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-200"
+                            >
+                                Go Now
+                            </button>
+                            <button
+                                onClick={cancelNavigation}
+                                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-semibold transition-all duration-200"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="container mx-auto px-4 py-6 md:py-12">
                 <div className="max-w-7xl mx-auto">
-                    {/* Success Message with Redirect */}
-                    {allUploadsComplete && (
+                    {/* Success Summary - Show when files uploaded but not navigating */}
+                    {completedCount > 0 && !isNavigating && (
                         <div className="mb-8 md:mb-12">
-                            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg md:rounded-2xl p-8 text-center">
-                                <div className="w-16 h-16 mx-auto mb-4 bg-green-500 rounded-full flex items-center justify-center">
-                                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                </div>
-                                <h3 className="text-2xl md:text-3xl font-bold text-green-800 mb-4">
-                                    Successfully uploaded!
-                                </h3>
-                                <p className="text-green-700 mb-6 text-lg">
-                                    Your wallpapers have been successfully uploaded and are now available in your profile.
-                                </p>
-                                <div className="space-y-4">
-                                    <div className="text-green-600 text-sm">
-                                        Redirecting to your profile in {redirectCountdown} seconds...
-                                    </div>
-                                    <div className="flex flex-col sm:flex-row justify-center gap-3">
-                                        <button
-                                            onClick={() => router.push('/profile')}
-                                            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 inline-flex items-center justify-center gap-2"
-                                        >
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg md:rounded-2xl p-6 md:p-8">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                             </svg>
-                                            Go to Profile Now
-                                        </button>
-                                        <button
-                                            onClick={startOver}
-                                            className="bg-white hover:bg-gray-50 text-green-600 border border-green-200 px-6 py-3 rounded-lg font-semibold transition-all duration-300 inline-flex items-center justify-center gap-2"
-                                        >
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                            </svg>
-                                            Upload More
-                                        </button>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl md:text-2xl font-bold text-green-800">
+                                                {completedCount} wallpaper{completedCount !== 1 ? 's' : ''} uploaded successfully!
+                                            </h3>
+                                            <p className="text-green-700">
+                                                Your wallpapers are now available in your profile
+                                            </p>
+                                        </div>
                                     </div>
+                                    <button
+                                        onClick={navigateToProfile}
+                                        className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 inline-flex items-center gap-2"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                        View Profile
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     )}
 
                     {/* Enhanced Header */}
-                    {!allUploadsComplete && (
-                        <div className="text-center mb-8 md:mb-16">
-                            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-4 md:mb-6 leading-tight">
-                                <span className="bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 bg-clip-text text-transparent">
-                                    Upload Your Vision
-                                </span>
-                            </h1>
-                            <p className="text-sm leading-tight text-center md:text-xl text-gray-600 max-w-2xl mx-auto px-4">
-                                Transform spaces and inspire others by uploading your stunning wallpapers.
-                                Join our creative community and help others discover the perfect backdrop for their digital world.
-                            </p>
-                        </div>
-                    )}
+                    <div className="text-center mb-8 md:mb-16">
+                        <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-4 md:mb-6 leading-tight">
+                            <span className="bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 bg-clip-text text-transparent">
+                                Upload Your Vision
+                            </span>
+                        </h1>
+                        <p className="text-sm leading-tight text-center md:text-xl text-gray-600 max-w-2xl mx-auto px-4">
+                            Transform spaces and inspire others by uploading your stunning wallpapers.
+                            Join our creative community and help others discover the perfect backdrop for their digital world.
+                        </p>
+                    </div>
 
                     {/* Enhanced Upload Area */}
-                    {!allUploadsComplete && (
-                        <div className="mb-8 md:mb-12">
-                            <div
-                                className={`relative border-2 border-dashed rounded-lg md:rounded-3xl p-8 md:p-16 text-center transition-all duration-300 ${dragActive
-                                    ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 scale-[1.01] md:scale-[1.02]'
-                                    : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50/50'
-                                    }`}
-                                onDragEnter={handleDrag}
-                                onDragLeave={handleDrag}
-                                onDragOver={handleDrag}
-                                onDrop={handleDrop}
-                            >
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    multiple
-                                    accept="image/*"
-                                    onChange={handleFileSelect}
-                                    className="hidden"
-                                />
+                    <div className="mb-8 md:mb-12">
+                        <div
+                            className={`relative border-2 border-dashed rounded-lg md:rounded-3xl p-8 md:p-16 text-center transition-all duration-300 ${dragActive
+                                ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50'
+                                : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50/50'
+                                }`}
+                            onDragEnter={handleDrag}
+                            onDragLeave={handleDrag}
+                            onDragOver={handleDrag}
+                            onDrop={handleDrop}
+                        >
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                onChange={handleFileSelect}
+                                className="hidden"
+                            />
 
-                                <div className="space-y-4 md:space-y-8">
-                                    <div className={`text-5xl md:text-8xl transition-all duration-300 ${dragActive ? 'scale-110 md:scale-125' : ''}`}>
-                                        {dragActive ? '🎯' : '🖼️'}
-                                    </div>
-                                    <div>
-                                        <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2 md:mb-4">
-                                            {dragActive ? 'Drop your masterpieces here!' : 'Upload Your Wallpapers'}
-                                        </h3>
-                                        <p className="text-gray-600 mb-4 md:mb-8 text-sm md:text-lg">
-                                            Drag and drop your images here, or click to browse your collection
-                                        </p>
-                                        <button
-                                            type="button"
-                                            onClick={() => fileInputRef.current?.click()}
-                                            disabled={uploading}
-                                            className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white px-6 md:px-10 py-3 md:py-4 rounded-lg md:rounded-xl font-semibold transition-all duration-300 inline-flex items-center gap-2 md:gap-3 transform hover:-translate-y-0.5 disabled:transform-none text-sm md:text-lg"
-                                        >
-                                            <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            <div className="space-y-4 md:space-y-8">
+                                <div className={`text-5xl md:text-8xl transition-all duration-300 ${dragActive ? 'scale-110 md:scale-125' : ''}`}>
+                                    {dragActive ? '🎯' : '🖼️'}
+                                </div>
+                                <div>
+                                    <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2 md:mb-4">
+                                        {dragActive ? 'Drop your masterpieces here!' : 'Upload Your Wallpapers'}
+                                    </h3>
+                                    <p className="text-gray-600 mb-4 md:mb-8 text-sm md:text-lg">
+                                        Drag and drop your images here, or click to browse your collection
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={uploading}
+                                        className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white px-6 md:px-10 py-3 md:py-4 rounded-lg md:rounded-xl font-semibold transition-all duration-300 inline-flex items-center gap-2 md:gap-3 transform hover:-translate-y-0.5 disabled:transform-none text-sm md:text-lg"
+                                    >
+                                        <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                        </svg>
+                                        Browse Files
+                                    </button>
+                                </div>
+
+                                {/* Feature highlights - responsive grid */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 text-xs md:text-sm text-gray-500 max-w-3xl mx-auto">
+                                    <div className="flex items-center gap-2 md:gap-3">
+                                        <div className="w-8 h-8 md:w-10 md:h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 flex-shrink-0">
+                                            <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                             </svg>
-                                            Browse Files
-                                        </button>
+                                        </div>
+                                        <div className="text-left">
+                                            <div className="font-medium text-gray-700 text-sm">Multiple Formats</div>
+                                            <div className="text-xs">JPG, PNG, WebP, GIF</div>
+                                        </div>
                                     </div>
-
-                                    {/* Feature highlights - responsive grid */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 text-xs md:text-sm text-gray-500 max-w-3xl mx-auto">
-                                        <div className="flex items-center gap-2 md:gap-3">
-                                            <div className="w-8 h-8 md:w-10 md:h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 flex-shrink-0">
-                                                <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                </svg>
-                                            </div>
-                                            <div className="text-left">
-                                                <div className="font-medium text-gray-700 text-sm">Multiple Formats</div>
-                                                <div className="text-xs">JPG, PNG, WebP, GIF</div>
-                                            </div>
+                                    <div className="flex items-center gap-2 md:gap-3">
+                                        <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 flex-shrink-0">
+                                            <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
                                         </div>
-                                        <div className="flex items-center gap-2 md:gap-3">
-                                            <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 flex-shrink-0">
-                                                <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                </svg>
-                                            </div>
-                                            <div className="text-left">
-                                                <div className="font-medium text-gray-700 text-sm">Large Files</div>
-                                                <div className="text-xs">Up to 50MB each</div>
-                                            </div>
+                                        <div className="text-left">
+                                            <div className="font-medium text-gray-700 text-sm">Large Files</div>
+                                            <div className="text-xs">Up to 50MB each</div>
                                         </div>
-                                        <div className="flex items-center gap-2 md:gap-3 sm:col-span-2 md:col-span-1">
-                                            <div className="w-8 h-8 md:w-10 md:h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 flex-shrink-0">
-                                                <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1a1 1 0 011-1h2a1 1 0 011 1v18a1 1 0 01-1-1H4a1 1 0 01-1-1V4a1 1 0 011-1h2a1 1 0 011 1v3" />
-                                                </svg>
-                                            </div>
-                                            <div className="text-left">
-                                                <div className="font-medium text-gray-700 text-sm">High Quality</div>
-                                                <div className="text-xs">1920×1080+ recommended</div>
-                                            </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 md:gap-3 sm:col-span-2 md:col-span-1">
+                                        <div className="w-8 h-8 md:w-10 md:h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 flex-shrink-0">
+                                            <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1a1 1 0 011-1h2a1 1 0 011 1v18a1 1 0 01-1-1H4a1 1 0 01-1-1V4a1 1 0 011-1h2a1 1 0 011 1v3" />
+                                            </svg>
+                                        </div>
+                                        <div className="text-left">
+                                            <div className="font-medium text-gray-700 text-sm">High Quality</div>
+                                            <div className="text-xs">1920×1080+ recommended</div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    )}
+                    </div>
 
                     {/* Selected Files - Responsive Layout */}
-                    {selectedFiles.length > 0 && !allUploadsComplete && (
+                    {selectedFiles.length > 0 && (
                         <div ref={formSectionRef} className="mb-8 md:mb-12">
                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 md:mb-8">
                                 <div className="flex flex-wrap items-center gap-2 md:gap-4">
@@ -685,6 +761,11 @@ const UploadWallpaper = () => {
                                     {pendingCount > 0 && (
                                         <div className="bg-amber-100 text-amber-800 px-3 md:px-4 py-1 md:py-2 rounded-full text-xs md:text-sm font-semibold">
                                             {pendingCount} pending
+                                        </div>
+                                    )}
+                                    {completedCount > 0 && (
+                                        <div className="bg-green-100 text-green-800 px-3 md:px-4 py-1 md:py-2 rounded-full text-xs md:text-sm font-semibold">
+                                            {completedCount} uploaded
                                         </div>
                                     )}
                                 </div>
@@ -700,7 +781,7 @@ const UploadWallpaper = () => {
                                                 src={fileData.preview}
                                                 alt={fileData.name}
                                                 fill
-                                                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                                className={`object-cover transition-transform duration-500 ${fileData.status !== 'uploading' ? 'group-hover:scale-105' : ''}`}
                                                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                                                 priority
                                             />
@@ -711,7 +792,7 @@ const UploadWallpaper = () => {
                                                     <div className="text-white text-center px-4">
                                                         <div className="animate-spin rounded-full h-8 w-8 md:h-12 md:w-12 border-t-2 border-b-2 md:border-t-3 md:border-b-3 border-white mx-auto mb-2 md:mb-4"></div>
                                                         <p className="text-sm md:text-lg font-semibold">Uploading...</p>
-                                                        <p className="text-xs md:text-sm opacity-90">This might take a moment</p>
+                                                        <p className="text-xs md:text-sm opacity-90">Processing your wallpaper</p>
                                                     </div>
                                                 </div>
                                             )}
@@ -868,7 +949,7 @@ const UploadWallpaper = () => {
                                                 {fileData.status === 'uploading' && (
                                                     <div className="space-y-2">
                                                         <div className="flex justify-between text-sm">
-                                                            <span className="text-blue-600 font-medium">Uploading...</span>
+                                                            <span className="text-blue-600 font-medium">Processing...</span>
                                                             <span className="text-gray-500">Please wait</span>
                                                         </div>
                                                         <div className="w-full bg-gray-200 rounded-full h-2 md:h-3 overflow-hidden">
@@ -896,7 +977,7 @@ const UploadWallpaper = () => {
                                                             <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                             </svg>
-                                                            Upload failed
+                                                            Upload failed - try again
                                                         </div>
                                                     </div>
                                                 )}
@@ -938,7 +1019,7 @@ const UploadWallpaper = () => {
                                             <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                             </svg>
-                                            {pendingCount === 1 ? 'Upload Wallpaper' : `Upload All`}
+                                            {pendingCount === 1 ? 'Upload Wallpaper' : `Upload All (${pendingCount})`}
                                         </>
                                     )}
                                 </button>
@@ -950,81 +1031,79 @@ const UploadWallpaper = () => {
                                     <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                     </svg>
-                                    <span className="hidden sm:inline">{pendingCount === 1 ? 'Remove wallpaper' : `Remove all wallpapers`}</span>
-                                    <span className="sm:hidden">Remove All</span>
+                                    <span className="hidden sm:inline">Clear All Files</span>
+                                    <span className="sm:hidden">Clear All</span>
                                 </button>
                             </div>
                         </div>
                     )}
 
                     {/* Enhanced Tips Section - Mobile responsive */}
-                    {!allUploadsComplete && (
-                        <div className="bg-white rounded-lg md:rounded-2xl border border-gray-100 p-4 md:p-8">
-                            <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
-                                <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg md:rounded-xl flex items-center justify-center text-white text-xl md:text-2xl">
-                                    💡
-                                </div>
-                                <h3 className="text-xl md:text-2xl font-bold text-gray-900">
-                                    Pro Tips for Amazing Uploads
-                                </h3>
+                    <div className="bg-white rounded-lg md:rounded-2xl border border-gray-100 p-4 md:p-8">
+                        <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
+                            <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg md:rounded-xl flex items-center justify-center text-white text-xl md:text-2xl">
+                                💡
                             </div>
+                            <h3 className="text-xl md:text-2xl font-bold text-gray-900">
+                                Pro Tips for Amazing Uploads
+                            </h3>
+                        </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 mb-6 md:mb-8">
-                                <div className="text-center p-4 md:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg md:rounded-xl border border-blue-100">
-                                    <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl md:text-2xl mx-auto mb-3 md:mb-4">
-                                        📸
-                                    </div>
-                                    <h4 className="font-bold text-gray-900 mb-2 md:mb-3 text-sm md:text-base">Perfect Quality</h4>
-                                    <div className="text-xs md:text-sm text-gray-600 space-y-1 md:space-y-2">
-                                        <p>• High resolution (1920×1080+)</p>
-                                        <p>• Sharp and clear details</p>
-                                        <p>• Proper aspect ratios</p>
-                                    </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 mb-6 md:mb-8">
+                            <div className="text-center p-4 md:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg md:rounded-xl border border-blue-100">
+                                <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl md:text-2xl mx-auto mb-3 md:mb-4">
+                                    📸
                                 </div>
-
-                                <div className="text-center p-4 md:p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg md:rounded-xl border border-green-100">
-                                    <div className="w-12 h-12 md:w-16 md:h-16 bg-green-500 rounded-full flex items-center justify-center text-white text-xl md:text-2xl mx-auto mb-3 md:mb-4">
-                                        🏷️
-                                    </div>
-                                    <h4 className="font-bold text-gray-900 mb-2 md:mb-3 text-sm md:text-base">Smart Tagging</h4>
-                                    <div className="text-xs md:text-sm text-gray-600 space-y-1 md:space-y-2">
-                                        <p>• Use descriptive keywords</p>
-                                        <p>• Include colors and moods</p>
-                                        <p>• Think like a searcher</p>
-                                    </div>
-                                </div>
-
-                                <div className="text-center p-4 md:p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg md:rounded-xl border border-purple-100">
-                                    <div className="w-12 h-12 md:w-16 md:h-16 bg-purple-500 rounded-full flex items-center justify-center text-white text-xl md:text-2xl mx-auto mb-3 md:mb-4">
-                                        ⚡
-                                    </div>
-                                    <h4 className="font-bold text-gray-900 mb-2 md:mb-3 text-sm md:text-base">Quick Upload</h4>
-                                    <div className="text-xs md:text-sm text-gray-600 space-y-1 md:space-y-2">
-                                        <p>• Drag & drop multiple files</p>
-                                        <p>• Fill all required fields</p>
-                                        <p>• Use JPG for faster uploads</p>
-                                    </div>
+                                <h4 className="font-bold text-gray-900 mb-2 md:mb-3 text-sm md:text-base">Perfect Quality</h4>
+                                <div className="text-xs md:text-sm text-gray-600 space-y-1 md:space-y-2">
+                                    <p>• High resolution (1920×1080+)</p>
+                                    <p>• Sharp and clear details</p>
+                                    <p>• Proper aspect ratios</p>
                                 </div>
                             </div>
 
-                            <div className="p-4 md:p-6 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg md:rounded-xl border border-amber-200">
-                                <div className="flex items-start gap-3 md:gap-4">
-                                    <div className="w-8 h-8 md:w-10 md:h-10 bg-amber-500 rounded-full flex items-center justify-center text-white flex-shrink-0">
-                                        <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-amber-900 mb-1 md:mb-2 text-sm md:text-lg">Remember</p>
-                                        <p className="text-amber-800 leading-relaxed text-xs md:text-sm">
-                                            Quality wallpapers with great titles, proper categories, and relevant tags get discovered more often!
-                                            Take a moment to fill out all the details - it helps the community find exactly what they're looking for.
-                                        </p>
-                                    </div>
+                            <div className="text-center p-4 md:p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg md:rounded-xl border border-green-100">
+                                <div className="w-12 h-12 md:w-16 md:h-16 bg-green-500 rounded-full flex items-center justify-center text-white text-xl md:text-2xl mx-auto mb-3 md:mb-4">
+                                    🏷️
+                                </div>
+                                <h4 className="font-bold text-gray-900 mb-2 md:mb-3 text-sm md:text-base">Smart Tagging</h4>
+                                <div className="text-xs md:text-sm text-gray-600 space-y-1 md:space-y-2">
+                                    <p>• Use descriptive keywords</p>
+                                    <p>• Include colors and moods</p>
+                                    <p>• Think like a searcher</p>
+                                </div>
+                            </div>
+
+                            <div className="text-center p-4 md:p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg md:rounded-xl border border-purple-100">
+                                <div className="w-12 h-12 md:w-16 md:h-16 bg-purple-500 rounded-full flex items-center justify-center text-white text-xl md:text-2xl mx-auto mb-3 md:mb-4">
+                                    ⚡
+                                </div>
+                                <h4 className="font-bold text-gray-900 mb-2 md:mb-3 text-sm md:text-base">Quick Upload</h4>
+                                <div className="text-xs md:text-sm text-gray-600 space-y-1 md:space-y-2">
+                                    <p>• Drag & drop multiple files</p>
+                                    <p>• Fill all required fields</p>
+                                    <p>• Use JPG for faster uploads</p>
                                 </div>
                             </div>
                         </div>
-                    )}
+
+                        <div className="p-4 md:p-6 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg md:rounded-xl border border-amber-200">
+                            <div className="flex items-start gap-3 md:gap-4">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-amber-500 rounded-full flex items-center justify-center text-white flex-shrink-0">
+                                    <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p className="font-bold text-amber-900 mb-1 md:mb-2 text-sm md:text-lg">Remember</p>
+                                    <p className="text-amber-800 leading-relaxed text-xs md:text-sm">
+                                        Quality wallpapers with great titles, proper categories, and relevant tags get discovered more often!
+                                        Take a moment to fill out all the details - it helps the community find exactly what they're looking for.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     {/* Remove Confirmation Popup */}
                     {showRemoveConfirm && (
@@ -1060,9 +1139,25 @@ const UploadWallpaper = () => {
                     )}
                 </div>
             </div>
+
+            <style jsx>{`
+                @keyframes slide-in {
+                    from {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+                
+                .animate-slide-in {
+                    animation: slide-in 0.3s ease-out;
+                }
+            `}</style>
         </div>
     );
-
 };
 
 export default UploadWallpaper;
