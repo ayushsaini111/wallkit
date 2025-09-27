@@ -100,8 +100,10 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
 }, []);
 // Update selected category when initialCategory changes
 useEffect(() => {
-  // Always update the category, even if it's the same
-  setSelectedCategory(initialCategory);
+  console.log('initialCategory changed to:', initialCategory);
+  
+  // Always update the category - this is crucial for external navigation
+  setSelectedCategory(initialCategory.toLowerCase());
   
   // Clear search mode when category changes from navbar
   setSearchTerm('');
@@ -126,15 +128,14 @@ useEffect(() => {
     if (categoriesNav) {
       const navTop = categoriesNav.getBoundingClientRect().top + window.pageYOffset;
       window.scrollTo({
-        top: navTop - navbarHeight - 20, // Navbar height plus 20px extra padding
+        top: navTop - navbarHeight - 20,
         behavior: 'smooth'
       });
     }
     
-    // Then scroll to the specific category button
     scrollToSelectedCategory(initialCategory);
-  }, 300); // Delay to ensure DOM is updated
-}, [initialCategory, scrollToSelectedCategory]);
+  }, 300);
+}, [initialCategory]);
 
 
   // Simple Levenshtein distance function for fuzzy matching
@@ -517,44 +518,50 @@ const clearSearch = useCallback(() => {
   }, [hasMore, loading, loadingMore, loadMoreWallpapers, isSearchMode]);
 
   // Initial fetch wallpapers with error handling - Reset when category changes
-  useEffect(() => {
-    const getWallpapers = async () => {
-      if (isSearchMode) return; // Don't fetch when in search mode
+useEffect(() => {
+  const getWallpapers = async () => {
+    if (isSearchMode) return;
+    
+    try {
+      setLoading(true);
+      setPage(1);
+      setWallpapers([]);
+      setHasMore(true);
+      setError(null);
       
-      try {
-        setLoading(true);
-        setPage(1);
-        setWallpapers([]);
-        setHasMore(true);
-        setError(null);
-        
-        const endpoint = selectedCategory === 'all' || selectedCategory === 'All'
-          ? '/api/wallpapers'
-          : `/api/wallpapers/category?name=${selectedCategory}`;
-        
-        console.log('Fetching from endpoint:', endpoint);
-        const res = await fetch(endpoint);
-        
-        if (res.status === 401) {
-          console.log('User not authenticated - some features may be limited');
-        }
-        
-        const data = await res.json();
-        const fetched = data.wallpapers || [];
-        console.log("Fetched wallpapers for category:", selectedCategory, fetched.length);
-        
-        setWallpapers(fetched);
-        setHasMore(fetched.length === 20);
-      } catch (err) {
-        console.error('Error loading wallpapers:', err);
-        setError('Failed to load wallpapers. Please try again.');
-      } finally {
-        setLoading(false);
+      const endpoint = selectedCategory === 'all' || selectedCategory === 'All'
+        ? '/api/wallpapers'
+        : `/api/wallpapers/category?name=${selectedCategory}`;
+      
+      // console.log('Fetching wallpapers for category:', selectedCategory, 'from:', endpoint);
+      const res = await fetch(endpoint);
+      
+      if (res.status === 401) {
+        console.log('User not authenticated - some features may be limited');
       }
-    };
+      
+      const data = await res.json();
+      const fetched = data.wallpapers || [];
+      // console.log("Successfully fetched wallpapers for category:", selectedCategory, "count:", fetched.length);
+      
+      setWallpapers(fetched);
+      setHasMore(fetched.length === 20);
+    } catch (err) {
+      // console.error('Error loading wallpapers:', err);
+      setError('Failed to load wallpapers. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // Add a small delay to ensure state has been updated
+  const timer = setTimeout(() => {
     getWallpapers();
-  }, [selectedCategory, isSearchMode]);
+  }, 50);
+
+  return () => clearTimeout(timer);
+}, [selectedCategory, isSearchMode]);// Make sure selectedCategory is in the dependency array
+
 
   // Filter wallpapers - Use search results when in search mode, otherwise use regular wallpapers
   const filteredWallpapers = useMemo(() => {
