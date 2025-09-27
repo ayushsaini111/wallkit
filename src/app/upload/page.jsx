@@ -595,20 +595,7 @@ const UploadWallpaper = () => {
                         <p className="text-gray-600 mb-6">
                             Taking you to your profile in {navigationCountdown} second{navigationCountdown !== 1 ? 's' : ''}...
                         </p>
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => router.push(`/profile/${session?.user?.username || ''}`)}
-                                className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-200"
-                            >
-                                Go Now
-                            </button>
-                            <button
-                                onClick={cancelNavigation}
-                                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-semibold transition-all duration-200"
-                            >
-                                Cancel
-                            </button>
-                        </div>
+                    
                     </div>
                 </div>
             )}
