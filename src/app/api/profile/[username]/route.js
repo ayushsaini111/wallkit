@@ -99,6 +99,14 @@ export async function GET(request, context) {
         }
       },
       {
+  $lookup: {
+    from: 'follows',
+    localField: 'uploadedBy',
+    foreignField: 'following',
+    as: 'followers'
+  }
+},
+      {
         $lookup: {
           from: 'users',
           localField: 'uploadedBy',
@@ -116,25 +124,24 @@ export async function GET(request, context) {
         }
       },
       {
-        $project: {
-          _id: 1,
-          title: 1,
-          description: 1,
-          imageUrl: 1,
-          tags: 1,
-          category: 1,
-          createdAt: 1,
-          likeCount: 1,
-          viewCount: 1,
-          downloadCount: 1,
-          favoriteCount: 1,
-          userDetails: {
-            _id: '$userDetails._id',
-            username: '$userDetails.username',
-            avatar: '$userDetails.avatar'
-          }
-        }
-      }
+  $project: {
+    _id: 1,
+    title: 1,
+    description: 1,
+    imageUrl: 1,
+    compressedUrl: 1,
+    tags: 1,
+    createdAt: 1,
+    isPrivate: 1,
+    'userDetails.username': 1,
+    'userDetails.avatar': 1,
+    'userDetails._id': 1,
+    likeCount: { $size: '$likes' },
+    viewCount: { $size: '$views' },
+    downloadCount: { $size: '$downloads' },
+    followerCount: { $size: '$followers' } // ✅ Already included
+  },
+}
     ]);
 
     // Calculate totals

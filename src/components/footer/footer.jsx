@@ -51,7 +51,7 @@ export default function ModernFooter() {
           <div className="text-left">
             <h3 className="text-white font-semibold text-lg sm:text-xl mb-6">Company</h3>
             <ul className="flex flex-col items-start space-y-3 sm:space-y-4">
-              {["About Us", "Contact", "Support"].map((item) => (
+              {["About Us", "Support"].map((item) => (
                 <li key={item}>
                   <a
                     href="/about"
