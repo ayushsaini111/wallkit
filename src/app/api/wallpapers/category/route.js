@@ -15,52 +15,100 @@ export const GET = async (req) => {
       return NextResponse.json({ error: 'Category name is required' }, { status: 400 });
     }
 
-const wallpapers = await Wallpaper.aggregate([
-  // Match only if category param is provided, else match all
-  {
-    $match: {
+    const wallpapers = await Wallpaper.aggregate([
+      // Match wallpapers by category
+      {
+        $match: {
           category: { $regex: new RegExp(name, 'i') } // case-insensitive match
         }
-  },
-  // Populate user details using $lookup
-  {
-    $lookup: {
-      from: 'users', // collection name in MongoDB
-      localField: 'uploadedBy', // field in Wallpaper model
-      foreignField: '_id',
-      as: 'userDetails'
-    }
-  },
-  // Unwind the array to flatten user object
-  {
-    $unwind: '$userDetails'
-  },
-  // Optional: project only the fields you want
-  {
-   $project: {
+      },
+      
+      // Lookup user details
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'uploadedBy',
+          foreignField: '_id',
+          as: 'userDetails',
+        },
+      },
+      { $unwind: '$userDetails' },
+
+      // Lookup Likes
+      {
+        $lookup: {
+          from: 'likes',
+          localField: '_id',
+          foreignField: 'wallpaper',
+          as: 'likes'
+        }
+      },
+
+      // Lookup Views
+      {
+        $lookup: {
+          from: 'views',
+          localField: '_id',
+          foreignField: 'wallpaper',
+          as: 'views'
+        }
+      },
+
+      // Lookup Downloads
+      {
+        $lookup: {
+          from: 'downloads',
+          localField: '_id',
+          foreignField: 'wallpaper',
+          as: 'downloads'
+        }
+      },
+
+      // Lookup Followers of the uploader
+      {
+        $lookup: {
+          from: 'follows',
+          localField: 'uploadedBy',
+          foreignField: 'following',
+          as: 'followers'
+        }
+      },
+
+      // Final projection with counts (same as your first API)
+      {
+        $project: {
           _id: 1,
           title: 1,
+          description: 1,
           imageUrl: 1,
+          compressedUrl: 1,
           tags: 1,
           createdAt: 1,
+          isPrivate: 1,
           'userDetails.username': 1,
           'userDetails.avatar': 1,
-          'userDetails._id': 1, // Include user ID if needed
+          'userDetails._id': 1,
+          likeCount: { $size: '$likes' },
+          viewCount: { $size: '$views' },
+          downloadCount: { $size: '$downloads' },
+          followerCount: { $size: '$followers' }
         },
-  },
-  // Optional: sort by most recent
-  {
-    $sort: { createdAt: -1 }
-  }
-])
-
-
+      },
+      
+      // Sort by most recent
+      { $sort: { createdAt: -1 } },
+    ]);
 
     console.log('[CATEGORY] Aggregated wallpapers:', wallpapers);
-    return NextResponse.json({ wallpapers });
+    
+    // Return in the same format as your first API
+    return NextResponse.json({ success: true, wallpapers });
 
   } catch (error) {
     console.error('[CATEGORY] Error:', error);
-    return NextResponse.json({ error: 'Failed to fetch by category' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: error.message },
+      { status: 500 }
+    );
   }
 };

@@ -21,7 +21,7 @@ export const useToggleSave = (wallpaperId, onUnauthorizedAction, onWallpaperRemo
     if (sessionStatus === 'loading') return;
 
     const saved = StorageService.getSavedWallpapers();
-    console.log('[useToggleSave] init saved list for', wallpaperId, saved);
+    // console.log('[useToggleSave] init saved list for', wallpaperId, saved);
     setIsSaved(saved.includes(wallpaperId));
   }, [wallpaperId, sessionStatus]);
 
@@ -31,7 +31,7 @@ export const useToggleSave = (wallpaperId, onUnauthorizedAction, onWallpaperRemo
       const saved = StorageService.getSavedWallpapers();
       const nowSaved = saved.includes(wallpaperId);
       // debug
-      console.log('[useToggleSave] refreshFromStorage', wallpaperId, nowSaved);
+      // console.log('[useToggleSave] refreshFromStorage', wallpaperId, nowSaved);
       setIsSaved(nowSaved);
     };
 
