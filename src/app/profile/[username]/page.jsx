@@ -26,27 +26,26 @@ import { LoginPopup } from '@/components/loginpopup';
 import { FollowButton, FollowerCount, useFollow } from '@/components/FollowSystem';
 
 const CATEGORIES = [
-  'Nature',
   'Abstract',
-  'Minimalist',
   'Animals',
-  'Cityscape',
-  'Space',
-  'Technology',
-  'Fantasy',
-  'Textures & Patterns',
-  'Food & Drinks',
-  'People',
+  'Anime',
   'Architecture',
-  'Cars & Vehicles',
   'Art & Illustration',
-  '3D Renders',
-  'Typography',
-  'Dark',
-  'Light',
-  'Vintage',
+  'Cars & Vehicles',
+  'Cityscape',
+  'Food & Drinks',
+  'Minimalist',
+  'Nature',
+  'Other',
+  'People',
+  'Space',
   'Sports',
-  'Other'
+  'Superheroes',
+  'Technology',
+  'Textures & Patterns',
+  'Typography',
+  'Vintage',
+  'Cartoon'
 ];
 
 export default function ProfilePage() {

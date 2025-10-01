@@ -33,9 +33,9 @@ const Navbar = ({ onCategorySelect }) => {
   // Static categories list
   const categories = [
     'Nature', 'Abstract', 'Anime', 'Superheroes', 'Minimalist', 'Animals', 'Cityscape', 'Space',
-    'Technology', 'Fantasy', 'Textures & Patterns', 'Food & Drinks',
+    'Technology', 'Textures & Patterns', 'Food & Drinks',
     'People', 'Architecture', 'Cars & Vehicles', 'Art & Illustration',
-    '3D Renders', 'Typography', 'Dark', 'Light', 'Vintage', 'Sports', 'Other'
+    , 'Typography', 'Vintage', 'Sports', 'Other'
   ];
   const handleLogoClick = useCallback((e) => {
   // Close any open modals first

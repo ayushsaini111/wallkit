@@ -11,7 +11,7 @@ import { LoginPopup } from '../loginpopup';
 const WallpaperGallery = ({ initialCategory = 'all' }) => {
   // State management
   const [wallpapers, setWallpapers] = useState([]);
-  const [allWallpapers, setAllWallpapers] = useState([]); // Store all wallpapers for global search
+  const [allWallpapers, setAllWallpapers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
@@ -22,18 +22,24 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
   const [hasMore, setHasMore] = useState(true);
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const [loginActionType, setLoginActionType] = useState('general');
-  const [isSearchMode, setIsSearchMode] = useState(false); // Track if we're in search mode
-  const [searchResults, setSearchResults] = useState([]); // Store search results
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
   const [allWallpapersLoaded, setAllWallpapersLoaded] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(''); // Store the actual search query being displayed
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sessionRandomSeed] = useState(() => Math.random()); // Store random seed for the session
   
   const skeletonHeights = [240, 280, 320, 260, 300, 350, 270, 310, 290, 330, 250, 370];
+
+  // Constants
+  const INITIAL_LOAD_LIMIT = 100; // Load 100 wallpapers initially
+  const LOAD_MORE_LIMIT = 100; // Load 100 more each time
 
   // Refs
   const observerRef = useRef(null);
   const searchTimeoutRef = useRef(null);
   const categoryNavRef = useRef(null);
   const isInitialMount = useRef(true);
+  const loadedWallpaperIds = useRef(new Set()); // Track loaded wallpaper IDs
   
 
   // Categories - Optimized for performance
@@ -41,104 +47,89 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
     { name: 'All', icon: '🌟' },
     { name: 'Nature', icon: '🌿' },
     { name: 'Abstract', icon: '🎨' },
-    { name: 'Anime', icon: '🎨' },
+    { name: 'Cityscape', icon: '🏙️' },
     { name: 'Superheroes', icon: '🎨' },
+    { name: 'Anime', icon: '🎨' },
+    { name: 'Cars & Vehicles', icon: '🚗' },
     { name: 'Minimalist', icon: '⚪' },
     { name: 'Animals', icon: '🐾' },
-    { name: 'Cityscape', icon: '🏙️' },
     { name: 'Space', icon: '🚀' },
     { name: 'Technology', icon: '💻' },
-    { name: 'Fantasy', icon: '🪄' },
     { name: 'Textures & Patterns', icon: '🔳' },
     { name: 'Food & Drinks', icon: '🍔' },
     { name: 'People', icon: '🧑' },
     { name: 'Architecture', icon: '🏛️' },
-    { name: 'Cars & Vehicles', icon: '🚗' },
     { name: 'Art & Illustration', icon: '🖌️' },
-    { name: '3D Renders', icon: '🖥️' },
     { name: 'Typography', icon: '🔠' },
-    { name: 'Dark', icon: '🌙' },
-    { name: 'Light', icon: '☀️' },
     { name: 'Cartoon', icon: '☀️' },
     { name: 'Vintage', icon: '📻' },
     { name: 'Sports', icon: '🏅' },
     { name: 'Other', icon: '📦' }
   ], []);
 
-  // Update selected category when initialCategory changes
-  // Update selected category when initialCategory changes
+  // Scroll to selected category
   const scrollToSelectedCategory = useCallback((categoryName) => {
-  if (!categoryNavRef.current) return;
-  
-  const normalizedCategory = categoryName.toLowerCase() === 'all' ? 'all' : categoryName.toLowerCase();
-  const categoryButton = categoryNavRef.current.querySelector(
-    `button[data-category="${normalizedCategory}"]`
-  );
-  
-  if (categoryButton) {
-    // First ensure the nav is visible
-    const navTop = categoryNavRef.current.getBoundingClientRect().top;
-    if (navTop < 0 || navTop > window.innerHeight) {
-      categoryNavRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    if (!categoryNavRef.current) return;
     
-    // Then scroll the button into view within the nav
-    setTimeout(() => {
-      categoryButton.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'center'
-      });
+    const normalizedCategory = categoryName.toLowerCase() === 'all' ? 'all' : categoryName.toLowerCase();
+    const categoryButton = categoryNavRef.current.querySelector(
+      `button[data-category="${normalizedCategory}"]`
+    );
+    
+    if (categoryButton) {
+      const navTop = categoryNavRef.current.getBoundingClientRect().top;
+      if (navTop < 0 || navTop > window.innerHeight) {
+        categoryNavRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
       
-      // Add a visual highlight effect
-      categoryButton.classList.add('ring-4', 'ring-orange-300');
       setTimeout(() => {
-        categoryButton.classList.remove('ring-4', 'ring-orange-300');
-      }, 1000);
-    }, 300);
-  }
-}, []);
-// Update selected category when initialCategory changes
-useEffect(() => {
-  console.log('initialCategory changed to:', initialCategory);
-  
-  // Always update the category - this is crucial for external navigation
-  setSelectedCategory(initialCategory.toLowerCase());
-  
-  // Clear search mode when category changes from navbar
-  setSearchTerm('');
-  setIsSearchMode(false);
-  setSearchResults([]);
-  setSearchQuery('');
-  
-  // Skip scrolling on initial mount/page load
-  if (isInitialMount.current) {
-    isInitialMount.current = false;
-    return;
-  }
-  
-  // Only scroll on subsequent category changes (not on initial load)
-  setTimeout(() => {
-    // Get navbar height dynamically
-    const navbar = document.querySelector('nav');
-    const navbarHeight = navbar ? navbar.offsetHeight : 0;
+        categoryButton.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'center'
+        });
+        
+        categoryButton.classList.add('ring-4', 'ring-orange-300');
+        setTimeout(() => {
+          categoryButton.classList.remove('ring-4', 'ring-orange-300');
+        }, 1000);
+      }, 300);
+    }
+  }, []);
+
+  // Update selected category when initialCategory changes
+  useEffect(() => {
+    console.log('initialCategory changed to:', initialCategory);
     
-    // First scroll to the categories section
-    const categoriesNav = document.querySelector('nav[aria-label="Wallpaper categories"]');
-    if (categoriesNav) {
-      const navTop = categoriesNav.getBoundingClientRect().top + window.pageYOffset;
-      window.scrollTo({
-        top: navTop - navbarHeight - 20,
-        behavior: 'smooth'
-      });
+    setSelectedCategory(initialCategory.toLowerCase());
+    setSearchTerm('');
+    setIsSearchMode(false);
+    setSearchResults([]);
+    setSearchQuery('');
+    
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
     }
     
-    scrollToSelectedCategory(initialCategory);
-  }, 300);
-}, [initialCategory]);
+    setTimeout(() => {
+      const navbar = document.querySelector('nav');
+      const navbarHeight = navbar ? navbar.offsetHeight : 0;
+      
+      const categoriesNav = document.querySelector('nav[aria-label="Wallpaper categories"]');
+      if (categoriesNav) {
+        const navTop = categoriesNav.getBoundingClientRect().top + window.pageYOffset;
+        window.scrollTo({
+          top: navTop - navbarHeight - 20,
+          behavior: 'smooth'
+        });
+      }
+      
+      scrollToSelectedCategory(initialCategory);
+    }, 300);
+  }, [initialCategory, scrollToSelectedCategory]);
 
-
-  // Simple Levenshtein distance function for fuzzy matching
+  // Levenshtein distance for fuzzy matching
   const levenshteinDistance = (str1, str2) => {
     const matrix = [];
     for (let i = 0; i <= str2.length; i++) {
@@ -171,29 +162,23 @@ useEffect(() => {
     const results = allWallpapers.filter(wallpaper => {
       if (wallpaper.isPrivate) return false;
 
-      // Calculate relevance score
       let score = 0;
       const title = wallpaper.title?.toLowerCase() || '';
       const category = wallpaper.category?.toLowerCase() || '';
       const tags = wallpaper.tags?.map(tag => tag.toLowerCase()) || [];
       const description = wallpaper.description?.toLowerCase() || '';
 
-      // Exact matches get highest score
       if (title === lowerQuery) score += 100;
       if (category === lowerQuery) score += 90;
       if (tags.includes(lowerQuery)) score += 85;
-
-      // Partial matches
       if (title.includes(lowerQuery)) score += 80;
       if (category.includes(lowerQuery)) score += 70;
       if (description.includes(lowerQuery)) score += 60;
 
-      // Tag partial matches
       tags.forEach(tag => {
         if (tag.includes(lowerQuery)) score += 50;
       });
 
-      // Word-by-word matching
       searchWords.forEach(word => {
         if (title.includes(word)) score += 30;
         if (category.includes(word)) score += 25;
@@ -201,13 +186,11 @@ useEffect(() => {
         if (description.includes(word)) score += 15;
       });
 
-      // Fuzzy matching for typos (simplified)
       const fuzzyMatch = (str, target) => {
         const distance = levenshteinDistance(str, target);
         return distance <= Math.max(1, Math.floor(target.length * 0.2));
       };
 
-      // Check for fuzzy matches
       if (fuzzyMatch(lowerQuery, title)) score += 40;
       if (fuzzyMatch(lowerQuery, category)) score += 35;
       tags.forEach(tag => {
@@ -218,15 +201,14 @@ useEffect(() => {
       return score > 0;
     });
 
-    // Sort by relevance score
     const sortedResults = results
       .sort((a, b) => (b._searchScore || 0) - (a._searchScore || 0))
-      .slice(0, 100); // Limit results
+      .slice(0, 100);
 
     setSearchResults(sortedResults);
   }, [allWallpapers]);
 
-  // Enhanced search function with fuzzy matching
+  // Enhanced search function
   const performGlobalSearch = useCallback(async (query) => {
     if (!query || query.length < 2) {
       setSearchResults([]);
@@ -239,14 +221,12 @@ useEffect(() => {
     setSearchQuery(query);
 
     try {
-      // First try API search
-      const response = await fetch(`/api/wallpapers/search?q=${encodeURIComponent(query)}&limit=50`);
+      const response = await fetch(`/api/wallpapers/search?q=${encodeURIComponent(query)}&limit=100`);
       
       if (response.ok) {
         const data = await response.json();
         setSearchResults(data.wallpapers || []);
       } else {
-        // Fallback to client-side search if API fails
         performClientSideSearch(query);
       }
     } catch (error) {
@@ -255,18 +235,16 @@ useEffect(() => {
     }
   }, [performClientSideSearch]);
 
-  // Load all wallpapers for search functionality - Run once on mount
+  // Load all wallpapers for search functionality
   useEffect(() => {
     const loadAllWallpapers = async () => {
-      if (allWallpapersLoaded) return; // Prevent multiple loads
+      if (allWallpapersLoaded) return;
       
       try {
         console.log('Loading all wallpapers for global search...');
-        // Try multiple endpoints to get all wallpapers
         const endpoints = [
-          // Primary endpoint for all wallpapers
-          '/api/wallpapers?limit=1000', // Fallback with high limit
-          '/api/search/all' // Alternative search endpoint
+          '/api/wallpapers?limit=1000',
+          '/api/search/all'
         ];
         
         let allWallpapersData = [];
@@ -278,18 +256,17 @@ useEffect(() => {
               const data = await response.json();
               allWallpapersData = data.wallpapers || data.results || data || [];
               console.log(`Loaded ${allWallpapersData.length} wallpapers from ${endpoint}`);
-              break; // Success, exit loop
+              break;
             }
           } catch (err) {
             console.log(`Failed to fetch from ${endpoint}:`, err);
-            continue; // Try next endpoint
+            continue;
           }
         }
         
-        // If API endpoints fail, we'll use category-based loading
         if (allWallpapersData.length === 0) {
           console.log('API endpoints failed, loading wallpapers by categories...');
-          const categoryPromises = categories.slice(1).map(async (category) => { // Skip 'All'
+          const categoryPromises = categories.slice(1).map(async (category) => {
             try {
               const response = await fetch(`/api/wallpapers/category?name=${category.name.toLowerCase()}&limit=100`);
               if (response.ok) {
@@ -307,7 +284,6 @@ useEffect(() => {
             .filter(result => result.status === 'fulfilled')
             .flatMap(result => result.value)
             .filter((wallpaper, index, self) => 
-              // Remove duplicates based on _id
               index === self.findIndex(w => w._id === wallpaper._id)
             );
         }
@@ -317,30 +293,27 @@ useEffect(() => {
         setAllWallpapersLoaded(true);
       } catch (error) {
         console.error('Failed to load wallpapers for search:', error);
-        // Don't set error state as search can still work with limited data
       }
     };
 
     loadAllWallpapers();
-  }, [categories]); // Run once on mount
+  }, [categories, allWallpapersLoaded]);
 
-  // Handle unauthorized actions with action type
+  // Handle unauthorized actions
   const handleUnauthorizedAction = useCallback((actionType = 'general') => {
     console.log('Unauthorized action triggered:', actionType);
     setLoginActionType(actionType);
     setShowLoginPopup(true);
   }, []);
 
-  // Enhanced search change handler with debouncing - Global search across all wallpapers
+  // Search change handler with debouncing
   const handleSearchChange = useCallback((value) => {
     setSearchTerm(value);
     
-    // Clear existing timeout
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
 
-    // If search term is empty, exit search mode
     if (!value.trim()) {
       setIsSearchMode(false);
       setSearchResults([]);
@@ -348,7 +321,6 @@ useEffect(() => {
       return;
     }
 
-    // Debounce search for better performance
     searchTimeoutRef.current = setTimeout(() => {
       if (value.trim().length >= 2) {
         performGlobalSearch(value.trim());
@@ -361,115 +333,102 @@ useEffect(() => {
   }, [performGlobalSearch]);
 
   // Handle search submission
-// Add this after handleSearchChange function
-// Handle search submission
-const handleSearchSubmit = useCallback((query) => {
-  if (query && query.length >= 2) {
-    performGlobalSearch(query);
+  const handleSearchSubmit = useCallback((query) => {
+    if (query && query.length >= 2) {
+      performGlobalSearch(query);
+      
+      setTimeout(() => {
+        const categoriesNav = document.querySelector('nav[aria-label="Wallpaper categories"]');
+        if (categoriesNav) {
+          const navTop = categoriesNav.getBoundingClientRect().top;
+          if (navTop < 0 || navTop > window.innerHeight) {
+            categoriesNav.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }
+      }, 100);
+    }
+  }, [performGlobalSearch]);
+
+  // Handle suggestion click
+  const handleSuggestionClick = useCallback((suggestion) => {
+    if (suggestion.type === 'category') {
+      const categoryName = suggestion.value.toLowerCase();
+      setSelectedCategory(categoryName);
+      setSearchTerm('');
+      setIsSearchMode(false);
+      setSearchResults([]);
+      setSearchQuery('');
+      
+      setTimeout(() => {
+        scrollToSelectedCategory(categoryName);
+      }, 100);
+    } else {
+      setSearchTerm(suggestion.value);
+      performGlobalSearch(suggestion.value);
+    }
     
-    // Scroll to categories section if needed
     setTimeout(() => {
       const categoriesNav = document.querySelector('nav[aria-label="Wallpaper categories"]');
       if (categoriesNav) {
         const navTop = categoriesNav.getBoundingClientRect().top;
-        // Only scroll if categories are not visible
-        if (navTop < 0 || navTop > window.innerHeight) {
+        if (navTop > window.innerHeight || navTop < 0) {
           categoriesNav.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       }
     }, 100);
-  }
-}, [performGlobalSearch]);
+  }, [performGlobalSearch, scrollToSelectedCategory]);
 
-  // Handle suggestion click - Routes to category URL for category suggestions
-// Replace your handleSuggestionClick function with this:
-const handleSuggestionClick = useCallback((suggestion) => {
-  if (suggestion.type === 'category') {
-    // Route to category URL and scroll to it
-    const categoryName = suggestion.value.toLowerCase();
-    setSelectedCategory(categoryName);
-    setSearchTerm(''); // Clear search when category changes
-    setIsSearchMode(false); // Exit search mode
+  // Handle category selection
+  const handleCategorySelect = useCallback((category) => {
+    setSelectedCategory(category.toLowerCase());
+    setSearchTerm('');
+    setIsSearchMode(false); 
     setSearchResults([]);
     setSearchQuery('');
+    setPage(1); // Reset page when changing categories
+    setWallpapers([]); // Clear existing wallpapers
+    loadedWallpaperIds.current.clear(); // Clear loaded IDs
     
-    // Scroll to the selected category in the navigation
+    const navbar = document.querySelector('nav');
+    const navbarHeight = navbar ? navbar.offsetHeight : 0;
+    
     setTimeout(() => {
-      scrollToSelectedCategory(categoryName);
-    }, 100);
-  } else {
-    // For title, tag, or other suggestions - perform global search
-    setSearchTerm(suggestion.value);
-    performGlobalSearch(suggestion.value);
-  }
-  
-  // Gentle scroll to show categories
-  setTimeout(() => {
-    const categoriesNav = document.querySelector('nav[aria-label="Wallpaper categories"]');
-    if (categoriesNav) {
-      const navTop = categoriesNav.getBoundingClientRect().top;
-      // Only scroll if categories are not visible
-      if (navTop > window.innerHeight || navTop < 0) {
-        categoriesNav.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const categoriesNav = document.querySelector('nav[aria-label="Wallpaper categories"]');
+      if (categoriesNav) {
+        const navTop = categoriesNav.getBoundingClientRect().top + window.pageYOffset;
+        window.scrollTo({
+          top: navTop - navbarHeight - 20,
+          behavior: 'smooth'
+        });
       }
-    }
-  }, 100);
-}, [performGlobalSearch, scrollToSelectedCategory, setSelectedCategory, setSearchTerm, setIsSearchMode, setSearchResults, setSearchQuery]);
-  // Handle category selection
-const handleCategorySelect = useCallback((category) => {
-  setSelectedCategory(category.toLowerCase());
-  setSearchTerm('');
-  setIsSearchMode(false); 
-  setSearchResults([]);
-  setSearchQuery('');
-  
-  // Get navbar height dynamically
-  const navbar = document.querySelector('nav');
-  const navbarHeight = navbar ? navbar.offsetHeight : 0;
-  
-  // Scroll to categories section and highlight selected category
-  setTimeout(() => {
-    const categoriesNav = document.querySelector('nav[aria-label="Wallpaper categories"]');
-    if (categoriesNav) {
-      const navTop = categoriesNav.getBoundingClientRect().top + window.pageYOffset;
-      window.scrollTo({
-        top: navTop - navbarHeight - 20, // Navbar height plus padding
-        behavior: 'smooth'
-      });
-    }
-    
-    // Scroll to the selected category button within the nav
-    scrollToSelectedCategory(category.toLowerCase());
-  }, 100);
-}, [scrollToSelectedCategory]);
+      
+      scrollToSelectedCategory(category.toLowerCase());
+    }, 100);
+  }, [scrollToSelectedCategory]);
 
   // Clear search function
-  // In WallpaperGallery component, update the clearSearch function:
-// In WallpaperGallery component
-const clearSearch = useCallback(() => {
-  setSearchTerm('');
-  setIsSearchMode(false);
-  setSearchResults([]);
-  setSearchQuery('');
-  setSelectedCategory('all');
-  
-  // Scroll to categories section smoothly
-  setTimeout(() => {
-    const categoriesNav = document.querySelector('nav[aria-label="Wallpaper categories"]');
-    if (categoriesNav) {
-      const navTop = categoriesNav.getBoundingClientRect().top + window.pageYOffset;
-      window.scrollTo({
-        top: navTop - 80, // 80px offset to show categories nicely
-        behavior: 'smooth'
-      });
-    }
+  const clearSearch = useCallback(() => {
+    setSearchTerm('');
+    setIsSearchMode(false);
+    setSearchResults([]);
+    setSearchQuery('');
+    setSelectedCategory('all');
     
-    // Also scroll to "All" category button
-    scrollToSelectedCategory('all');
-  }, 100);
-}, [scrollToSelectedCategory]);
+    setTimeout(() => {
+      const categoriesNav = document.querySelector('nav[aria-label="Wallpaper categories"]');
+      if (categoriesNav) {
+        const navTop = categoriesNav.getBoundingClientRect().top + window.pageYOffset;
+        window.scrollTo({
+          top: navTop - 80,
+          behavior: 'smooth'
+        });
+      }
+      
+      scrollToSelectedCategory('all');
+    }, 100);
+  }, [scrollToSelectedCategory]);
 
-  // Load more wallpapers function
+  // Load more wallpapers function - Updated for 100 wallpapers at a time
   const loadMoreWallpapers = useCallback(async () => {
     if (loadingMore || !hasMore || isSearchMode) return;
     
@@ -478,17 +437,27 @@ const clearSearch = useCallback(() => {
       const nextPage = page + 1;
       
       const endpoint = selectedCategory === 'all' || selectedCategory === 'All'
-        ? `/api/wallpapers?page=${nextPage}`
-        : `/api/wallpapers/category?name=${selectedCategory}&page=${nextPage}`;
+        ? `/api/wallpapers?page=${nextPage}&limit=${LOAD_MORE_LIMIT}`
+        : `/api/wallpapers/category?name=${selectedCategory}&page=${nextPage}&limit=${LOAD_MORE_LIMIT}`;
       
       const res = await fetch(endpoint);
       const data = await res.json();
       const newWallpapers = data.wallpapers || [];
       
       if (newWallpapers.length > 0) {
-        setWallpapers(prev => [...prev, ...newWallpapers]);
+        // Filter out duplicates using the tracked IDs
+        setWallpapers(prev => {
+          const uniqueNew = newWallpapers.filter(w => {
+            if (loadedWallpaperIds.current.has(w._id)) {
+              return false;
+            }
+            loadedWallpaperIds.current.add(w._id);
+            return true;
+          });
+          return [...prev, ...uniqueNew];
+        });
         setPage(nextPage);
-        setHasMore(newWallpapers.length === 20);
+        setHasMore(newWallpapers.length === LOAD_MORE_LIMIT);
       } else {
         setHasMore(false);
       }
@@ -517,53 +486,55 @@ const clearSearch = useCallback(() => {
     return () => observer.disconnect();
   }, [hasMore, loading, loadingMore, loadMoreWallpapers, isSearchMode]);
 
-  // Initial fetch wallpapers with error handling - Reset when category changes
-useEffect(() => {
-  const getWallpapers = async () => {
-    if (isSearchMode) return;
-    
-    try {
-      setLoading(true);
-      setPage(1);
-      setWallpapers([]);
-      setHasMore(true);
-      setError(null);
+  // Initial fetch wallpapers - Load 100 wallpapers initially
+  useEffect(() => {
+    const getWallpapers = async () => {
+      if (isSearchMode) return;
       
-      const endpoint = selectedCategory === 'all' || selectedCategory === 'All'
-        ? '/api/wallpapers'
-        : `/api/wallpapers/category?name=${selectedCategory}`;
-      
-      // console.log('Fetching wallpapers for category:', selectedCategory, 'from:', endpoint);
-      const res = await fetch(endpoint);
-      
-      if (res.status === 401) {
-        console.log('User not authenticated - some features may be limited');
+      try {
+        setLoading(true);
+        setPage(1);
+        setWallpapers([]);
+        loadedWallpaperIds.current.clear(); // Clear tracked IDs
+        setHasMore(true);
+        setError(null);
+        
+        const endpoint = selectedCategory === 'all' || selectedCategory === 'All'
+          ? `/api/wallpapers?page=1&limit=${INITIAL_LOAD_LIMIT}` // Load 100 initially
+          : `/api/wallpapers/category?name=${selectedCategory}&page=1&limit=${INITIAL_LOAD_LIMIT}`;
+        
+        console.log('Fetching initial wallpapers:', endpoint);
+        const res = await fetch(endpoint);
+        
+        if (res.status === 401) {
+          console.log('User not authenticated - some features may be limited');
+        }
+        
+        const data = await res.json();
+        const fetched = data.wallpapers || [];
+        console.log("Successfully fetched wallpapers:", fetched.length);
+        
+        // Track loaded wallpaper IDs
+        fetched.forEach(w => loadedWallpaperIds.current.add(w._id));
+        
+        setWallpapers(fetched);
+        setHasMore(fetched.length === INITIAL_LOAD_LIMIT); // Check if we got full 100
+      } catch (err) {
+        console.error('Error loading wallpapers:', err);
+        setError('Failed to load wallpapers. Please try again.');
+      } finally {
+        setLoading(false);
       }
-      
-      const data = await res.json();
-      const fetched = data.wallpapers || [];
-      // console.log("Successfully fetched wallpapers for category:", selectedCategory, "count:", fetched.length);
-      
-      setWallpapers(fetched);
-      setHasMore(fetched.length === 20);
-    } catch (err) {
-      // console.error('Error loading wallpapers:', err);
-      setError('Failed to load wallpapers. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  // Add a small delay to ensure state has been updated
-  const timer = setTimeout(() => {
-    getWallpapers();
-  }, 50);
+    const timer = setTimeout(() => {
+      getWallpapers();
+    }, 50);
 
-  return () => clearTimeout(timer);
-}, [selectedCategory, isSearchMode]);// Make sure selectedCategory is in the dependency array
+    return () => clearTimeout(timer);
+  }, [selectedCategory, isSearchMode]);
 
-
-  // Filter wallpapers - Use search results when in search mode, otherwise use regular wallpapers
+  // Filter wallpapers
   const filteredWallpapers = useMemo(() => {
     if (isSearchMode) {
       return searchResults;
@@ -580,9 +551,9 @@ useEffect(() => {
     );
   }, [wallpapers, searchResults, searchTerm, isSearchMode]);
 
-  // Enhanced Loading Skeleton Component
+  // Loading Skeleton Component
   const LoadingSkeleton = () => (
-    <div className="columns-2 gap-2 space-y-1 sm:columns-2 md:columns-3 lg:columns-3  lg:gap-2 xl:columns-3 mx-auto px-2 sm:px-4 w-full" aria-label="Loading wallpapers">
+    <div className="columns-2 gap-2 space-y-1 sm:columns-2 md:columns-3 lg:columns-3 lg:gap-2 xl:columns-3 mx-auto px-2 sm:px-4 w-full" aria-label="Loading wallpapers">
       {[...Array(12)].map((_, i) => (
         <div 
           key={i} 
@@ -592,11 +563,8 @@ useEffect(() => {
             animationDelay: `${i * 150}ms`
           }}
         >
-          {/* Shimmer effect */}
           <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
-          
-          {/* Content skeleton */}
-          <div className="p-3 sm:p-4 h-full  flex flex-col justify-between">
+          <div className="p-3 sm:p-4 h-full flex flex-col justify-between">
             <div className="space-y-2 sm:space-y-3">
               <div className="h-3 sm:h-4 bg-gray-200/60 rounded-full w-3/4 animate-pulse"></div>
               <div className="h-2.5 sm:h-3 bg-gray-200/40 rounded-full w-1/2 animate-pulse"></div>
@@ -606,8 +574,6 @@ useEffect(() => {
               <div className="h-5 sm:h-6 bg-gray-200/40 rounded-full w-12 sm:w-16 animate-pulse"></div>
             </div>
           </div>
-          
-          {/* Floating sparkles */}
           <div className="absolute top-2 right-2">
             <p className='bg-gradient-to-r font-extrabold opacity-30 to-orange-500 from-pink-500 text-transparent bg-clip-text'>WallPickr</p>
           </div>

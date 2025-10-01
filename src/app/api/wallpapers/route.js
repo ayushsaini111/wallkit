@@ -1,12 +1,21 @@
 import dbConnect from '@/lib/dbConnect';
 import { Wallpaper } from '@/models/wallpaper.model';
-import mongoose from 'mongoose';
 
-export const GET = async () => {
+export const GET = async (request) => {
   try {
     await dbConnect();
 
+    // Get query parameters
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '100'); // Default to 100
+    const skip = (page - 1) * limit;
+
     const wallpapers = await Wallpaper.aggregate([
+      // First stage: shuffle randomly
+      { $sample: { size: limit * page } },
+
+      // Lookup user details
       {
         $lookup: {
           from: 'users',
@@ -23,8 +32,8 @@ export const GET = async () => {
           from: 'likes',
           localField: '_id',
           foreignField: 'wallpaper',
-          as: 'likes'
-        }
+          as: 'likes',
+        },
       },
 
       // Lookup Views
@@ -33,8 +42,8 @@ export const GET = async () => {
           from: 'views',
           localField: '_id',
           foreignField: 'wallpaper',
-          as: 'views'
-        }
+          as: 'views',
+        },
       },
 
       // Lookup Downloads
@@ -43,26 +52,26 @@ export const GET = async () => {
           from: 'downloads',
           localField: '_id',
           foreignField: 'wallpaper',
-          as: 'downloads'
-        }
+          as: 'downloads',
+        },
       },
 
-      // Lookup Followers of the uploader
+      // Lookup Followers of uploader
       {
         $lookup: {
           from: 'follows',
           localField: 'uploadedBy',
           foreignField: 'following',
-          as: 'followers'
-        }
+          as: 'followers',
+        },
       },
 
-      // Final projection with counts
+      // Final projection
       {
         $project: {
           _id: 1,
           title: 1,
-          description:1,
+          description: 1,
           imageUrl: 1,
           compressedUrl: 1,
           tags: 1,
@@ -74,13 +83,24 @@ export const GET = async () => {
           likeCount: { $size: '$likes' },
           viewCount: { $size: '$views' },
           downloadCount: { $size: '$downloads' },
-          followerCount: { $size: '$followers' }
+          followerCount: { $size: '$followers' },
         },
       },
-      { $sort: { createdAt: -1 } },
+
+      // Apply pagination after randomization
+      { $skip: skip },
+      { $limit: limit },
     ]);
 
-    return Response.json({ success: true, wallpapers });
+    return Response.json({
+      success: true,
+      wallpapers,
+      pagination: {
+        currentPage: page,
+        limit,
+        hasMore: wallpapers.length === limit,
+      },
+    });
   } catch (error) {
     console.error('Failed to get wallpapers:', error);
     return Response.json(

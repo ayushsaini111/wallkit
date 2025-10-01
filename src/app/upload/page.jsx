@@ -107,12 +107,27 @@ const UploadWallpaper = () => {
 
     // Predefined categories
     const categories = [
-        'Nature', 'Abstract', 'Minimalist', 'Animals', 'Cityscape', 'Anime',
-        'Superheroes', 'Cartoon', 'Space', 'Technology', 'Fantasy',
-        'Textures & Patterns', 'Food & Drinks', 'People', 'Architecture',
-        'Cars & Vehicles', 'Art & Illustration', '3D Renders', 'Typography',
-        'Dark', 'Light', 'Vintage', 'Sports', 'Other'
-    ];
+  'Abstract',
+  'Animals',
+  'Anime',
+  'Architecture',
+  'Art & Illustration',
+  'Cars & Vehicles',
+  'Cityscape',
+  'Food & Drinks',
+  'Minimalist',
+  'Nature',
+  'Other',
+  'People',
+  'Space',
+  'Sports',
+  'Superheroes',
+  'Technology',
+  'Textures & Patterns',
+  'Typography',
+  'Vintage',
+  'Cartoon'
+];
 
     // Show toast function
     const showToast = (message, type) => {
