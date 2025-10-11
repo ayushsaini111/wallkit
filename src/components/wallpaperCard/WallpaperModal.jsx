@@ -1,4 +1,4 @@
-// WallpaperModal.js - Enhanced with Improved Mobile Scrolling & Download Options
+// WallpaperModal.js - Enhanced with Smooth Mobile Scrolling
 
 'use client';
 import React, { useState, useCallback, useEffect } from 'react';
@@ -178,79 +178,27 @@ export const WallpaperModal = ({
   }, []);
 
   // Enhanced close function
- const handleClose = useCallback((e) => {
-  e?.stopPropagation();
+  const handleClose = useCallback((e) => {
+    e?.stopPropagation();
 
-  setIsClosing(true);
+    setIsClosing(true);
 
-  // Immediately restore body scroll
-  document.body.style.overflow = '';
-  document.body.style.position = '';
-  document.body.style.width = '';
-
-  setTimeout(() => {
-    if (typeof window !== 'undefined') {
-      const url = new URL(window.location);
-      url.searchParams.delete('wallpaper');
-      window.history.replaceState(null, '', url.toString());
-    }
-
-    onClose();
-    setIsClosing(false);
-  }, 150);
-}, [onClose]);
-
-// Also update the useEffect for modal cleanup:
-useEffect(() => {
-  if (!showModal) return;
-
-  // Prevent body scroll when modal is open
-  document.body.style.overflow = 'hidden';
-  document.body.style.position = 'fixed';
-  document.body.style.width = '100%';
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Escape') {
-      handleClose(e);
-    }
-  };
-
-  const handlePopState = (e) => {
-    e.preventDefault();
-    handleClose(e);
-  };
-
-  // Handle logo clicks and other navigation while modal is open
-  const handleGlobalClick = (e) => {
-    // Check if clicked element is a navigation link (logo, nav items)
-    const target = e.target.closest('a[href="/"]') || e.target.closest('a[href^="/"]');
-    if (target && target.getAttribute('href') !== window.location.pathname + window.location.search) {
-      // Navigation is happening, close modal
-      handleClose(e);
-    }
-  };
-
-  document.addEventListener('keydown', handleKeyDown);
-  window.addEventListener('popstate', handlePopState);
-  document.addEventListener('click', handleGlobalClick, true); // Use capture phase
-
-  window.history.pushState({ modalOpen: true }, '', window.location.href);
-
-  return () => {
-    document.removeEventListener('keydown', handleKeyDown);
-    window.removeEventListener('popstate', handlePopState);
-    document.removeEventListener('click', handleGlobalClick, true);
-    
-    // Restore body scroll
+    // Immediately restore body scroll
     document.body.style.overflow = '';
     document.body.style.position = '';
     document.body.style.width = '';
 
-    if (window.history.state?.modalOpen) {
-      window.history.back();
-    }
-  };
-}, [showModal, handleClose]);
+    setTimeout(() => {
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location);
+        url.searchParams.delete('wallpaper');
+        window.history.replaceState(null, '', url.toString());
+      }
+
+      onClose();
+      setIsClosing(false);
+    }, 150);
+  }, [onClose]);
 
   // Update URL when modal opens
   useEffect(() => {
@@ -289,14 +237,26 @@ useEffect(() => {
       handleClose(e);
     };
 
+    // Handle logo clicks and other navigation while modal is open
+    const handleGlobalClick = (e) => {
+      // Check if clicked element is a navigation link (logo, nav items)
+      const target = e.target.closest('a[href="/"]') || e.target.closest('a[href^="/"]');
+      if (target && target.getAttribute('href') !== window.location.pathname + window.location.search) {
+        // Navigation is happening, close modal
+        handleClose(e);
+      }
+    };
+
     document.addEventListener('keydown', handleKeyDown);
     window.addEventListener('popstate', handlePopState);
+    document.addEventListener('click', handleGlobalClick, true); // Use capture phase
 
     window.history.pushState({ modalOpen: true }, '', window.location.href);
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('popstate', handlePopState);
+      document.removeEventListener('click', handleGlobalClick, true);
       
       // Restore body scroll
       document.body.style.overflow = '';
@@ -380,16 +340,17 @@ useEffect(() => {
             {/* Image section with mobile scroll integration */}
             <div className="w-full sm:w-2/3 lg:w-2/3 relative flex items-center justify-center bg-gradient-to-br from-gray-50/80 to-gray-100/80 backdrop-blur-sm overflow-hidden sm:overflow-visible">
               
-              {/* Mobile: Make entire container scrollable */}
-              <div className="w-full h-full sm:h-auto flex flex-col sm:block overflow-y-auto sm:overflow-visible scrollbar-hide" 
-                   style={{ 
-                     WebkitOverflowScrolling: 'touch',
-                     height: 'calc(100vh - 57px)',
-                     minHeight: 'calc(100vh - 57px)'
-                   }}>
+              {/* Enhanced Mobile: Smooth scrollable container */}
+              <div 
+                className="mobile-smooth-scroll w-full h-full sm:h-auto flex flex-col sm:block overflow-y-auto sm:overflow-visible"
+                style={{ 
+                  height: 'calc(100vh - 57px)',
+                  minHeight: 'calc(100vh - 57px)'
+                }}
+              >
                 
                 {/* Image container */}
-                <div className="flex-shrink-0 w-full h-[45vh] sm:h-full sm:min-h-0 relative flex items-center justify-center  sm:p-0">
+                <div className="flex-shrink-0 w-full h-[45vh] sm:h-full sm:min-h-0 relative flex items-center justify-center sm:p-0">
                   {imageError ? (
                     <div className="flex items-center justify-center text-gray-500 text-center">
                       <div>
@@ -416,10 +377,10 @@ useEffect(() => {
                   )}
                 </div>
 
-                {/* Mobile: Details section integrated in scroll */}
-                <div className="sm:hidden flex-1 bg-white/95 backdrop-blur-xl border-t border-gray-200/50 min-h-[55vh]">
+                {/* Enhanced Mobile: Details section with smooth scrolling */}
+                <div className="sm:hidden flex-1 bg-white/95 backdrop-blur-xl border-t border-gray-200/50 min-h-[55vh] mobile-content-scroll">
                   {/* Fixed Header Section */}
-                  <div className="flex-shrink-0 p-4 pb-2">
+                  <div className="mobile-scroll-header flex-shrink-0 p-4 pb-2 bg-white/95 backdrop-blur-xl sticky top-0 z-10 border-b border-gray-100/50">
                     {/* User info */}
                     <div className="flex items-start gap-3">
                       {wallpaper.userDetails?.avatar ? (
@@ -455,11 +416,11 @@ useEffect(() => {
                     </div>
                   </div>
 
-                  {/* Scrollable content */}
-                  <div className="px-4 pb-6 space-y-4">
+                  {/* Enhanced scrollable content with momentum */}
+                  <div className="mobile-scroll-content px-4 pb-8 space-y-4 overflow-y-auto">
                     {/* Description */}
                     {wallpaper.description && (
-                      <div className="text-xs text-gray-600 font-medium">
+                      <div className="text-xs text-gray-600 font-medium p-3 bg-gray-50/80 rounded-lg border border-gray-200/50">
                         <p className="line-clamp-3">{wallpaper.description}</p>
                       </div>
                     )}
@@ -651,14 +612,14 @@ useEffect(() => {
                       </div>
                     )}
 
-                    {/* Add some bottom padding for mobile scroll */}
-                    <div className="h-8"></div>
+                    {/* Extra bottom padding for smooth scroll end */}
+                    <div className="h-16"></div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Desktop Details Section */}
+            {/* Desktop Details Section - Unchanged */}
             <div className="hidden sm:flex w-full sm:w-1/3 lg:w-1/3 flex-col bg-white/90 backdrop-blur-xl h-full border-t sm:border-t-0 sm:border-l border-gray-200/50 overflow-hidden">
               {/* Fixed Header Section */}
               <div className="flex-shrink-0 p-6 lg:p-8 pb-2">
@@ -900,8 +861,9 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* Enhanced scrollbar styles */}
+        {/* Enhanced Mobile-Specific Scrollbar Styles */}
         <style jsx>{`
+          /* Desktop scrollbar styles */
           .scrollbar-thin {
             scrollbar-width: thin;
             scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
@@ -924,27 +886,97 @@ useEffect(() => {
             background-color: rgba(107, 114, 128, 0.7);
           }
 
-          .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-          }
-          
-          .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-          }
-
-          /* iOS momentum scrolling */
-          .scrollbar-thin,
-          .scrollbar-hide {
-            -webkit-overflow-scrolling: touch;
-          }
-          
-          /* Mobile scroll improvements */
+          /* Enhanced Mobile Smooth Scrolling */
           @media (max-width: 640px) {
-            .scrollbar-thin,
-            .scrollbar-hide {
-              overflow-y: scroll;
+            .mobile-smooth-scroll {
+              /* Core mobile scroll optimizations */
+              -webkit-overflow-scrolling: touch;
+              overflow-scrolling: touch;
               scroll-behavior: smooth;
+              scroll-snap-type: y proximity;
+              
+              /* Hide scrollbars on mobile */
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+              
+              /* Momentum scrolling for iOS */
+              -webkit-transform: translate3d(0, 0, 0);
+              transform: translate3d(0, 0, 0);
+              
+              /* Reduce scroll resistance */
+              overscroll-behavior: contain;
+              touch-action: pan-y;
+            }
+            
+            .mobile-smooth-scroll::-webkit-scrollbar {
+              display: none;
+            }
+            
+            .mobile-content-scroll {
+              /* Additional content area optimizations */
+              will-change: scroll-position;
+              backface-visibility: hidden;
+              -webkit-backface-visibility: hidden;
+            }
+            
+            .mobile-scroll-header {
+              /* Smooth sticky header */
+              will-change: transform;
+              -webkit-transform: translate3d(0, 0, 0);
+              transform: translate3d(0, 0, 0);
+            }
+            
+            .mobile-scroll-content {
+              /* Optimize content scrolling */
+              padding-top: env(safe-area-inset-top, 0);
+              padding-bottom: calc(env(safe-area-inset-bottom, 0) + 2rem);
+              
+              /* Enable hardware acceleration */
+              -webkit-transform: translate3d(0, 0, 0);
+              transform: translate3d(0, 0, 0);
+              
+              /* Smooth momentum */
+              -webkit-overflow-scrolling: touch;
+              overflow-scrolling: touch;
+              
+              /* Better scroll performance */
+              will-change: scroll-position;
+              contain: layout style paint;
+            }
+            
+            /* Smooth scroll snap points */
+            .mobile-scroll-content > * {
+              scroll-snap-align: start;
+            }
+            
+            /* Optimize touch interactions */
+            .mobile-smooth-scroll * {
+              -webkit-tap-highlight-color: transparent;
+              -webkit-touch-callout: none;
+              -webkit-user-select: none;
+              user-select: none;
+            }
+            
+            /* Allow text selection in content areas */
+            .mobile-scroll-content p,
+            .mobile-scroll-content span {
+              -webkit-user-select: text;
+              user-select: text;
+            }
+            
+            /* Reduce motion for users who prefer it */
+            @media (prefers-reduced-motion: reduce) {
+              .mobile-smooth-scroll {
+                scroll-behavior: auto;
+                -webkit-overflow-scrolling: auto;
+              }
+            }
+          }
+          
+          /* Desktop scrolling remains unchanged */
+          @media (min-width: 641px) {
+            .mobile-smooth-scroll {
+              overflow: visible;
             }
           }
         `}</style>

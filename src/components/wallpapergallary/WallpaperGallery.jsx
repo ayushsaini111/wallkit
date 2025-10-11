@@ -31,8 +31,8 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
   const skeletonHeights = [240, 280, 320, 260, 300, 350, 270, 310, 290, 330, 250, 370];
 
   // Constants
-  const INITIAL_LOAD_LIMIT = 100; // Load 100 wallpapers initially
-  const LOAD_MORE_LIMIT = 100; // Load 100 more each time
+  const INITIAL_LOAD_LIMIT = 50; // Load 100 wallpapers initially
+  const LOAD_MORE_LIMIT = 50; // Load 100 more each time
 
   // Refs
   const observerRef = useRef(null);
@@ -221,7 +221,7 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
     setSearchQuery(query);
 
     try {
-      const response = await fetch(`/api/wallpapers/search?q=${encodeURIComponent(query)}&limit=100`);
+      const response = await fetch(`/api/wallpapers/search?q=${encodeURIComponent(query)}&limit=50`);
       
       if (response.ok) {
         const data = await response.json();
@@ -268,7 +268,7 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
           console.log('API endpoints failed, loading wallpapers by categories...');
           const categoryPromises = categories.slice(1).map(async (category) => {
             try {
-              const response = await fetch(`/api/wallpapers/category?name=${category.name.toLowerCase()}&limit=100`);
+              const response = await fetch(`/api/wallpapers/category?name=${category.name.toLowerCase()}&limit=50`);
               if (response.ok) {
                 const data = await response.json();
                 return data.wallpapers || [];
@@ -429,44 +429,66 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
   }, [scrollToSelectedCategory]);
 
   // Load more wallpapers function - Updated for 100 wallpapers at a time
-  const loadMoreWallpapers = useCallback(async () => {
-    if (loadingMore || !hasMore || isSearchMode) return;
+ // Load more wallpapers function - Updated with better error handling
+const loadMoreWallpapers = useCallback(async () => {
+  if (loadingMore || !hasMore || isSearchMode) return;
+  
+  try {
+    setLoadingMore(true);
+    const nextPage = page + 1;
     
-    try {
-      setLoadingMore(true);
-      const nextPage = page + 1;
-      
-      const endpoint = selectedCategory === 'all' || selectedCategory === 'All'
-        ? `/api/wallpapers?page=${nextPage}&limit=${LOAD_MORE_LIMIT}`
-        : `/api/wallpapers/category?name=${selectedCategory}&page=${nextPage}&limit=${LOAD_MORE_LIMIT}`;
-      
-      const res = await fetch(endpoint);
-      const data = await res.json();
-      const newWallpapers = data.wallpapers || [];
-      
-      if (newWallpapers.length > 0) {
-        // Filter out duplicates using the tracked IDs
-        setWallpapers(prev => {
-          const uniqueNew = newWallpapers.filter(w => {
-            if (loadedWallpaperIds.current.has(w._id)) {
-              return false;
-            }
-            loadedWallpaperIds.current.add(w._id);
-            return true;
-          });
-          return [...prev, ...uniqueNew];
-        });
-        setPage(nextPage);
-        setHasMore(newWallpapers.length === LOAD_MORE_LIMIT);
-      } else {
-        setHasMore(false);
-      }
-    } catch (err) {
-      console.error('Error loading more wallpapers:', err);
-    } finally {
-      setLoadingMore(false);
+    const endpoint = selectedCategory === 'all' || selectedCategory === 'All'
+      ? `/api/wallpapers?page=${nextPage}&limit=${LOAD_MORE_LIMIT}`
+      : `/api/wallpapers/category?name=${selectedCategory}&page=${nextPage}&limit=${LOAD_MORE_LIMIT}`;
+    
+    console.log(`Loading page ${nextPage} from:`, endpoint);
+    
+    const res = await fetch(endpoint);
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
     }
-  }, [loadingMore, hasMore, page, selectedCategory, isSearchMode]);
+    
+    const data = await res.json();
+    const newWallpapers = data.wallpapers || [];
+    
+    console.log(`Loaded ${newWallpapers.length} new wallpapers for page ${nextPage}`);
+    
+    if (newWallpapers.length > 0) {
+      // Filter out duplicates using the tracked IDs
+      setWallpapers(prev => {
+        const uniqueNew = newWallpapers.filter(w => {
+          if (loadedWallpaperIds.current.has(w._id)) {
+            console.log('Duplicate wallpaper filtered:', w._id);
+            return false;
+          }
+          loadedWallpaperIds.current.add(w._id);
+          return true;
+        });
+        
+        console.log(`Adding ${uniqueNew.length} unique wallpapers`);
+        return [...prev, ...uniqueNew];
+      });
+      
+      setPage(nextPage);
+      
+      // Use the hasMore from API response if available, otherwise fallback to length check
+      const apiHasMore = data.pagination?.hasMore;
+      if (apiHasMore !== undefined) {
+        setHasMore(apiHasMore);
+      } else {
+        setHasMore(newWallpapers.length === LOAD_MORE_LIMIT);
+      }
+    } else {
+      setHasMore(false);
+    }
+  } catch (err) {
+    console.error('Error loading more wallpapers:', err);
+    setError('Failed to load more wallpapers. Please try again.');
+    // Don't set hasMore to false on error, allow retry
+  } finally {
+    setLoadingMore(false);
+  }
+}, [loadingMore, hasMore, page, selectedCategory, isSearchMode]);
 
   // Intersection Observer for infinite scroll
   useEffect(() => {
@@ -487,52 +509,66 @@ const WallpaperGallery = ({ initialCategory = 'all' }) => {
   }, [hasMore, loading, loadingMore, loadMoreWallpapers, isSearchMode]);
 
   // Initial fetch wallpapers - Load 100 wallpapers initially
-  useEffect(() => {
-    const getWallpapers = async () => {
-      if (isSearchMode) return;
+// Initial fetch wallpapers - Updated with better response handling
+useEffect(() => {
+  const getWallpapers = async () => {
+    if (isSearchMode) return;
+    
+    try {
+      setLoading(true);
+      setPage(1);
+      setWallpapers([]);
+      loadedWallpaperIds.current.clear(); // Clear tracked IDs
+      setHasMore(true);
+      setError(null);
       
-      try {
-        setLoading(true);
-        setPage(1);
-        setWallpapers([]);
-        loadedWallpaperIds.current.clear(); // Clear tracked IDs
-        setHasMore(true);
-        setError(null);
-        
-        const endpoint = selectedCategory === 'all' || selectedCategory === 'All'
-          ? `/api/wallpapers?page=1&limit=${INITIAL_LOAD_LIMIT}` // Load 100 initially
-          : `/api/wallpapers/category?name=${selectedCategory}&page=1&limit=${INITIAL_LOAD_LIMIT}`;
-        
-        console.log('Fetching initial wallpapers:', endpoint);
-        const res = await fetch(endpoint);
-        
-        if (res.status === 401) {
-          console.log('User not authenticated - some features may be limited');
-        }
-        
-        const data = await res.json();
-        const fetched = data.wallpapers || [];
-        console.log("Successfully fetched wallpapers:", fetched.length);
-        
-        // Track loaded wallpaper IDs
-        fetched.forEach(w => loadedWallpaperIds.current.add(w._id));
-        
-        setWallpapers(fetched);
-        setHasMore(fetched.length === INITIAL_LOAD_LIMIT); // Check if we got full 100
-      } catch (err) {
-        console.error('Error loading wallpapers:', err);
-        setError('Failed to load wallpapers. Please try again.');
-      } finally {
-        setLoading(false);
+      const endpoint = selectedCategory === 'all' || selectedCategory === 'All'
+        ? `/api/wallpapers?page=1&limit=${INITIAL_LOAD_LIMIT}`
+        : `/api/wallpapers/category?name=${selectedCategory}&page=1&limit=${INITIAL_LOAD_LIMIT}`;
+      
+      console.log('Fetching initial wallpapers:', endpoint);
+      const res = await fetch(endpoint);
+      
+      if (res.status === 401) {
+        console.log('User not authenticated - some features may be limited');
       }
-    };
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
+      const data = await res.json();
+      const fetched = data.wallpapers || [];
+      console.log("Successfully fetched wallpapers:", fetched.length);
+      
+      // Track loaded wallpaper IDs
+      fetched.forEach(w => loadedWallpaperIds.current.add(w._id));
+      
+      setWallpapers(fetched);
+      
+      // Use the hasMore from API response if available
+      const apiHasMore = data.pagination?.hasMore;
+      if (apiHasMore !== undefined) {
+        setHasMore(apiHasMore);
+      } else {
+        setHasMore(fetched.length === INITIAL_LOAD_LIMIT);
+      }
+      
+      console.log('Initial load complete. hasMore:', apiHasMore !== undefined ? apiHasMore : fetched.length === INITIAL_LOAD_LIMIT);
+    } catch (err) {
+      console.error('Error loading wallpapers:', err);
+      setError('Failed to load wallpapers. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const timer = setTimeout(() => {
-      getWallpapers();
-    }, 50);
+  const timer = setTimeout(() => {
+    getWallpapers();
+  }, 50);
 
-    return () => clearTimeout(timer);
-  }, [selectedCategory, isSearchMode]);
+  return () => clearTimeout(timer);
+}, [selectedCategory, isSearchMode]);
 
   // Filter wallpapers
   const filteredWallpapers = useMemo(() => {

@@ -103,7 +103,6 @@ const UploadWallpaper = () => {
     
     // Navigation state
     const [isNavigating, setIsNavigating] = useState(false);
-    const [navigationCountdown, setNavigationCountdown] = useState(0);
 
     // Predefined categories
     const categories = [
@@ -139,21 +138,16 @@ const UploadWallpaper = () => {
         setToast(prev => ({ ...prev, isVisible: false }));
     };
 
-    // Navigation countdown effect
+    // Navigation effect - simplified
     useEffect(() => {
-        let interval;
-        if (isNavigating && navigationCountdown > 0) {
-            interval = setInterval(() => {
-                setNavigationCountdown(prev => prev - 1);
-            }, 1000);
-        } else if (isNavigating && navigationCountdown === 0) {
-            router.push(`/profile/${session?.user?.username || ''}`);
-        }
+        if (isNavigating) {
+            const timer = setTimeout(() => {
+                router.push(`/profile/${session?.user?.username || ''}`);
+            }, 1000); // Navigate after 1 second
 
-        return () => {
-            if (interval) clearInterval(interval);
-        };
-    }, [isNavigating, navigationCountdown, router, session]);
+            return () => clearTimeout(timer);
+        }
+    }, [isNavigating, router, session]);
 
     // Handle drag events
     const handleDrag = (e) => {
@@ -467,11 +461,10 @@ const UploadWallpaper = () => {
         if (uploadedCount === totalFiles && uploadedCount > 0) {
             showToast(`${totalFiles} wallpaper${totalFiles !== 1 ? 's' : ''} uploaded successfully!`, 'success');
             
-            // Start navigation countdown
+            // Start navigation after 1 second
             setTimeout(() => {
                 setIsNavigating(true);
-                setNavigationCountdown(3); // 3 seconds countdown
-            }, 1500); // Wait 1.5 seconds before showing navigation dialog
+            }, 1000);
         } else if (uploadedCount > 0) {
             showToast(`${uploadedCount}/${totalFiles} files uploaded successfully`, 'warning');
         }
@@ -495,13 +488,11 @@ const UploadWallpaper = () => {
     // Navigate to profile manually
     const navigateToProfile = () => {
         setIsNavigating(true);
-        setNavigationCountdown(1);
     };
 
     // Cancel navigation
     const cancelNavigation = () => {
         setIsNavigating(false);
-        setNavigationCountdown(0);
         showToast('Navigation cancelled', 'info');
     };
 
@@ -597,7 +588,7 @@ const UploadWallpaper = () => {
                 onClose={hideToast} 
             />
 
-            {/* Navigation Overlay */}
+            {/* Navigation Overlay - Simplified */}
             {isNavigating && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-40">
                     <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 text-center">
@@ -606,11 +597,10 @@ const UploadWallpaper = () => {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                             </svg>
                         </div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">Navigating to Profile</h3>
-                        <p className="text-gray-600 mb-6">
-                            Taking you to your profile in {navigationCountdown} second{navigationCountdown !== 1 ? 's' : ''}...
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">Redirecting to Profile</h3>
+                        <p className="text-gray-600">
+                            Taking you to your profile page...
                         </p>
-                    
                     </div>
                 </div>
             )}

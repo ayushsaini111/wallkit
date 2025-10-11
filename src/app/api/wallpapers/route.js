@@ -8,12 +8,34 @@ export const GET = async (request) => {
     // Get query parameters
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '100'); // Default to 100
+    const limit = parseInt(searchParams.get('limit') || '50');
     const skip = (page - 1) * limit;
 
+    // For random wallpapers, we'll use a different approach
+    // Option 1: Random sort (works better with pagination)
     const wallpapers = await Wallpaper.aggregate([
-      // First stage: shuffle randomly
-      { $sample: { size: limit * page } },
+      // Match only non-private wallpapers
+      {
+        $match: {
+          isPrivate: { $ne: true }
+        }
+      },
+
+      // Add a random field for sorting
+      {
+        $addFields: {
+          randomSort: { $rand: {} }
+        }
+      },
+
+      // Sort by the random field
+      {
+        $sort: { randomSort: 1 }
+      },
+
+      // Apply pagination
+      { $skip: skip },
+      { $limit: limit },
 
       // Lookup user details
       {
@@ -75,6 +97,7 @@ export const GET = async (request) => {
           imageUrl: 1,
           compressedUrl: 1,
           tags: 1,
+          category: 1,
           createdAt: 1,
           isPrivate: 1,
           'userDetails.username': 1,
@@ -86,11 +109,11 @@ export const GET = async (request) => {
           followerCount: { $size: '$followers' },
         },
       },
-
-      // Apply pagination after randomization
-      { $skip: skip },
-      { $limit: limit },
     ]);
+
+    // Get total count for hasMore calculation
+    const totalCount = await Wallpaper.countDocuments({ isPrivate: { $ne: true } });
+    const hasMore = (skip + wallpapers.length) < totalCount;
 
     return Response.json({
       success: true,
@@ -98,7 +121,9 @@ export const GET = async (request) => {
       pagination: {
         currentPage: page,
         limit,
-        hasMore: wallpapers.length === limit,
+        hasMore,
+        total: totalCount,
+        loaded: skip + wallpapers.length
       },
     });
   } catch (error) {
