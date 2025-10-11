@@ -24,11 +24,29 @@ export default function RootLayout({ children }) {
 
   // Pages where Navbar & Footer should be hidden
   const hideLayoutRoutes = ['/auth/signin', '/auth/signup'];
-
   const shouldHideLayout = hideLayoutRoutes.includes(pathname);
 
   return (
     <html lang="en">
+      <head>
+        {/* PWA Manifest */}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#000000" />
+        
+        {/* Mobile Web App Capable */}
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="WallPickr" />
+        
+        {/* Apple Icons */}
+        <link rel="apple-touch-icon" href="/icon-192.png" />
+        <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
+        <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
+        
+        {/* Favicon */}
+        <link rel="icon" href="/favicon.ico" />
+      </head>
       <body className={`${geistSans.variable} antialiased max-w-[14400px]`}>
         <SessionProvider>
           <AuthProvider>
