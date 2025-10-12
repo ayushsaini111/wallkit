@@ -24,23 +24,24 @@ export default function TrendingSection() {
   const [trending, setTrending] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [loadingPrevious, setLoadingPrevious] = useState(false);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [hasPrevious, setHasPrevious] = useState(false);
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const [loginActionType, setLoginActionType] = useState('general');
   const [totalPages, setTotalPages] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Refs
-  const topObserverRef = useRef(null);
   const bottomObserverRef = useRef(null);
   const loadedWallpaperIds = useRef(new Set());
+  const isLoadingRef = useRef(false);
 
   // Constants
-  const LOAD_LIMIT = 50;
-  const INITIAL_PAGE = 1;
+  const LOAD_LIMIT = 50; // Load 50 wallpapers at a time
+
+  // Skeleton heights for varied loading cards
+  const skeletonHeights = [240, 280, 320, 260, 300, 350, 270, 310, 290, 330, 250, 370];
 
   const handleUnauthorizedAction = useCallback((actionType = 'general') => {
     setLoginActionType(actionType);
@@ -49,10 +50,15 @@ export default function TrendingSection() {
 
   // Load more wallpapers (next page)
   const loadMoreWallpapers = useCallback(async () => {
-    if (loadingMore || !hasMore || loadingPrevious) return;
+    if (isLoadingRef.current || !hasMore || loading) return;
+    
+    console.log(`Loading more wallpapers - Page ${currentPage + 1}`);
+    
+    isLoadingRef.current = true;
     
     try {
       setLoadingMore(true);
+      
       const nextPage = currentPage + 1;
       
       const response = await fetch(`/api/trending?page=${nextPage}&limit=${LOAD_LIMIT}`);
@@ -68,6 +74,7 @@ export default function TrendingSection() {
       }
       
       const newWallpapers = data.wallpapers || [];
+      console.log(`Loaded ${newWallpapers.length} new wallpapers for page ${nextPage}`);
       
       if (newWallpapers.length > 0) {
         // Filter duplicates
@@ -79,15 +86,26 @@ export default function TrendingSection() {
           return true;
         });
         
+        console.log(`Adding ${uniqueNew.length} unique wallpapers`);
+        
         if (uniqueNew.length > 0) {
-          setTrending(prev => [...prev, ...uniqueNew]);
+          setTrending(prev => {
+            const updated = [...prev, ...uniqueNew];
+            console.log(`Total wallpapers now: ${updated.length}`);
+            return updated;
+          });
           setCurrentPage(nextPage);
         }
         
         // Update pagination state
-        setHasMore(data.pagination?.hasMore ?? false);
+        const hasMoreWallpapers = data.pagination?.hasMore ?? false;
+        setHasMore(hasMoreWallpapers);
         setTotalPages(data.pagination?.totalPages ?? 0);
+        setTotalCount(data.pagination?.totalCount ?? 0);
+        
+        console.log(`Has more: ${hasMoreWallpapers}, Total pages: ${data.pagination?.totalPages}`);
       } else {
+        console.log('No more wallpapers to load');
         setHasMore(false);
       }
     } catch (err) {
@@ -95,74 +113,25 @@ export default function TrendingSection() {
       setError(`Failed to load more wallpapers: ${err.message}`);
     } finally {
       setLoadingMore(false);
+      isLoadingRef.current = false;
     }
-  }, [loadingMore, hasMore, loadingPrevious, currentPage]);
+  }, [hasMore, loading, currentPage]);
 
-  // Load previous wallpapers (previous page)
-  const loadPreviousWallpapers = useCallback(async () => {
-    if (loadingPrevious || !hasPrevious || loadingMore) return;
-    
-    try {
-      setLoadingPrevious(true);
-      const prevPage = currentPage - 1;
-      
-      const response = await fetch(`/api/trending?page=${prevPage}&limit=${LOAD_LIMIT}`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (!data.success) {
-        throw new Error(data.message || 'Failed to fetch wallpapers');
-      }
-      
-      const previousWallpapers = data.wallpapers || [];
-      
-      if (previousWallpapers.length > 0) {
-        // Filter duplicates
-        const uniquePrevious = previousWallpapers.filter(w => {
-          if (loadedWallpaperIds.current.has(w._id)) {
-            return false;
-          }
-          loadedWallpaperIds.current.add(w._id);
-          return true;
-        });
-        
-        if (uniquePrevious.length > 0) {
-          setTrending(prev => [...uniquePrevious, ...prev]);
-          setCurrentPage(prevPage);
-        }
-        
-        // Update pagination state
-        setHasPrevious(data.pagination?.hasPrevious ?? false);
-        setTotalPages(data.pagination?.totalPages ?? 0);
-      } else {
-        setHasPrevious(false);
-      }
-    } catch (err) {
-      console.error('Error loading previous wallpapers:', err);
-      setError(`Failed to load previous wallpapers: ${err.message}`);
-    } finally {
-      setLoadingPrevious(false);
-    }
-  }, [loadingPrevious, hasPrevious, loadingMore, currentPage]);
-
-  // Bottom Intersection Observer (for loading more)
+  // Intersection Observer - triggers only when user reaches the very end
   useEffect(() => {
-    if (!bottomObserverRef.current || !hasMore || loadingMore || loading) return;
+    if (!bottomObserverRef.current || !hasMore || loading) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
-        if (entry.isIntersecting) {
+        if (entry.isIntersecting && !isLoadingRef.current) {
+          console.log('User reached end of current wallpapers - loading next 50');
           loadMoreWallpapers();
         }
       },
       { 
         root: null,
-        rootMargin: '100px',
+        rootMargin: '0px', // No early trigger - load exactly when user reaches the end
         threshold: 0.1
       }
     );
@@ -172,46 +141,22 @@ export default function TrendingSection() {
     return () => {
       observer.disconnect();
     };
-  }, [hasMore, loadingMore, loading, loadMoreWallpapers]);
+  }, [hasMore, loading, loadMoreWallpapers]);
 
-  // Top Intersection Observer (for loading previous)
+  // Initial fetch - Load first 50 wallpapers
   useEffect(() => {
-    if (!topObserverRef.current || !hasPrevious || loadingPrevious || loading) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
-        if (entry.isIntersecting) {
-          loadPreviousWallpapers();
-        }
-      },
-      { 
-        root: null,
-        rootMargin: '100px',
-        threshold: 0.1
-      }
-    );
-
-    observer.observe(topObserverRef.current);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [hasPrevious, loadingPrevious, loading, loadPreviousWallpapers]);
-
-  // Initial fetch - Start from middle page for bi-directional scrolling
-  useEffect(() => {
-    const fetchTrending = async () => {
+    const fetchInitialTrending = async () => {
       try {
+        console.log('Fetching initial trending wallpapers...');
         setLoading(true);
-        setCurrentPage(INITIAL_PAGE);
+        setCurrentPage(1);
         setTrending([]);
         loadedWallpaperIds.current.clear();
         setHasMore(true);
-        setHasPrevious(false);
         setError(null);
+        isLoadingRef.current = false;
 
-        const response = await fetch(`/api/trending?page=${INITIAL_PAGE}&limit=${LOAD_LIMIT}`);
+        const response = await fetch(`/api/trending?page=1&limit=${LOAD_LIMIT}`);
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -221,6 +166,7 @@ export default function TrendingSection() {
         
         if (data.success) {
           const fetched = data.wallpapers || [];
+          console.log(`Initial fetch: ${fetched.length} wallpapers loaded`);
           
           // Track loaded wallpaper IDs
           fetched.forEach(w => loadedWallpaperIds.current.add(w._id));
@@ -229,8 +175,10 @@ export default function TrendingSection() {
           
           // Update pagination state
           setHasMore(data.pagination?.hasMore ?? false);
-          setHasPrevious(data.pagination?.hasPrevious ?? false);
           setTotalPages(data.pagination?.totalPages ?? 0);
+          setTotalCount(data.pagination?.totalCount ?? 0);
+          
+          console.log(`Has more after initial: ${data.pagination?.hasMore}, Total: ${data.pagination?.totalCount}`);
         } else {
           throw new Error(data.message || 'Failed to fetch trending wallpapers');
         }
@@ -242,9 +190,41 @@ export default function TrendingSection() {
       }
     };
 
-    fetchTrending();
+    fetchInitialTrending();
   }, []);
 
+  // Loading Skeleton Component
+  const LoadingSkeleton = () => (
+    <div className="columns-2 gap-2 space-y-1 sm:columns-2 md:columns-3 lg:columns-3 lg:gap-2 xl:columns-3 mx-auto px-2 sm:px-4 w-full" aria-label="Loading trending wallpapers">
+      {[...Array(12)].map((_, i) => (
+        <div 
+          key={i} 
+          className="relative bg-gradient-to-br from-white/100 via-orange-50/50 to-pink-50/50 rounded-2xl sm:rounded-3xl border border-gray-100/50 shadow-lg break-inside-avoid mb-3 overflow-hidden backdrop-blur-sm"
+          style={{ 
+            height: `${skeletonHeights[i % skeletonHeights.length]}px`,
+            animationDelay: `${i * 150}ms`
+          }}
+        >
+          <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+          <div className="p-3 sm:p-4 h-full flex flex-col justify-between">
+            <div className="space-y-2 sm:space-y-3">
+              <div className="h-3 sm:h-4 bg-gray-200/60 rounded-full w-3/4 animate-pulse"></div>
+              <div className="h-2.5 sm:h-3 bg-gray-200/40 rounded-full w-1/2 animate-pulse"></div>
+            </div>
+            <div className="flex justify-between items-center mt-3 sm:mt-4">
+              <div className="h-6 sm:h-8 w-6 sm:w-8 bg-gray-200/60 rounded-full animate-pulse"></div>
+              <div className="h-5 sm:h-6 bg-gray-200/40 rounded-full w-12 sm:w-16 animate-pulse"></div>
+            </div>
+          </div>
+          <div className="absolute top-2 right-2">
+            <p className='bg-gradient-to-r font-extrabold opacity-30 to-orange-500 from-pink-500 text-transparent bg-clip-text text-xs'>WallPickr</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  // Loading skeleton for initial load
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 relative overflow-hidden">
@@ -266,28 +246,7 @@ export default function TrendingSection() {
             </h1>
           </div>
 
-          {/* Loading Skeleton */}
-          <div className="columns-2 gap-2 space-y-1 sm:columns-2 md:columns-3 lg:columns-3 lg:gap-2 xl:columns-3 mx-auto px-2 sm:px-4 w-full">
-            {[...Array(12)].map((_, i) => (
-              <div 
-                key={i} 
-                className="relative bg-gradient-to-br from-white/100 via-orange-50/50 to-pink-50/50 rounded-2xl sm:rounded-3xl border border-gray-100/50 shadow-lg break-inside-avoid mb-3 overflow-hidden backdrop-blur-sm"
-                style={{ height: `${240 + (i % 4) * 80}px` }}
-              >
-                <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
-                <div className="p-3 sm:p-4 h-full flex flex-col justify-between opacity-70">
-                  <div className="space-y-2 sm:space-y-3">
-                    <div className="h-3 sm:h-4 bg-gray-200/60 rounded-full w-3/4 animate-pulse"></div>
-                    <div className="h-2.5 sm:h-3 bg-gray-200/40 rounded-full w-1/2 animate-pulse"></div>
-                  </div>
-                  <div className="flex justify-between items-center mt-3 sm:mt-4">
-                    <div className="h-6 sm:h-8 w-6 sm:w-8 bg-gray-200/60 rounded-full animate-pulse"></div>
-                    <div className="h-5 sm:h-6 bg-gray-200/40 rounded-full w-12 sm:w-16 animate-pulse"></div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <LoadingSkeleton />
         </div>
       </div>
     );
@@ -321,6 +280,8 @@ export default function TrendingSection() {
             Discover the most popular and stunning wallpapers
             <span className="font-medium text-orange-600"> loved by our community</span>
           </p>
+
+       
         </div>
 
         {/* Content */}
@@ -353,27 +314,6 @@ export default function TrendingSection() {
           </div>
         ) : (
           <>
-            {/* Top Loading Previous Indicator */}
-            {loadingPrevious && (
-              <div className="text-center mb-8">
-                <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-4 max-w-md mx-auto border border-gray-100 shadow-lg">
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-                    <span className="text-gray-700 font-medium">Loading previous wallpapers...</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Top Intersection Observer Target */}
-            {hasPrevious && !loadingPrevious && (
-              <div 
-                ref={topObserverRef} 
-                className="w-full mb-8 h-1"
-                style={{ minHeight: '1px' }}
-              />
-            )}
-
             {/* Wallpapers Grid */}
             <div className="columns-2 gap-1 space-y-1 sm:columns-2 md:columns-3 lg:columns-3 xl:columns-3 xl:gap-3 xl:space-y-3 px-1 md:px-3 sm:px-4 w-full">
               {trending.map((wallpaper, index) => (
@@ -386,34 +326,47 @@ export default function TrendingSection() {
               ))}
             </div>
 
-            {/* Bottom Intersection Observer Target */}
+            {/* Loading More Indicator */}
+            {loadingMore && (
+              <div className="flex items-center justify-center py-8 sm:py-12">
+                <div className="flex items-center gap-3 sm:gap-4 bg-white/90 backdrop-blur-xl rounded-xl sm:rounded-2xl px-6 sm:px-8 py-3 sm:py-4 shadow-xl border border-gray-200">
+                  <div className="w-5 sm:w-6 h-5 sm:h-6 border-2 border-gray-300 border-t-orange-500 rounded-full animate-spin" aria-hidden="true"></div>
+                  <span className="text-gray-700 font-medium text-base sm:text-lg">
+                    Loading next 50 wallpapers<span className="loading-dots"></span>
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Intersection Observer Target - positioned at the very end */}
             {hasMore && !loadingMore && (
               <div 
                 ref={bottomObserverRef} 
-                className="w-full mt-8 h-1"
-                style={{ minHeight: '1px' }}
-              />
-            )}
-
-            {/* Bottom Loading More Indicator */}
-            {loadingMore && (
-              <div className="text-center mt-8">
-                <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-4 max-w-md mx-auto border border-gray-100 shadow-lg">
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-                    <span className="text-gray-700 font-medium">Loading more wallpapers...</span>
-                  </div>
+                className="w-full h-4 flex justify-center items-center mt-8"
+              >
+                <div className="bg-gradient-to-r from-orange-200 to-pink-200 rounded-full px-4 py-2 text-xs text-gray-600 font-medium">
+                  End of current 50 - scroll to load more 🔥
                 </div>
               </div>
             )}
             
             {/* End Message */}
-            {!hasMore && !hasPrevious && trending.length > 0 && (
-              <div className="text-center py-8 mt-8">
-                <div className="bg-gradient-to-r from-orange-50 to-pink-50 backdrop-blur-xl rounded-2xl p-6 max-w-md mx-auto border border-gray-200 shadow-lg">
-                  <div className="text-4xl mb-3 animate-bounce">🎉</div>
-                  <p className="text-gray-700 text-lg font-semibold">All trending wallpapers loaded!</p>
-                  
+            {!hasMore && trending.length > 0 && (
+              <div className="text-center py-12 mt-16">
+                <div className="bg-gradient-to-r from-orange-50 to-pink-50 backdrop-blur-xl rounded-2xl p-8 max-w-lg mx-auto border border-gray-200 shadow-lg">
+                  <div className="text-5xl mb-4 animate-bounce">🎉</div>
+                  <p className="text-gray-700 text-xl font-bold mb-2">
+                    You've seen all trending wallpapers!
+                  </p>
+                  <p className="text-gray-600 text-lg mb-4">
+                    Come back later for fresh trending content
+                  </p>
+                  <button 
+                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                    className="px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-600 text-white rounded-xl hover:from-orange-600 hover:to-pink-700 transition-all duration-300 shadow-xl font-semibold"
+                  >
+                    Back to Top
+                  </button>
                 </div>
               </div>
             )}
@@ -444,6 +397,18 @@ export default function TrendingSection() {
         
         .animate-shimmer {
           animation: shimmer 1.5s infinite ease-in-out;
+        }
+
+        .loading-dots::after {
+          content: '';
+          animation: loading-dots 1.5s infinite;
+        }
+
+        @keyframes loading-dots {
+          0%, 20% { content: ''; }
+          40% { content: '.'; }
+          60% { content: '..'; }
+          80%, 100% { content: '...'; }
         }
       `}</style>
     </div>
