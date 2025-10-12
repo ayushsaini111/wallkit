@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 
 // URL of your APK download page
-const apkUrl = "https://yourdomain.com/download/wallpickr.apk";
+const apkUrl = "https://wallpickr.vercel.app/download/wallpickr.apk";
 
 // Output path
 const outputPath = path.join(__dirname, "../public/wallpickr-qr.png");
