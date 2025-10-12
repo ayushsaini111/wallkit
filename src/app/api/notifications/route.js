@@ -1,10 +1,9 @@
 // File: /api/notifications/route.js
-import { getServerSession } from 'next-auth/next';
+import { getServerSession } from 'next-auth';
 import mongoose from 'mongoose';
 import Notification from '@/models/notification.model';
 import connectToDB from '@/lib/dbConnect';
-// ✅ Import from NextAuth route handler instead of @/lib/auth
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 
 export async function GET() {
   try {
