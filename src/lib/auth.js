@@ -1,3 +1,5 @@
+// src/lib/auth.js
+import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
@@ -8,7 +10,6 @@ import { sendWelcomeEmail } from "@/lib/mailer";
 export const authOptions = {
   session: { 
     strategy: "jwt",
-    // 🔥 Increase session max age to prevent frequent re-validation
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   providers: [
@@ -28,8 +29,7 @@ export const authOptions = {
         if (!user || !user.password) throw new Error("No user found");
         const isValid = await bcrypt.compare(credentials.password, user.password);
         if (!isValid) throw new Error("Invalid password");
-        
-        // ✅ Return user with provider info for local login
+
         return {
           _id: user._id.toString(),
           id: user._id.toString(),
@@ -38,7 +38,7 @@ export const authOptions = {
           avatar: user.avatar,
           bio: user.bio,
           emailNotifications: user.emailNotifications,
-          provider: user.provider || 'local', // ✅ Ensure provider is set correctly
+          provider: user.provider || 'local',
           createdAt: user.createdAt,
         };
       },
@@ -48,83 +48,59 @@ export const authOptions = {
     signIn: "/auth/signin",
     error: "/auth/error",
   },
-   
   callbacks: {
     async signIn({ user, account, profile }) {
       await dbConnect();
-       
+
       if (account.provider === "google") {
         let existingUser = await User.findOne({ email: profile.email });
-         
+
         if (!existingUser) {
-          const baseUsername =
-            profile.name?.toLowerCase().replace(/\s+/g, "") ||
-            profile.email.split("@")[0];
-           
+          const baseUsername = profile.name?.toLowerCase().replace(/\s+/g, "") || profile.email.split("@")[0];
           let username = baseUsername;
           let suffix = 1;
-           
+
           while (await User.findOne({ username })) {
             username = `${baseUsername}${suffix++}`;
           }
-           
+
           existingUser = await User.create({
             name: profile.name,
             email: profile.email,
             avatar: profile.picture,
-            provider: "google", // ✅ Explicitly set provider
+            provider: "google",
             username,
             emailNotifications: true,
           });
-           
-          console.log("[SIGNIN] New Google user created:", existingUser.email);
-           
-          await sendWelcomeEmail({
-            name: profile.name,
-            email: profile.email,
-          });
+
+          await sendWelcomeEmail({ name: profile.name, email: profile.email });
         } else if (!existingUser.avatar) {
           existingUser.avatar = profile.picture;
           await existingUser.save();
         }
-         
-        // ✅ Set all user properties correctly for Google login
-        user._id = existingUser._id.toString();
-        user.id = existingUser._id.toString();
-        user.name = existingUser.name;
-        user.email = existingUser.email;
-        user.avatar = existingUser.avatar;
-        user.username = existingUser.username;
-        user.bio = existingUser.bio;
-        user.emailNotifications = existingUser.emailNotifications;
-        user.provider = "google"; // ✅ Explicitly set Google provider
-        user.createdAt = existingUser.createdAt;
-      }
-       
-      // ✅ For credentials (local) login, user object already has correct provider from authorize()
-      return true;
-    },
-     
-    async jwt({ token, user, account, trigger, session }) {
-      // 🔥 Handle session updates - this is key for making updates work!
-      if (trigger === "update" && session) {
-        console.log("[JWT] Session update triggered:", session);
-        
-        // Merge the updated session data into the token
-        token = {
-          ...token,
-          ...session,
-          // Ensure we keep essential fields
-          _id: token._id,
-          id: token._id,
-          email: token.email,
-        };
-        
-        console.log("[JWT] Token updated with new session data");
-        return token;
+
+        // Merge Google user data into NextAuth user object
+        Object.assign(user, {
+          _id: existingUser._id.toString(),
+          id: existingUser._id.toString(),
+          name: existingUser.name,
+          email: existingUser.email,
+          avatar: existingUser.avatar,
+          username: existingUser.username,
+          bio: existingUser.bio,
+          emailNotifications: existingUser.emailNotifications,
+          provider: "google",
+          createdAt: existingUser.createdAt,
+        });
       }
 
-      // Initial sign in
+      return true;
+    },
+    async jwt({ token, user, account, trigger, session }) {
+      if (trigger === "update" && session) {
+        return { ...token, ...session, _id: token._id, id: token._id, email: token.email };
+      }
+
       if (user) {
         token._id = user._id;
         token.id = user._id;
@@ -135,62 +111,42 @@ export const authOptions = {
         token.bio = user.bio;
         token.emailNotifications = user.emailNotifications;
         token.createdAt = user.createdAt;
-        
-        // ✅ Set provider based on account or user data
-        if (account) {
-          token.provider = account.provider === 'google' ? 'google' : 'local';
-        } else {
-          token.provider = user.provider || 'local';
-        }
-        
-        console.log(`[JWT] Token created for ${token.provider} user:`, token.email);
+        token.provider = account?.provider === "google" ? "google" : user.provider || "local";
       }
 
-      // 🔥 Always fetch fresh user data from database when token is accessed
-      // This ensures we always have the latest user data
       if (token._id && !user && trigger !== "update") {
         try {
           await dbConnect();
           const freshUser = await User.findById(token._id).lean();
-          
           if (freshUser) {
-            // Update token with fresh data from database
             token.name = freshUser.name;
             token.username = freshUser.username;
             token.avatar = freshUser.avatar;
             token.bio = freshUser.bio;
             token.email = freshUser.email;
             token.emailNotifications = freshUser.emailNotifications;
-            // Keep existing provider and other fields
-            
-            console.log("[JWT] Token refreshed with database data");
           }
-        } catch (error) {
-          console.error("[JWT] Failed to refresh user data:", error);
-          // Continue with existing token data if DB fetch fails
+        } catch (err) {
+          console.error("[JWT] Failed to refresh user:", err);
         }
       }
 
       return token;
     },
-     
     async session({ session, token }) {
-      // ✅ Set all user data in session including correct provider
-      session.user._id = token._id;
-      session.user.id = token._id;
-      session.user.name = token.name;
-      session.user.email = token.email;
-      session.user.username = token.username;
-      session.user.avatar = token.avatar;
-      session.user.image = token.avatar; // NextAuth compatibility
-      session.user.bio = token.bio;
-      session.user.emailNotifications = token.emailNotifications;
-      session.user.provider = token.provider; // ✅ This should now be correct
-      session.user.createdAt = token.createdAt;
-      
-      // Debug log to verify provider
-      console.log(`[SESSION] Session created for ${session.user.provider} user:`, session.user.email);
-             
+      session.user = {
+        _id: token._id,
+        id: token._id,
+        name: token.name,
+        email: token.email,
+        username: token.username,
+        avatar: token.avatar,
+        image: token.avatar,
+        bio: token.bio,
+        emailNotifications: token.emailNotifications,
+        provider: token.provider,
+        createdAt: token.createdAt,
+      };
       return session;
     },
   },
