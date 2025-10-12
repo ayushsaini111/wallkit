@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema(
     username: {
       type: String,
       required: true,
-      unique: true,  // ✅ already creates a unique index
+      unique: true,
       lowercase: true,
       trim: true,
       minlength: [3, "Username must be at least 3 characters long"],
@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
-      unique: true,  // ✅ same here
+      unique: true,
       lowercase: true,
       trim: true,
       match: [
@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["google", "local"],
       default: "local",
-      index: true, // ✅ keep index if you need queries by provider
+      // ← REMOVED 'index: true' from here since we have schema.index() below
     },
     password: {
       type: String,
@@ -61,7 +61,7 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// ✅ Add extra indexes ONLY if necessary
+// Add indexes
 userSchema.index({ provider: 1 });
 userSchema.index({ createdAt: -1 });
 
