@@ -38,7 +38,7 @@ export const authOptions = {
           avatar: user.avatar,
           bio: user.bio,
           emailNotifications: user.emailNotifications,
-          provider: user.provider || 'local', // ✅ Ensure provider is set correctly
+          provider: user.provider || 'local', // 
           createdAt: user.createdAt,
         };
       },
