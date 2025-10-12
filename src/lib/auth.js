@@ -12,39 +12,38 @@ export const authOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   providers: [
-  GoogleProvider({
-    clientId: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  }),
-  CredentialsProvider({
-    name: "Credentials",
-    credentials: {
-      email: { label: "Email", type: "text" },
-      password: { label: "Password", type: "password" },
-    },
-    async authorize(credentials) {
-      if (!credentials?.email || !credentials?.password) return null;
-      await dbConnect();
-      const user = await User.findOne({ email: credentials.email });
-      if (!user || !user.password) return null;
-      const isValid = await bcrypt.compare(credentials.password, user.password);
-      if (!isValid) return null;
-
-      return {
-        _id: user._id.toString(),
-        id: user._id.toString(),
-        email: user.email,
-        username: user.username,
-        avatar: user.avatar,
-        bio: user.bio,
-        emailNotifications: user.emailNotifications,
-        provider: user.provider || "local",
-        createdAt: user.createdAt,
-      };
-    },
-  }),
-],
-
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "text" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        await dbConnect();
+        const user = await User.findOne({ email: credentials.email });
+        if (!user || !user.password) throw new Error("No user found");
+        const isValid = await bcrypt.compare(credentials.password, user.password);
+        if (!isValid) throw new Error("Invalid password");
+        
+        // ✅ Return user with provider info for local login
+        return {
+          _id: user._id.toString(),
+          id: user._id.toString(),
+          email: user.email,
+          username: user.username,
+          avatar: user.avatar,
+          bio: user.bio,
+          emailNotifications: user.emailNotifications,
+          provider: user.provider || 'local', // ✅ Ensure provider is set correctly
+          createdAt: user.createdAt,
+        };
+      },
+    }),
+  ],
   pages: {
     signIn: "/auth/signin",
     error: "/auth/error",
