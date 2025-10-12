@@ -1,6 +1,8 @@
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Download } from "lucide-react";
 
 export default function ModernFooter() {
+  const apkUrl = "/wallpickr-v1.apk";
+
   return (
     <footer className="relative bg-gradient-to-b from-gray-950 via-black to-gray-900 border-t border-gray-800">
       {/* Subtle grid pattern overlay */}
@@ -64,23 +66,22 @@ export default function ModernFooter() {
             </ul>
           </div>
 
-          {/* Legal Links */}
+          {/* Download Section */}
           <div className="text-left">
-            <h3 className="text-white font-semibold text-lg sm:text-xl mb-6">Legal</h3>
-            <ul className="flex flex-col items-start space-y-3 sm:space-y-4">
-              {["Cookie Policy", "Ad Policy"].map((item) => (
-                <li key={item}>
-                  <a
-                    href="/policy"
-                    className="text-gray-400 hover:text-white transition-colors duration-200 group inline-flex items-center text-base sm:text-lg"
-                  >
-                    {item}
-                    <ExternalLink className="w-3 h-3 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </a>
-                </li>
-              ))}
-            </ul>
+            <h3 className="text-white font-semibold text-lg sm:text-xl mb-6">Get the App</h3>
+            <a
+              href={apkUrl}
+              download
+              className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+            >
+              <Download className="w-5 h-5" />
+              <span>Download APK</span>
+            </a>
+            <p className="text-gray-400 text-sm mt-4">
+              Version 1.0 • Android
+            </p>
           </div>
+      
         </div>
         
         {/* Divider */}
