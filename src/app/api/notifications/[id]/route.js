@@ -1,9 +1,11 @@
-// File: /api/notifications/[id]/route.js
-import { getServerSession } from 'next-auth';
+// File: /app/api/notifications/[id]/route.js
+import { getServerSession } from 'next-auth/next';
 import mongoose from 'mongoose';
 import Notification from '@/models/notification.model';
 import connectToDB from '@/lib/dbConnect';
-import { authOptions } from '@/lib/auth';
+
+// Import authOptions from the NextAuth handler
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 export async function PATCH(req, { params }) {
   try {

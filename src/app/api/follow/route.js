@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import dbConnect from '@/lib/dbConnect';
-import {Follow} from '@/models/follow.model';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import connectToDB from '@/lib/dbConnect'; // ✅ Fixed: matches the export name
+import { Follow } from '@/models/follow.model';
 import { User } from '@/models/user.model';
 
 export async function POST(req) {
-  await dbConnect();
+  await connectToDB(); // ✅ Fixed: using correct function name
 
   try {
     const { following } = await req.json();
@@ -76,7 +76,7 @@ export async function POST(req) {
 }
 
 export async function GET(req) {
-  await dbConnect();
+  await connectToDB(); // ✅ Fixed: using correct function name
 
   try {
     const session = await getServerSession(authOptions);
