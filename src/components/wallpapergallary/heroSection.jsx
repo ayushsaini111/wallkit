@@ -346,7 +346,7 @@ if (contentArea) {
         {/* Title with Enhanced Animation */}
         <div className="text-center mb-6 sm:mb-8">
           <div className="flex items-center justify-center gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6">
-            <h1 className="text-[8vw] sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black bg-gradient-to-b from-white via-white to-white bg-clip-text text-transparent drop-shadow-2xl leading-tight">
+            <h1 className="text-[8vw] sm:text-5xl md:text-7xl lg:text-7xl xl:text-7xl font-black bg-gradient-to-b from-white via-white to-white bg-clip-text text-transparent drop-shadow-2xl leading-tight">
               Design Your Display
             </h1>
           </div>
