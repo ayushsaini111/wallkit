@@ -9,6 +9,7 @@ import CollectionFoldersModal from "@/components/collection/CollectionFoldersMod
 import { useToggleLike } from '@/components/wallpaperCard/useToggleLike';
 import { useToggleSave } from '@/components/wallpaperCard/useToggleSave';
 import { StorageService } from '@/components/wallpaperCard/StorageService';
+import { LoginPopup } from '@/components/loginpopup'; // Added import
 import {
   Heart,
   Download,
@@ -48,7 +49,7 @@ const WallpaperDetailPage = () => {
   const { data: session } = useSession();
   const wallpaperId = params.id;
 
-  // State management - Removed loading states
+  // State management
   const [wallpaper, setWallpaper] = useState(null);
   const [loading, setLoading] = useState(true);
   const [shareStatus, setShareStatus] = useState('idle');
@@ -56,15 +57,23 @@ const WallpaperDetailPage = () => {
   const [imageError, setImageError] = useState(false);
   const [showDownloadOptions, setShowDownloadOptions] = useState(false);
   const [viewCount, setViewCount] = useState(0);
+  
+  // Login popup states
+  const [showLoginPopup, setShowLoginPopup] = useState(false);
+  const [loginActionType, setLoginActionType] = useState('general');
+
+  // Handle unauthorized actions
+  const handleUnauthorizedAction = useCallback((actionType = 'general') => {
+    console.log('Unauthorized action triggered:', actionType);
+    setLoginActionType(actionType);
+    setShowLoginPopup(true);
+  }, []);
 
   // Enhanced hooks with StorageService integration
   const { isLiked, likeCount, toggleLike } = useToggleLike(
     wallpaperId,
     wallpaper?.likeCount || 0,
-    (action) => {
-      console.log(`Unauthorized action: ${action}`);
-      router.push('/auth/signin');
-    }
+    handleUnauthorizedAction // Updated to use our handler
   );
 
   const {
@@ -76,10 +85,7 @@ const WallpaperDetailPage = () => {
     isLoading: isSaveLoading
   } = useToggleSave(
     wallpaperId,
-    (action) => {
-      console.log(`Unauthorized action: ${action}`);
-      router.push('/auth/signin');
-    }
+    handleUnauthorizedAction // Updated to use our handler
   );
 
   // Enhanced download handler
@@ -202,10 +208,6 @@ const WallpaperDetailPage = () => {
     setShowDownloadOptions(true);
   }, []);
 
-  const onUnauthorizedAction = useCallback(() => {
-    router.push('/auth/signin');
-  }, [router]);
-
   // Reset states when wallpaper changes
   useEffect(() => {
     if (wallpaper) {
@@ -274,7 +276,7 @@ const WallpaperDetailPage = () => {
       )}
 
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        {/* 🔥 FIXED: Enhanced Mobile Header - Transparent backdrop */}
+        {/* Enhanced Mobile Header - Transparent backdrop */}
         <div className="flex sm:hidden items-center justify-between p-3 bg-white/70 backdrop-blur-md border-b border-gray-200/30 sticky top-0 z-50">
           <button
             onClick={handleBack}
@@ -292,7 +294,7 @@ const WallpaperDetailPage = () => {
         {/* Main Content - No gap between image and details on mobile */}
         <div className="flex flex-col sm:flex-row max-w-7xl mx-auto sm:p-6 lg:p-8 gap-0 sm:gap-6 h-[calc(100vh-4rem)] sm:h-auto">
           
-          {/* 🔥 OPTIMIZED: Image Section - No white background, larger feel */}
+          {/* Image Section - Full image display on mobile */}
           <div className="w-full sm:w-2/3 lg:w-2/3 relative flex items-center justify-center overflow-hidden sm:overflow-visible">
             
             <div 
@@ -303,10 +305,10 @@ const WallpaperDetailPage = () => {
               }}
             >
               
-              {/* 🔥 SIMPLIFIED: Image Container - No white background */}
+              {/* Image Container - Full image display on mobile */}
               <div className="flex-shrink-0 w-full h-[45vh] sm:h-full sm:min-h-0 relative">
                 
-                {/* 🔥 CLEAN: Desktop Back Button - Floating, transparent backdrop */}
+                {/* Desktop Back Button - Floating, transparent backdrop */}
                 <div className="hidden sm:block absolute top-4 left-4 z-20">
                   <button
                     onClick={handleBack}
@@ -317,7 +319,7 @@ const WallpaperDetailPage = () => {
                   </button>
                 </div>
 
-                {/* 🔥 CLEAN: Full Screen Image Display - No borders, no background, white loading */}
+                {/* 🔥 FIXED: Full Screen Image Display - Show full image on mobile */}
                 <div className="relative w-full h-full">
                   {imageError ? (
                     <div className="flex items-center justify-center text-gray-500 text-center w-full h-full bg-gradient-to-br from-gray-100 to-gray-200">
@@ -332,7 +334,7 @@ const WallpaperDetailPage = () => {
                       src={wallpaper.compressedUrl || wallpaper.imageUrl}
                       alt={wallpaper.title || 'Wallpaper'}
                       fill
-                      className="object-cover sm:object-contain sm:rounded-2xl shadow-2xl"
+                      className="object-contain sm:rounded-2xl shadow-2xl" // 🔥 Changed: object-contain for full image display on mobile
                       onError={handleImageError}
                       priority={true}
                       quality={90}
@@ -396,7 +398,7 @@ const WallpaperDetailPage = () => {
                   <div className="flex items-center gap-2">
                     <FollowButton
                       userId={wallpaper.userDetails?._id}
-                      onUnauthorizedAction={onUnauthorizedAction}
+                      onUnauthorizedAction={handleUnauthorizedAction} // Updated
                       className="flex-1 text-xs h-9"
                       size="small"
                       initialFollowerCount={wallpaper?.userDetails?.followerCount || wallpaper?.followerCount || 0}
@@ -647,7 +649,7 @@ const WallpaperDetailPage = () => {
                   <div className="flex items-center gap-2">
                     <FollowButton
                       userId={wallpaper.userDetails?._id}
-                      onUnauthorizedAction={onUnauthorizedAction}
+                      onUnauthorizedAction={handleUnauthorizedAction} // Updated
                       className="flex-1 text-base h-10"
                       size="small"
                       initialFollowerCount={wallpaper?.userDetails?.followerCount || wallpaper?.followerCount || 0}
@@ -861,6 +863,13 @@ const WallpaperDetailPage = () => {
         onDownload={handleAdvancedDownload}
         wallpaper={wallpaper}
         isDownloading={isDownloading}
+      />
+
+      {/* 🔥 NEW: Login Popup */}
+      <LoginPopup 
+        isVisible={showLoginPopup} 
+        onClose={() => setShowLoginPopup(false)} 
+        actionType={loginActionType}
       />
 
       {/* Enhanced Mobile-Specific Scrollbar Styles */}

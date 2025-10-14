@@ -315,7 +315,7 @@ export default function TrendingSection() {
         ) : (
           <>
             {/* Wallpapers Grid */}
-            <div className="columns-2 gap-1 space-y-1 sm:columns-2 md:columns-3 lg:columns-3 xl:columns-3 xl:gap-3 xl:space-y-3 px-1 md:px-3 sm:px-4 w-full">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-2 lg:gap-3 xl:gap-4 px-1 md:px-3 sm:px-4 w-full">
               {trending.map((wallpaper, index) => (
                 <WallpaperCard 
                   key={wallpaper._id} 

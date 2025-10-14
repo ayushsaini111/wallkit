@@ -11,33 +11,50 @@ const RouteGuard = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
 
-  const publicRoutes = ['/', '/about', '/trending', '/explore', "/policy", "/termsCondition", '/auth/signin', '/auth/signup'];
+  // Public routes
+  const publicRoutes = [
+    '/',
+    '/about',
+    '/trending',
+    '/explore',
+    '/policy',
+    '/termsCondition',
+    '/auth/signin',
+    '/auth/signup',
+    '/download',
+    '/wallpaper/[id]', // Dynamic wallpaper route
+  ];
 
   useEffect(() => {
-    if (status === 'loading') return; // Still loading
+    if (status === 'loading') return; // Wait for session to load
 
-    const isPublicRoute = publicRoutes.includes(pathname);
+    // Check if current route is public
+    const isPublicRoute = publicRoutes.some(route => {
+      if (route.includes('[id]')) {
+        // Handle dynamic routes like /wallpaper/:id
+        return pathname.startsWith(route.replace('[id]', ''));
+      }
+      return route === pathname;
+    });
 
+    // Redirect unauthenticated users from private routes
     if (!session && !isPublicRoute) {
-      console.log(`[ROUTE GUARD] Redirecting from ${pathname} to /signin`);
-      router.push('/auth/signin');
+      console.log(`[ROUTE GUARD] Redirecting from ${pathname} to /auth/signin`);
+      router.replace('/auth/signin');
       return;
     }
 
+    // Redirect authenticated users away from signin/signup pages
     if (session && (pathname === '/auth/signin' || pathname === '/auth/signup')) {
-      router.push('/');
+      router.replace('/');
       return;
     }
   }, [session, status, pathname, router]);
 
   return (
     <>
-      {/* Orange Navigation Loader */}
-      <NavigationLoader 
-        color="#f97316"
-        height="2px"
-        zIndex={9999}
-      />
+      {/* Top navigation loader */}
+      <NavigationLoader color="#f97316" height="2px" zIndex={9999} />
       {children}
     </>
   );
