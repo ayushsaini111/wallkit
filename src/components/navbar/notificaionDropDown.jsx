@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Avatar from '../Avatar';
 import {
   Bell,
@@ -17,6 +18,7 @@ const NotificationDropdown = ({
   triggerRef,
   isMobile = false 
 }) => {
+  const router = useRouter();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -79,6 +81,54 @@ const NotificationDropdown = ({
     }
   };
 
+  // Generate clean URL based on notification type
+  const getNotificationUrl = (notification) => {
+    switch (notification.type) {
+      case 'like':
+      case 'comment':
+      case 'download':
+        // Navigate to wallpaper detail page
+        if (notification.wallpaper?._id) {
+          return `/wallpaper/${notification.wallpaper._id}`;
+        }
+        break;
+      
+      case 'follow':
+        // Navigate to user profile
+        if (notification.sender?.username || notification.senderDetails?.username) {
+          const username = notification.sender?.username || notification.senderDetails?.username;
+          return `/profile/${username}`;
+        }
+        break;
+      
+      default:
+        // If there's a specific link provided, try to clean it
+        if (notification.link) {
+          // Convert old query parameter URLs to clean URLs
+          const url = new URL(notification.link, window.location.origin);
+          
+          // Handle wallpaper URLs
+          const wallpaperParam = url.searchParams.get('wallpaper');
+          if (wallpaperParam) {
+            return `/wallpaper/${wallpaperParam}`;
+          }
+          
+          // Handle profile URLs
+          const profileParam = url.searchParams.get('profile');
+          if (profileParam) {
+            return `/profile/${profileParam}`;
+          }
+          
+          // Return pathname if no query params to convert
+          return url.pathname;
+        }
+        break;
+    }
+    
+    // Default fallback
+    return '/notifications';
+  };
+
   // Handle individual notification click
   const handleNotificationClick = async (notification) => {
     try {
@@ -94,15 +144,15 @@ const NotificationDropdown = ({
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
 
-      if (notification.link) {
-        window.location.href = notification.link;
-      }
+      // Navigate using clean URLs
+      const cleanUrl = getNotificationUrl(notification);
+      router.push(cleanUrl);
 
       if (!isMobile) {
         onClose();
       }
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      console.error('Error handling notification click:', error);
     }
   };
 
@@ -154,6 +204,20 @@ const NotificationDropdown = ({
     }
   };
 
+  // Handle profile click - navigate to clean profile URL
+  const handleProfileClick = (notification, e) => {
+    e.stopPropagation();
+    const username = notification.sender?.username || 
+                    notification.senderDetails?.username;
+    
+    if (username) {
+      router.push(`/profile/${username}`);
+      if (!isMobile) {
+        onClose();
+      }
+    }
+  };
+
   const getNotificationMessage = (notification) => {
     const senderName = notification.sender?.username || 
                       notification.sender?.name ||
@@ -165,40 +229,66 @@ const NotificationDropdown = ({
       case 'like':
         return (
           <span>
-            <span className="font-medium">{senderName}</span> liked your wallpaper
+            <button 
+              onClick={(e) => handleProfileClick(notification, e)}
+              className="font-medium text-blue-600 hover:text-blue-700 transition-colors"
+            >
+              {senderName}
+            </button> liked your wallpaper
             {notification.wallpaper && (
-              <span className="font-medium text-blue-600"> "{notification.wallpaper.title}"</span>
+              <span className="font-medium text-purple-600"> "{notification.wallpaper.title}"</span>
             )}
           </span>
         );
       case 'comment':
         return (
           <span>
-            <span className="font-medium">{senderName}</span> commented on your wallpaper
+            <button 
+              onClick={(e) => handleProfileClick(notification, e)}
+              className="font-medium text-blue-600 hover:text-blue-700 transition-colors"
+            >
+              {senderName}
+            </button> commented on your wallpaper
             {notification.wallpaper && (
-              <span className="font-medium text-blue-600"> "{notification.wallpaper.title}"</span>
+              <span className="font-medium text-purple-600"> "{notification.wallpaper.title}"</span>
             )}
           </span>
         );
       case 'follow':
         return (
           <span>
-            <span className="font-medium">{senderName}</span> started following you
+            <button 
+              onClick={(e) => handleProfileClick(notification, e)}
+              className="font-medium text-blue-600 hover:text-blue-700 transition-colors"
+            >
+              {senderName}
+            </button> started following you
           </span>
         );
       case 'download':
         return (
           <span>
-            <span className="font-medium">{senderName}</span> downloaded your wallpaper
+            <button 
+              onClick={(e) => handleProfileClick(notification, e)}
+              className="font-medium text-blue-600 hover:text-blue-700 transition-colors"
+            >
+              {senderName}
+            </button> downloaded your wallpaper
             {notification.wallpaper && (
-              <span className="font-medium text-blue-600"> "{notification.wallpaper.title}"</span>
+              <span className="font-medium text-purple-600"> "{notification.wallpaper.title}"</span>
             )}
           </span>
         );
       default:
         return (
           <span>
-            You have a new notification from <span className="font-medium">{senderName}</span>
+            You have a new notification from 
+            <button 
+              onClick={(e) => handleProfileClick(notification, e)}
+              className="font-medium text-blue-600 hover:text-blue-700 transition-colors ml-1"
+            >
+              {senderName}
+            </button>
           </span>
         );
     }
@@ -380,11 +470,14 @@ const NotificationDropdown = ({
               >
                 {/* Avatar */}
                 <div className="flex-shrink-0 relative">
-                  <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-white shadow-lg group-hover:ring-blue-200 transition-all duration-300">
+                  <div 
+                    className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-white shadow-lg group-hover:ring-blue-200 transition-all duration-300 cursor-pointer"
+                    onClick={(e) => handleProfileClick(notification, e)}
+                  >
                     <Avatar
                       src={notification.sender?.avatar || notification.senderDetails?.avatar}
                       alt={notification.sender?.username || notification.sender?.name || 'User'}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
                     />
                   </div>
                   {!notification.isRead && (
@@ -479,6 +572,28 @@ const NotificationDropdown = ({
 
         .animate-fadeIn {
           animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: rgba(156, 163, 175, 0.5);
+          border-radius: 2px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background-color: rgba(107, 114, 128, 0.7);
         }
       `}</style>
     </div>

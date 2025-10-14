@@ -60,7 +60,7 @@ export const notifyFollowersAfterUpload = async ({ wallpaperId }) => {
         sender: uploaderId,
         wallpaper: wallpaper._id,
         type: 'new_wallpaper',
-        link: `/?wallpaper=${wallpaper._id}`,
+        link: `/wallpaper/${wallpaper._id}`,
       });
       console.log(`🔔 Notification created for follower ${followerId}`);
 
@@ -85,7 +85,7 @@ html: `
       </p>
 
       <div style="text-align: center; margin: 24px 0;">
-        <a href="${process.env.NEXTAUTH_URL}/?wallpaper=${wallpaper._id}" 
+        <a href="${process.env.NEXTAUTH_URL}/wallpaper/${wallpaper._id}" 
            style="display: inline-block; background: #2563eb; color: #fff; padding: 12px 24px; 
                   text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600;">
           🔗 View Wallpaper
