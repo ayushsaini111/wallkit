@@ -285,9 +285,7 @@ const WallpaperDetailPage = () => {
             <ArrowLeft className="w-4 h-4 text-gray-700" />
             <span className="text-gray-700 text-sm font-medium">Back</span>
           </button>
-          <h3 className="text-gray-900 font-semibold text-sm truncate max-w-[60%]">
-            {wallpaper.title || 'Wallpaper'}
-          </h3>
+          
           <div className="w-16"></div>
         </div>
 
