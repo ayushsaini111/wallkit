@@ -26,3 +26,28 @@ body {
 }
 
 
+/* === Custom Scrollbar (works in Chrome, Edge, Safari) === */
+::-webkit-scrollbar {
+  width: 10px;             /* width of the vertical scrollbar */
+  height: 10px;            /* height of the horizontal scrollbar */
+}
+
+::-webkit-scrollbar-track {
+  background: #0f0f0f;     /* track color */
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #ff710c, #fb923c); /* thumb gradient */
+  border-radius: 10px;      /* rounded edges */
+}
+
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ff710c, #ff710c);
+}
+
+/* === For Firefox === */
+* {
+  scrollbar-width: thin;             /* "auto" or "thin" */
+  scrollbar-color: #f46b09 #ffffff;  /* thumb color and track color */
+}
